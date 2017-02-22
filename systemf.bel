@@ -288,24 +288,32 @@ rec tyrel_total_fl: {g:ty_ctx}{A:[g |- ty_f]}  [g |- typ_der A] =
 exist_tyrel: obj -> type.
 ex_tyrel: tyrel A F -> exist_tyrel F.
 
-schema ty_ctx' =  block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp;
+schema ty_ctx' =  block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp +
+                  some [a:ty_f,b:obj] block y:obj, u:oftype y b, v:tyrel a b, w:oftype b prp;
+
+% rec tyrel_total_lf': (g:ty_ctx') [g |- oftype F X] -> [g |- eq_obj X prp] -> [g |- exist_tyrel F] = ?
+%  / total d (tyrel_total_lf g f x d e) /
 
 % BUG NOTE: with only the two pi cases, coverage check diverges ... stack overflow
 rec tyrel_total_lf: (g:ty_ctx') [g |- oftype F prp] -> [g |- exist_tyrel F] =
 %    / total d (tyrel_total_lf g f d) /
       fn d => case d of
-      | [g |- #p.4] => [g |- ex_tyrel #p.3]
-%      | [g |- t_pi Da Dc \y.\v.Db] => ? % r_all
-      | [g |- t_pi t_ax u_typ \y.\v.Db] => ? % r_all
-      | [g |- t_pi Da u_prp \y.\v.Db] => ? % r_arr
+%      | [g |- #p.4] => [g |- ex_tyrel #p.3]
+%      | {#p: [g |- block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp]} [g |- #p.4] => [g |- ex_tyrel  #p.3]
+%      | {#a:ty_f, #b: obj, #p: [g |- block y:obj, u:oftype y #b, v:tyrel #a #b, w:oftype #b prp]} [g |- #p.4] => [g |- ex_tyrel  #p.3]
+      | [g |- t_pi t_ax u_typ \y.\v.Db] =>
+        let [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- ex_tyrel R[..,b.1,b.2,b.3]] =
+            tyrel_total_lf [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- Db[..,b.2,b.4]] in
+        [g |- ex_tyrel (r_all \x.\y.\u.R)]
+      | [g |- t_pi Da u_prp \y.\v.Db] =>
+        let [g |- ex_tyrel R1] = tyrel_total_lf [g |- Da] in
+        let [g |- R1] : [g |- tyrel A C] = [g |- R1] in
+        let [g, b:block y:obj, u:oftype y _, v:tyrel _ _, w:oftype _ prp |- ex_tyrel R2[..,b.1]] =
+            tyrel_total_lf [g, b:block y:obj, u:oftype y C[..], v:tyrel A[..] C[..], w:oftype C[..] prp |- Db[..,b.1,b.2]] in
+        [g |- ex_tyrel (r_arr R1 \x.R2)]
 %      | [g |- t_app Da Db] => ? % should not occur ...
 % | {#p: [g |- block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp]}
     %       [g |- #p.4] => [g |- ex_tyrel  #p.3]
-
-    % | [g |- t_pi t_ax u_typ \y.\v.Db] =>
-    %   let [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- ex_tyrel R[..,b.1,b.2,b.3]] =
-    %       tyrel_total_lf [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- Db[..,b.2,b.4]] in
-    %   [g |- ex_tyrel (r_all \x.\y.\u.R)]
 
     % | {#p: [g |- block y:obj, v:oftype y prp]}
     %       [g |- #p.2] => ?
