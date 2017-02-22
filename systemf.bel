@@ -1,0 +1,382 @@
+%
+% System F: Types, Terms, Typing Rules
+
+LF ty_f: type =
+   | arr : ty_f -> ty_f -> ty_f
+   | all : (ty_f -> ty_f) -> ty_f;
+
+%  arr x y
+
+LF tm_f: type =
+   | app : tm_f -> tm_f -> tm_f
+   | lam : ty_f -> (tm_f -> tm_f) -> tm_f
+   | tapp: tm_f -> ty_f -> tm_f
+   | tlam: (ty_f -> tm_f) -> tm_f;
+
+
+LF hastype: tm_f -> ty_f -> type =
+   | f_app : hastype M (arr A B) -> hastype N A
+	     -> hastype (app M N) B
+   | f_lam : ({x:tm_f} hastype x A -> hastype (M x) B)
+	     -> hastype (lam A M) (arr A B)
+   | f_tapp: hastype M (all A)
+	     -> hastype (tapp M B) (A B)
+   | f_tlam: ({a:ty_f} hastype (M a) (A a))
+	     -> hastype (tlam M) (all A)
+;
+
+% Single-sorted lambda2-calc. / PTS
+LF obj: type =
+   | apply: obj -> obj -> obj
+   | fun  : obj -> (obj -> obj) -> obj
+   | typ: obj  % type? --- actually PTS box
+   | prp: obj  % kind? --- actually PTS star
+   | pi   : obj -> (obj -> obj) -> obj;
+
+LF univ : obj -> type =
+   | u_typ: univ typ
+   | u_prp: univ prp;
+
+LF oftype: obj -> obj -> type =
+   | t_ax:  oftype prp typ
+   | t_pi   :  oftype A U
+	       -> univ U
+	       -> ({a:obj} oftype a A -> oftype (B a) prp)
+	       -> oftype (pi A B) prp
+
+   | t_lam  : oftype A U
+	      -> univ U
+	      -> ({x:obj}oftype x A -> oftype (M x) (B x))
+	      -> ({a:obj}oftype a A -> oftype (B a) prp)
+	      -> oftype (fun A M) (pi A B)
+
+   | t_app: oftype M (pi A B) -> oftype N A
+	      -> oftype (apply M N) (B N)
+;
+
+
+LF tyrel: ty_f -> obj -> type =
+   | r_arr: tyrel A C
+	    -> ({x:obj}tyrel B (S x))
+	    -> tyrel (arr A B) (pi C S)
+   | r_all: ({x:ty_f}{y:obj}tyrel x y -> tyrel (R x) (S y))
+	    -> tyrel (all R) (pi prp S)
+;
+
+LF tmrel: tm_f -> obj -> type =
+   | r_app: tmrel M L
+	    -> tmrel N P
+	    -> tmrel (app M N) (apply L P)
+   | r_lam: tyrel A B
+	    -> ({x:tm_f}{y:obj}tmrel x y -> tmrel (R x) (S y))
+	    -> tmrel (lam A R) (fun B S)
+   | r_tapp: tmrel M L
+	    -> tyrel A P
+	    -> tmrel (tapp M A) (apply L P)
+   | r_tlam: ({x:ty_f}{y:obj}tyrel x y -> tmrel (R x) (S y))
+	    -> tmrel (tlam R) (fun prp S)
+;
+
+LF eq_obj : obj -> obj -> type =
+   | o_refl: eq_obj B B;
+
+false : type.
+
+schema pts_ctx = some [a:obj] block y:obj, v:oftype y a;
+
+rec prp_prp_contra: (g:pts_ctx)[g |- oftype prp prp] -> [ |- false] =
+    / total d (prp_prp_contra g d) /
+      fn d => impossible d;
+
+schema ty_ctx =  block x:ty_f, y:obj, u:tyrel x y + obj;
+
+rec tyrel_func: (g:ty_ctx)[g |- tyrel A B'] -> [g |- tyrel A B] -> [g |- eq_obj B' B] =
+    / total d (tyrel_func g m a b d) /
+    fn d => fn c => case d of
+    | [g |- r_arr R1 \x.R2] =>
+      let [g |- r_arr S1 \x.S2] = c in
+      let [g |- o_refl] = tyrel_func [g |- R1] [g |- S1] in
+      let [g, x:obj |- o_refl] = tyrel_func [g, x:obj |- R2] [g, x:obj |- S2] in
+      [ g |- o_refl]
+
+    | [g |- r_all \x.\y.\u.R] =>
+      let [g |- r_all \x.\y.\u.S] = c in
+      let [g, b:block x:ty_f, y:obj, u:tyrel x y |- o_refl] =
+	  tyrel_func [g, b:block x:ty_f, y:obj, u:tyrel x y |- R[..,b.1,b.2, b.3]] [g,b |- S[..,b.1,b.2,b.3]] in
+      [g |- o_refl]
+
+    | [g |- #p.3] =>
+      let [g |- #q.3] = c in
+      [g |- o_refl]
+;
+
+schema t_ctx = block x:tm_f, y:obj, u:tmrel x y + block x:ty_f, y:obj, u:tyrel x y;
+
+
+rec tmrel_func: (g:t_ctx)[g |- tmrel M A] -> [g |- tmrel M B] -> [g |- eq_obj A B] =
+    / total d (tmrel_func g m a b d) /
+fn d, c => case d of
+| [g |- r_app D1 D2] =>
+  let [g |- r_app C1 C2] = c in
+  let [g |- o_refl] = tmrel_func [g |- D1] [g |- C1] in
+  let [g |- o_refl] = tmrel_func [g |- D2] [g |- C2] in
+  [g |- o_refl]
+
+| [g |- r_lam Ra \x.\y.\u.Rt] =>
+  let [g |- r_lam Sa \x.\y.\u.St] = c in
+  let [g |- o_refl] = tyrel_func [g |- Ra] [g |- Sa] in
+  let [g, b: block x:tm_f, y:obj, u:tmrel x y |- o_refl] =
+      tmrel_func [g, b: block x:tm_f, y:obj, u:tmrel x y |- Rt[..,b.1,b.2,b.3]]
+		 [g, b |- St[..,b.1,b.2,b.3]] in
+  [g |- o_refl]
+
+| [g |- r_tapp D1 D2] =>
+  let [g |- r_tapp C1 C2] = c in
+  let [g |- o_refl] = tmrel_func [g |- D1] [g |- C1] in
+  let [g |- o_refl] = tyrel_func [g |- D2] [g |- C2] in
+  [g |- o_refl]
+
+| [g |- r_tlam \x.\y.\u.R] =>
+  let [g |- r_tlam \x.\y.\u.S] = c in
+  let [g,  b: block x:ty_f, y:obj, u:tyrel x y |- o_refl] =
+      tmrel_func [g, b: block x:ty_f, y:obj, u:tyrel x y |- R[..,b.1,b.2,b.3]]
+		 [g, b |- S[.., b.1, b.2, b.3]] in
+  [g |- o_refl]
+
+| [g |- #p.3] =>
+  let [g |- #q.3] = c in
+  [g |- o_refl]
+;
+
+LF eq_ty: ty_f -> ty_f -> type =
+   | ty_refl: eq_ty A A;
+
+LF eq_tm: tm_f -> tm_f -> type =
+   | tm_refl: eq_tm M M;
+
+
+rec tyrel_inj: (g:ty_ctx)[g |- tyrel A F] -> [g |- tyrel B F] -> [g |- eq_ty A B] =
+    / total d (tyrel_inj g m a b d) /
+    fn d, c => case d of
+| [g |- r_arr R1 \x.R2] =>
+  let [g |- r_arr S1 \x.S2] = c in
+  let [g |- ty_refl] = tyrel_inj [g |- R1] [g |- S1] in
+  let [g, x:obj |- ty_refl] = tyrel_inj [g, x:obj |- R2] [g, x:obj |- S2] in [ g |- ty_refl]
+
+| [g |- r_all \x.\y.\u.R] =>
+  let [g |- r_all \x.\y.\u.S] = c in
+  let [g, b:block x:ty_f, y:obj, u:tyrel x y |- ty_refl] =
+      tyrel_inj [g, b:block x:ty_f, y:obj, u:tyrel x y |- R[..,b.1,b.2, b.3]]
+                 [g,b |- S[..,b.1,b.2,b.3]] in [g |- ty_refl]
+
+| [g |- #p.3] =>
+  let [g |- #q.3] = c in [g |- ty_refl]
+;
+
+
+
+rec tmty_rel: (g:t_ctx)[g |- tmrel A F] -> [g |- tyrel B F] -> [ |- false] =
+/ total c (tmty_rel g a b f d c) /
+    fn d, c => case c of
+| [g |- r_arr R1 \x.R2]   => impossible d
+| [g |- r_all \x.\y.\u.R] => impossible d
+| {#p:[g |- block  x:ty_f, y:obj, u:tyrel x y]}
+  [g |- #p.3] => impossible d
+;
+
+rec tmrel_inj: (g:t_ctx)[g |- tmrel A F] -> [g |- tmrel B F] -> [g |- eq_tm A B] =
+    / total d (tmrel_inj g f a b d) /
+    fn d, c => case d of
+| [g |- r_app D1 D2] => (case c of
+  | [g |- r_app C1 C2] =>
+    let [g |- tm_refl] = tmrel_inj [g |- D1] [g |- C1] in
+    let [g |- tm_refl] = tmrel_inj [g |- D2] [g |- C2] in
+    [g |- tm_refl]
+  | [g |- r_tapp C1 C2] => impossible (tmty_rel [g |- D2] [g |- C2]) )
+
+| [g |- r_lam Ra \x.\y.\u.Rt] =>
+  let [g |- r_lam Sa \x.\y.\u.St] = c in
+  let [g |- ty_refl] = tyrel_inj [g |- Ra] [g |- Sa] in
+  let [g, b: block x:tm_f, y:obj, u:tmrel x y |- tm_refl] =
+      tmrel_inj [g, b: block x:tm_f, y:obj, u:tmrel x y |- Rt[..,b.1,b.2,b.3]]
+		 [g, b |- St[..,b.1,b.2,b.3]] in
+  [g |- tm_refl]
+
+| [g |- r_tapp D1 D2] => (case c of
+  | [g |- r_tapp C1 C2] =>
+    let [g |- tm_refl] = tmrel_inj [g |- D1] [g |- C1] in
+    let [g |- ty_refl] = tyrel_inj [g |- D2] [g |- C2] in
+    [g |- tm_refl]
+  | [g |- r_app C1 C2] => impossible (tmty_rel [g |- C2] [g |- D2]) )
+
+| [g |- r_tlam \x.\y.\u.R] =>
+  let [g |- r_tlam \x.\y.\u.S] = c in
+  let [g,  b: block x:ty_f, y:obj, u:tyrel x y |- tm_refl] =
+      tmrel_inj [g, b: block x:ty_f, y:obj, u:tyrel x y |- R[..,b.1,b.2,b.3]]
+		 [g, b |- S[.., b.1, b.2, b.3]] in
+  [g |- tm_refl]
+
+| [g |- #p.3] =>
+  let [g |- #q.3] = c in
+  [g |- tm_refl]
+;
+
+
+schema ty_ctx =  block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp
+	 +	 some [a:obj] block y:obj, v:oftype y a;
+
+rec tyrel_pres_fl: (g:ty_ctx)[g |- tyrel A F] -> [g |- oftype F prp] =
+    / total d (tyrel_pres_fl g a f d) /
+      fn d => case d of
+    | [ g |- r_arr D1 \x.D2] =>
+      let [g |- D1] : [g |- tyrel A C] = [g |- D1] in
+      let [g |- F] = tyrel_pres_fl [g |- D1] in
+      let [g, b:block y:obj, v:oftype y _ |- F'[.., b.1, b.2]] =
+     	  tyrel_pres_fl [g, b:block y:obj, v:oftype y C[..] |- D2[..,b.1]] in
+      [g |- t_pi F u_prp \a.\v.F']
+
+    | [ g |- r_all \x.\y.\u.D] =>
+        let [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- F'[.., b.2, b.4]] =
+      	    tyrel_pres_fl [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- D[..,b.1, b.2, b.3]] in
+	     [g |- t_pi t_ax u_typ \a.\v.F']
+
+    | [ g |- #p.3] => [g |- #p.4]
+;
+
+% previously: tyrel_correspondence_lf2, which proof is better?
+rec tyrel_pres_fl_alt: (g:ty_ctx)[g |- tyrel A F] -> [g |- oftype F prp] =
+/ total r (tyrel_pres_fl_alt g a f r) /
+    fn d => case d of
+    | [g |- r_arr Ra \x.Rb] =>
+      let [g |- Da] : [g |- oftype A prp] = tyrel_pres_fl_alt [g |- Ra] in
+      let [g, b: block y:obj, v:oftype y _ |- Db[..,b.1,b.2] ] =
+	  tyrel_pres_fl_alt [g, b: block y:obj, v:oftype y A[..] |- Rb[..,b.1]] in
+      [g |- t_pi Da u_prp \y.\v.Db]
+
+    | [g |- r_all \x.\y.\v.R] =>
+      let [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- D[.., b.2, b.4]] =
+	  tyrel_pres_fl_alt [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- R[.., b.1,b.2, b.3]] in
+      [g |- t_pi t_ax u_typ \y.\v.D]
+
+    | [g |- #p.3] => [g |- #p.4] ;
+
+% typ_der A = exist F, tyrel A F /\ oftype F prp
+typ_der: ty_f -> type.
+der: tyrel A F -> oftype F prp -> typ_der A.
+
+rec tyrel_total_fl: {g:ty_ctx}{A:[g |- ty_f]}  [g |- typ_der A] =
+    / total a (tyrel_total_fl g a) /
+    mlam g, A => case [g |- A] of
+| [g |- arr A B] =>
+  let [g |- der R D] = tyrel_total_fl [g] [g |- A] in
+  let [g |- R] : [g |- tyrel A F] = [g |- R] in
+  let [g, b:block y:obj, v:oftype y _ |- der Rb[..,b.1] Db[..,b.1, b.2]] =
+      tyrel_total_fl [g, b:block y:obj, v:oftype y F[..]] [g, b |- B[..]]
+  in
+      [g |- der (r_arr R \x.Rb) (t_pi D u_prp \y.\v.Db)]
+
+| [g |- all \x.A] =>
+  let [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- der R[..,b.1, b.2, b.3] D[..,b.2, b.4]] =
+      tyrel_total_fl [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp]
+		     [g, b |- A[..,b.1]] in
+  [g |- der (r_all \x.\y.\u.R) (t_pi t_ax u_typ \y.\v.D)]
+
+| [g |- #p.1] => [g |- der #p.3 #p.4]
+;
+
+% exist_tyrel F = exists A, tyrel A F
+exist_tyrel: obj -> type.
+ex_tyrel: tyrel A F -> exist_tyrel F.
+
+schema ty_ctx' =  block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp;
+
+% BUG NOTE: with only the two pi cases, coverage check diverges ... stack overflow
+rec tyrel_total_lf: (g:ty_ctx') [g |- oftype F prp] -> [g |- exist_tyrel F] =
+%    / total d (tyrel_total_lf g f d) /
+      fn d => case d of
+      | [g |- #p.4] => [g |- ex_tyrel #p.3]
+%      | [g |- t_pi Da Dc \y.\v.Db] => ? % r_all
+      | [g |- t_pi t_ax u_typ \y.\v.Db] => ? % r_all
+      | [g |- t_pi Da u_prp \y.\v.Db] => ? % r_arr
+%      | [g |- t_app Da Db] => ? % should not occur ...
+% | {#p: [g |- block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp]}
+    %       [g |- #p.4] => [g |- ex_tyrel  #p.3]
+
+    % | [g |- t_pi t_ax u_typ \y.\v.Db] =>
+    %   let [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- ex_tyrel R[..,b.1,b.2,b.3]] =
+    %       tyrel_total_lf [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- Db[..,b.2,b.4]] in
+    %   [g |- ex_tyrel (r_all \x.\y.\u.R)]
+
+    % | {#p: [g |- block y:obj, v:oftype y prp]}
+    %       [g |- #p.2] => ?
+
+;
+
+exist_tmrel: obj -> obj -> type.
+ex_tmrel: {M:tm_f}{A:ty_f}tmrel M N -> hastype M A -> tyrel A B -> exist_tmrel N B.
+
+wtyp: obj -> obj -> type.
+wf_typ: oftype N B -> oftype B prp -> wtyp N B.
+
+schema ctx = some [b:obj,b':ty_f]
+              block x:tm_f, y:obj, v:tmrel x y, u:oftype y b, w:hastype x b', r:tyrel b' b;
+
+rec tmrel_correspondence_lf1: (g:ctx)
+				  [g |- oftype N B] -> [g |- oftype B prp] -> [g |- exist_tmrel N B] =
+
+    fn d, f => case d of
+| {#p:[g |- block x:tm_f, y:obj, v:tmrel x y, u:oftype y B[..], w:hastype x B'[..], r:tyrel B'[..] B[..]]}
+      [g |- #p.4] => [g |- ex_tmrel #p.1 B'[..] #p.3 #p.5 #p.6]
+| [g |- t_ax] => impossible f
+| [g |- t_pi Da U \x.\u.Db] => impossible f
+| [g |- t_lam Da U (\x.\u.Db) (\x.\v.D)] =>
+  ?
+| [g |- t_app D1 D2] =>
+  ?
+;
+
+rec tmrel_correspondence_lf2: (g:ctx)
+				  [g |- tmrel M N] -> [g |- hastype M A] -> [g |- tyrel A B] ->  [g |- wtyp N B] =
+    fn r, d, r' => case d of
+| [g |- f_app D1 D2] =>
+  let [g |- r_app Rm Rn] = r in ?
+| [g |- f_lam \x.\u.D] =>
+  let [g |- r_lam Ra  \x.\y.\r.Rm] = r in
+  let [g |- r_arr Ra' \x.Rb] = r' in
+  let [g |- o_refl] = tyrel_func [g |- Ra] [g |- Ra'] in  % relying on ctx subsumption
+  ?
+
+| [g |- f_tapp D] => ?
+
+| [g |- f_tlam \a.D] => ?;
+
+%{
+Theorem tyrel_functional : forall L A a b, ctx_r L -> {L |- tyrel A a} -> {L |- tyrel A b} -> a = b.
+-- done
+
+Theorem tmrel_functional : forall L M a b, ctx_r L -> {L |- tmrel M a} -> {L |- tmrel M b} -> a = b.
+-- done
+
+Theorem tyrel_injective : forall L A B a, ctx_r L -> {L |- tyrel A a} -> {L |- tyrel B a} -> A = B.
+-- done
+
+Theorem tmrel_injective : forall L M N a, ctx_r L -> {L |- tmrel M a} -> {L |- tmrel N a} -> M = N.
+-- done
+
+Theorem tyrel_pres_fl : forall LF A, {LF |- isty_f A} -> forall LR LL a, ctxrel LF LR LL -> {LR |- tyrel A a} -> {LL |- typing_l a prp}.
+-- done
+
+Theorem tyrel_tot_pres_fl : forall LF A, {LF |- isty_f A} -> forall LR LL, ctxrel LF LR LL -> exists a, {LR |- tyrel A a} /\ {LL |- typing_l a prp}.
+
+
+Theorm tyrel_correspondence_lf : forall a, ({typing_l a prp} -> exists A, {tyrel A a} /\ {isty_f A}) /\ ((exists A, {tyrel A a} /\ {isty_f A}) -> {typing_l a prp}).
+
+Theorem tmrel_correspondence_lf :
+forall a b,
+(({typing_l a b} /\ {typing_l b prp}) -> exists M A, {tmrel M a} /\ {tyrel A b} /\ {typing_f M A})
+
+/\
+
+((exists M A, {tmrel M a} /\ {tyrel A b} /\ {typing_f M A}) -> ({typing_l a b} /\ {typing_l b prp})).
+
+}%
