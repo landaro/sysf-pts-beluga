@@ -302,13 +302,6 @@ rec tmrel_total_fl: (g:t_ctx) [g |- hastype M A] -> [g |- typing_der M A] =
 	let [g |- o_refl] = tyrel_func [g |- Ra'] [g |- Ra] in
 	let [g |- t_pi _ _ (\a.\u.Tb)]  = [g |- Tm2] in
 	[g |-  der' R1 Rb[..,Pn] (t_app Tm1 Tn1)   Tb[.., Pn, Tn1]]
-
-      % 	let [g |- T1] = [g |- t_app Tm1 Tn1] in ?
-%        let [g |- r_arr Ra' \x.R2] : [g |- tyrel (arr A B) (pi P Q[..])] = [g |- RA] in ?
-
-
-%        impossible (tmty_rel [g |- Rm] [g |- R1])
-%        [g |- der' ? ? ? ?]
       | [g |- f_lam \x.\u.Dm] => ?
       | [g |- f_tapp Dm] =>
         let [g |- der' Rm RA T1 T2] = tmrel_total_fl [g |- Dm] in
