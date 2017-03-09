@@ -314,9 +314,21 @@ rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
 			der' Rm[..,b.1,b.2,b.3] Ra[..,b.1] Tm1 Tm2] =
 	    tmrel_total_fl [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x _ |- Dm[.., b.x, b.v]] in
 	let [g |- der TyrA Ta] = tyrel_total_fl [g] [g |- A] in
-	%       [g |- r_lam TyrA \x.\y.\u. Rm]
-	%	[g |- r_arr TyrA \x.Ra]
-	%  TO SHOW: [g |- oftype (func B0 \x.M) (pi B0 \x.B1)]
+	%       [g |- r_lam TyrA \x.\y.\u. Rm] : tmrel (lam A M) (func F \x.M)
+	%	[g |- r_arr TyrA \x.Ra]        : tyrel (arr A B) (pi F \x.Q)
+	%{
+	    Ta: oftype F U
+	      -> univ U
+	      -> ({x:obj}oftype x F -> oftype (M x) (Q x))
+	      -> ({a:obj}oftype a F -> oftype (Q a) prp)
+       }%
+	%   [g |- oftype (func F \x.M) (pi F \x.Q)]
+	%
+	%{  Ta: oftype F prp
+	     univ prp
+           -> ({a:obj} oftype a F -> oftype (Q a) prp)
+       }%
+	%   [g |- oftype (pi F \x.Q) prp]
 	?
 
       | [g |- f_tapp Dm] : [g |- hastype (tapp M A) _ ] =>
@@ -331,6 +343,7 @@ rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
 	let [g,b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |-
 		       der' Rm[..,b.1, b.2, b.3] Ra[..,b.1,b.2,b.3] T1[..,b.2,b.4] T2[..,b.2,b.4]] =
 	    tmrel_total_fl [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- Dm[..,b.1]] in
+
 	[g |- der' (r_tlam \x.\y.\u.Rm)
 		   (r_all \x.\y.\u.Ra)
 		   (t_lam t_ax u_typ (\x.\u.T1) (\x.\u.T2))
