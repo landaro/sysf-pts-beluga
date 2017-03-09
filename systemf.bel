@@ -4,15 +4,14 @@
 LF ty_f: type =
    | arr : ty_f -> ty_f -> ty_f
    | all : (ty_f -> ty_f) -> ty_f;
-
-%  arr x y
+% %name ty_f A.
 
 LF tm_f: type =
    | app : tm_f -> tm_f -> tm_f
    | lam : ty_f -> (tm_f -> tm_f) -> tm_f
    | tapp: tm_f -> ty_f -> tm_f
    | tlam: (ty_f -> tm_f) -> tm_f;
-
+%name tm_f M.
 
 LF hastype: tm_f -> ty_f -> type =
    | f_app : hastype M (arr A B) -> hastype N A
@@ -320,9 +319,14 @@ rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
 	%  TO SHOW: [g |- oftype (func B0 \x.M) (pi B0 \x.B1)]
 	?
 
-      | [g |- f_tapp Dm] =>
+      | [g |- f_tapp Dm] : [g |- hastype (tapp M A) _ ] =>
         let [g |- der' Rm RA T1 T2] = tmrel_total_fl [g |- Dm] in
-        let [g |- RA] : [g |- tyrel (all \x.A) (pi prp (\x.S))] = [g |- RA] in ?
+        let [g |- r_all \x.\y.\r.RB] : [g |- tyrel (all \x.B) (pi prp (\x.S))] = [g |- RA] in
+	let [g |- t_pi TA _ (\a.\u.TB)] = [g |- T2] in
+	let [g |- der TyrA Ta] = tyrel_total_fl [g] [g |- A] in
+   	let [g |- R] = [g |- r_tapp Rm TyrA] in	
+          [g |- der' R RB[.., _, _, TyrA] (t_app T1 Ta) TB[.., _, Ta]]
+
       | [g |- f_tlam \a.Dm] => ?
 
       | {#p: [g |- block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..]]}
