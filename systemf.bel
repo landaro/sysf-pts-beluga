@@ -108,7 +108,8 @@ rec tyrel_func: (g:ty_ctx)[g |- tyrel A B'] -> [g |- tyrel A B] -> [g |- eq_obj 
     | [g |- r_all \x.\y.\u.R] =>
       let [g |- r_all \x.\y.\u.S] = c in
       let [g, b:block x:ty_f, y:obj, u:tyrel x y |- o_refl] =
-	  tyrel_func [g, b:block x:ty_f, y:obj, u:tyrel x y |- R[..,b.1,b.2, b.3]] [g,b |- S[..,b.1,b.2,b.3]] in
+	  tyrel_func [g, b:block x:ty_f, y:obj, u:tyrel x y |- R[..,b.1,b.2, b.3]]
+		     [g,b |- S[..,b.1,b.2,b.3]] in
       [g |- o_refl]
 
     | [g |- #p.3] => let [g |- #q.3] = c in [g |- o_refl]
@@ -289,7 +290,13 @@ rec tyrel_pres_lf: (g : ty_ctx) [g |- tyrel A F] -> [g |- ty_f] =
 typing_der : tm_f -> ty_f -> type.
 der': tmrel M P -> tyrel A Q -> oftype P Q -> oftype Q prp -> typing_der M A.
 
-rec tmrel_total_fl: (g:t_ctx) [g |- hastype M A] -> [g |- typing_der M A] =
+
+schema t_ctx_ext =
+       block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp +
+       some [a:ty_f] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a
+	     ;
+
+rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
     / total d (tmrel_total_fl g m a d)/
       fn d => case d of
       | [g |- f_app Dm Dn] =>
@@ -302,11 +309,24 @@ rec tmrel_total_fl: (g:t_ctx) [g |- hastype M A] -> [g |- typing_der M A] =
 	let [g |- o_refl] = tyrel_func [g |- Ra'] [g |- Ra] in
 	let [g |- t_pi _ _ (\a.\u.Tb)]  = [g |- Tm2] in
 	[g |-  der' R1 Rb[..,Pn] (t_app Tm1 Tn1)   Tb[.., Pn, Tn1]]
-      | [g |- f_lam \x.\u.Dm] => ?
+
+      | [g |- f_lam \x.\u.Dm] =>
+	let [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..] |-
+			der' Rm[..,b.1,b.2,b.3] Ra[..,b.1] Tm1 Tm2] =
+	    tmrel_total_fl [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x _ |- Dm[.., b.x, b.v]] in
+	let [g |- der TyrA Ta] = tyrel_total_fl [g] [g |- A] in
+	%       [g |- r_lam TyrA \x.\y.\u. Rm]
+	%	[g |- r_arr TyrA \x.Ra]
+	%  TO SHOW: [g |- oftype (func B0 \x.M) (pi B0 \x.B1)]
+	?
+
       | [g |- f_tapp Dm] =>
         let [g |- der' Rm RA T1 T2] = tmrel_total_fl [g |- Dm] in
         let [g |- RA] : [g |- tyrel (all \x.A) (pi prp (\x.S))] = [g |- RA] in ?
       | [g |- f_tlam \a.Dm] => ?
+
+      | {#p: [g |- block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..]]}
+	[g |- #p.4]  => ?
 ;
 
 
