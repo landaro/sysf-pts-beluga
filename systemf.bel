@@ -28,7 +28,7 @@ LF hastype: tm_f -> ty_f -> type =
 % Single-sorted lambda2-calc. / PTS
 LF obj: type =
    | apply: obj -> obj -> obj
-   | fun  : obj -> (obj -> obj) -> obj
+   | func : obj -> (obj -> obj) -> obj
    | typ: obj  % type? --- actually PTS box
    | prp: obj  % kind? --- actually PTS star
    | pi   : obj -> (obj -> obj) -> obj;
@@ -41,14 +41,14 @@ LF oftype: obj -> obj -> type =
    | t_ax:  oftype prp typ
    | t_pi   :  oftype A U
 	       -> univ U
-	       -> ({a:obj} oftype a A -> oftype (B a) prp)
-	       -> oftype (pi A B) prp
+	       -> ({a:obj} oftype a A -> oftype (B0 a) prp)
+	       -> oftype (pi A B0) prp
 
    | t_lam  : oftype A U
 	      -> univ U
 	      -> ({x:obj}oftype x A -> oftype (M x) (B x))
-	      -> ({a:obj}oftype a A -> oftype (B a) prp)
-	      -> oftype (fun A M) (pi A B)
+	      -> ({a:obj}oftype a A -> oftype (B0 a) prp)
+	      -> oftype (func A M) (pi A B0)
 
    | t_app: oftype M (pi A B) -> oftype N A
 	      -> oftype (apply M N) (B N)
@@ -69,12 +69,12 @@ LF tmrel: tm_f -> obj -> type =
 	    -> tmrel (app M N) (apply L P)
    | r_lam: tyrel A B
 	    -> ({x:tm_f}{y:obj}tmrel x y -> tmrel (R x) (S y))
-	    -> tmrel (lam A R) (fun B S)
+	    -> tmrel (lam A R) (func B S)
    | r_tapp: tmrel M L
 	    -> tyrel A P
 	    -> tmrel (tapp M A) (apply L P)
    | r_tlam: ({x:ty_f}{y:obj}tyrel x y -> tmrel (R x) (S y))
-	    -> tmrel (tlam R) (fun prp S)
+	    -> tmrel (tlam R) (func prp S)
 ;
 
 LF eq_obj : obj -> obj -> type =
@@ -297,8 +297,14 @@ rec tmrel_total_fl: (g:t_ctx) [g |- hastype M A] -> [g |- typing_der M A] =
         let [g |- der' Rn Ra Tn1 Tn2] = tmrel_total_fl [g |- Dn] in
         let [g |- Rm] : [g |- tmrel M Pm] = [g |- Rm] in
         let [g |- Rn] : [g |- tmrel N Pn] = [g |- Rn] in
-        let [g |- R1] : [g |- tmrel (app M N) (apply Pm Pn)] = [g |- r_app Rm Rn] in ?
-      %        let [g |- r_arr Ra' \x.R2] : [g |- tyrel (arr A B) (pi P Q[..])] = [g |- RA] in ?
+        let [g |- R1] : [g |- tmrel (app M N) (apply Pm Pn)] = [g |- r_app Rm Rn] in
+	let [g |- r_arr Ra' (\x.Rb) ] = [g |-  RA] in
+	let [g |- o_refl] = tyrel_func [g |- Ra'] [g |- Ra] in
+	let [g |- t_pi _ _ (\a.\u.Tb)]  = [g |- Tm2] in
+	[g |-  der' R1 Rb[..,Pn] (t_app Tm1 Tn1)   Tb[.., Pn, Tn1]]
+
+      % 	let [g |- T1] = [g |- t_app Tm1 Tn1] in ?
+%        let [g |- r_arr Ra' \x.R2] : [g |- tyrel (arr A B) (pi P Q[..])] = [g |- RA] in ?
 
 
 %        impossible (tmty_rel [g |- Rm] [g |- R1])
@@ -306,7 +312,7 @@ rec tmrel_total_fl: (g:t_ctx) [g |- hastype M A] -> [g |- typing_der M A] =
       | [g |- f_lam \x.\u.Dm] => ?
       | [g |- f_tapp Dm] =>
         let [g |- der' Rm RA T1 T2] = tmrel_total_fl [g |- Dm] in
-        let [g |- RA] : [g |- tyrel (all A[..]) (pi prp S[..])] = [g |- RA] in ?
+        let [g |- RA] : [g |- tyrel (all \x.A) (pi prp (\x.S))] = [g |- RA] in ?
       | [g |- f_tlam \a.Dm] => ?
 ;
 
