@@ -325,7 +325,6 @@ rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
 	let [g |- TyrA] : [g |- tyrel A F] = [g |- TyrA] in
 	let [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..],
 			r:tyrel A[..] F[..], w:oftype y F[..] |- 
-			% w:  oftype' y A[..] 
 			der' Rm[..,b.1,b.2,b.3]
 			     Ra[..,b.2]
 			     Tm1[..,b.2,b.6]
