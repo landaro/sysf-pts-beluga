@@ -285,16 +285,27 @@ rec tyrel_pres_lf: (g : ty_ctx) [g |- tyrel A F] -> [g |- ty_f] =
 
 % schema t_ctx = block x:tm_f, y:obj, u:tmrel x y + block x:ty_f, y:obj, u:tyrel x y;
 
+% typ_der A = exist F, tyrel A F /\ oftype F prp
+oftype': obj -> ty_f -> type.
+oftyp': {F:obj}tyrel A F -> oftype Y F -> oftype' Y A.
+
 % typing_der M A = exists P Q, tmrel M P /\ tyrel A Q /\ oftype P Q /\ oftype Q prp
 typing_der : tm_f -> ty_f -> type.
 der': tmrel M P -> tyrel A Q -> oftype P Q -> oftype Q prp -> typing_der M A.
 
 
+schema t_ctx_ext' =
+       block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp +
+some [a:ty_f] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a,
+                    f:obj, r:tyrel a f, w:oftype y f
+%	            w: oftype' y a 
+;
+
 schema t_ctx_ext =
        block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp +
-       some [a:ty_f] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a
-	     ;
-
+some [a:ty_f,f:obj] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a, r:tyrel a f, w:oftype y f;
+	     
+					 
 rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
     / total d (tmrel_total_fl g m a d)/
       fn d => case d of
@@ -309,27 +320,23 @@ rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
 	let [g |- t_pi _ _ (\a.\u.Tb)]  = [g |- Tm2] in
 	[g |-  der' R1 Rb[..,Pn] (t_app Tm1 Tn1)   Tb[.., Pn, Tn1]]
 
-      | [g |- f_lam \x.\u.Dm] =>
-	let [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..] |-
-			der' Rm[..,b.1,b.2,b.3] Ra[..,b.1] Tm1 Tm2] =
-	    tmrel_total_fl [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x _ |- Dm[.., b.x, b.v]] in
+      | [g |- f_lam \x.\u.Dm] : [g |- hastype (lam A \x.M) (arr A B)] =>
 	let [g |- der TyrA Ta] = tyrel_total_fl [g] [g |- A] in
-	%       [g |- r_lam TyrA \x.\y.\u. Rm] : tmrel (lam A M) (func F \x.M)
-	%	[g |- r_arr TyrA \x.Ra]        : tyrel (arr A B) (pi F \x.Q)
-	%{
-	    Ta: oftype F U
-	      -> univ U
-	      -> ({x:obj}oftype x F -> oftype (M x) (Q x))
-	      -> ({a:obj}oftype a F -> oftype (Q a) prp)
-       }%
-	%   [g |- oftype (func F \x.M) (pi F \x.Q)]
-	%
-	%{  Ta: oftype F prp
-	     univ prp
-           -> ({a:obj} oftype a F -> oftype (Q a) prp)
-       }%
-	%   [g |- oftype (pi F \x.Q) prp]
-	?
+	let [g |- TyrA] : [g |- tyrel A F] = [g |- TyrA] in
+	let [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..],
+			r:tyrel A[..] F[..], w:oftype y F[..] |- 
+			% w:  oftype' y A[..] 
+			der' Rm[..,b.1,b.2,b.3]
+			     Ra[..,b.2]
+			     Tm1[..,b.2,b.6]
+			     Tm2[..,b.2,b.6]] =
+	    tmrel_total_fl [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..],
+		       		       r:tyrel A[..] F[..], w:oftype y F[..] |- Dm[.., b.x, b.v]] in
+
+	[g |- der' (r_lam TyrA (\x.\y.\u.Rm))
+		   (r_arr TyrA \x.Ra)
+		   (t_lam Ta u_prp (\x.\u.Tm1) (\x.\u.Tm2))
+		   (t_pi Ta u_prp (\x.\u.Tm2))]
 
       | [g |- f_tapp Dm] : [g |- hastype (tapp M A) _ ] =>
         let [g |- der' Rm RA T1 T2] = tmrel_total_fl [g |- Dm] in
@@ -349,8 +356,13 @@ rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
 		   (t_lam t_ax u_typ (\x.\u.T1) (\x.\u.T2))
 		   (t_pi t_ax u_typ (\x.\u.T2)) ]
 	
-      | {#p: [g |- block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..]]}
-	[g |- #p.4]  => ?
+      | {#p: [g |- block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..],  r:tyrel A[..] G[..], w:oftype y G[..]]}
+	    [g |- #p.4]  =>
+	let [g |- der TyrA Ta] = tyrel_total_fl [g] [g |- A] in
+	let [g |- TyrA] : [g |- tyrel A F] = [g |- TyrA] in
+	let [g |- o_refl] = tyrel_func [g |- #p.5] [g |- TyrA] in 
+	[g |- der' #p.3 TyrA #p.6 Ta]
+
 ;
 
 
