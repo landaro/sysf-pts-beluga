@@ -294,13 +294,6 @@ typing_der : tm_f -> ty_f -> type.
 der': tmrel M P -> tyrel A Q -> oftype P Q -> oftype Q prp -> typing_der M A.
 
 
-schema t_ctx_ext' =
-       block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp +
-some [a:ty_f] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a,
-                    f:obj, r:tyrel a f, w:oftype y f
-%	            w: oftype' y a 
-;
-
 schema t_ctx_ext =
        block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp +
 some [a:ty_f,f:obj] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a, r:tyrel a f, w:oftype y f;
