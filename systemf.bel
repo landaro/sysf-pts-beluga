@@ -4,7 +4,7 @@
 LF ty_f: type =
    | arr : ty_f -> ty_f -> ty_f
    | all : (ty_f -> ty_f) -> ty_f;
-% %name ty_f A.
+%name ty_f A.
 
 LF tm_f: type =
    | app : tm_f -> tm_f -> tm_f
@@ -286,10 +286,8 @@ rec tyrel_pres_lf: (g : ty_ctx) [g |- tyrel A F] -> [g |- ty_f] =
 % schema t_ctx = block x:tm_f, y:obj, u:tmrel x y + block x:ty_f, y:obj, u:tyrel x y;
 
 % typ_der A = exist F, tyrel A F /\ oftype F prp
-oftype': obj -> ty_f -> type.
-oftyp': {F:obj}tyrel A F -> oftype Y F -> oftype' Y A.
-
 % typing_der M A = exists P Q, tmrel M P /\ tyrel A Q /\ oftype P Q /\ oftype Q prp
+
 typing_der : tm_f -> ty_f -> type.
 der': tmrel M P -> tyrel A Q -> oftype P Q -> oftype Q prp -> typing_der M A.
 
@@ -297,8 +295,7 @@ der': tmrel M P -> tyrel A Q -> oftype P Q -> oftype Q prp -> typing_der M A.
 schema t_ctx_ext =
        block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp +
 some [a:ty_f,f:obj] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a, r:tyrel a f, w:oftype y f;
-	     
-					 
+  					 
 rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
     / total d (tmrel_total_fl g m a d)/
       fn d => case d of
@@ -372,9 +369,7 @@ wf_typ: oftype N B -> oftype B prp -> wtyp N B.
 schema ctx = some [b:obj,b':ty_f]
               block x:tm_f, y:obj, v:tmrel x y, u:oftype y b, w:hastype x b', r:tyrel b' b;
 
-rec tmrel_correspondence_lf1: (g:t_ctx_ext)
-				  [g |- oftype N B] -> [g |- oftype B prp] -> [g |- exist_tmrel N B] =
-
+rec tmrel_correspondence_lf1: (g:t_ctx_ext)[g |- oftype N B] -> [g |- oftype B prp] -> [g |- exist_tmrel N B] =
     fn d, f => case d of
 | {#p:[g |- block x:tm_f, y:obj, v:tmrel x y, w:hastype x B'[..], r:tyrel B'[..] B[..], u:oftype y B[..] ]}
       [g |- #p.6] => [g |- ex_tmrel #p.3 #p.4 #p.5]
@@ -419,15 +414,35 @@ rec tmrel_correspondence_lf1: (g:t_ctx_ext)
 		   [g, b:block (x : ty_f, y : obj, u: tyrel x y) |- Ra0[.., b.x, b.y, b.u]] in     
      [g |- ex_tmrel (r_tlam \x.\y.\u.Rm) (f_tlam \x.Tm) (r_all \x.\y.\u.Ra0)]
   )
-   | [g |- t_app D1 D2] =>
+| [g |- t_app D1 D2] =>
+%  let [g |- ex_tmrel Rm Tm Rab] = tmrel_correspondence_lf1 [g |- D2]  ? : [g |- oftype A prp] in
+%  let [g |- ex_tmrel Rm Tm Rab] = tmrel_correspondence_lf1 [g |- D1]  ? : [g |- oftype (pi A \x.B0) prp]in
   ?
 ;
 
-rec tmrel_correspondence_lf2: (g:ctx)
-				  [g |- tmrel M N] -> [g |- hastype M A] -> [g |- tyrel A B] ->  [g |- wtyp N B] =
+%{
+rec tmrel_correspondence_lf2a: (g:ctx) [g |- exist_tmrel N B] -> [g |- oftype N B] = ?
+and tmrel_correspondence_lf2b: (g:ctx) [g |- exist_tmrel N B] -> [g |- oftype B prp] = ?
+;
+
+}%
+
+
+rec tmrel_correspondence_lf2: (g:t_ctx_ext)[g |- tmrel M N] -> [g |- hastype M D] -> [g |- tyrel D F] ->  [g |- wtyp N F] =
     fn r, d, r' => case d of
 | [g |- f_app D1 D2] =>
-  let [g |- r_app Rm Rn] = r in ?
+  let [g |- r_app Rm Rn] = r in
+  let [g |- der' Rm' Ra Tm' Ta] = tmrel_total_fl [g |- D1] in
+  let [g |- o_refl] = tmrel_func [g |- Rm] [g |- Rm'] in
+  let [g |- wf_typ Tm Ta'] = tmrel_correspondence_lf2 [g |- Rm] [g |- D1] [g |- Ra] in 
+  let [g |- r_arr Ra1 \x.Ra2] = [g |- Ra] in
+  let [g |- wf_typ Tn Tb'] = tmrel_correspondence_lf2 [g |- Rn] [g |- D2] [g |- Ra1] in
+  let [g |- t_pi Ta0 _ (\x.\u.Tb0)] = [g |- Ta] in
+  let [g |- Tn] : [g |- oftype P A'] = [g |- Tn] in 
+  let [g |- D] = [g |- t_app Tm Tn] in
+  let [g |- o_refl] = tyrel_func r' [g |- Ra2[..,P[..]]]  in
+  [g |- wf_typ D Tb0[.., P, Tn]]
+
 | [g |- f_lam \x.\u.D] =>
   let [g |- r_lam Ra  \x.\y.\r.Rm] = r in
   let [g |- r_arr Ra' \x.Rb] = r' in
@@ -437,6 +452,7 @@ rec tmrel_correspondence_lf2: (g:ctx)
 | [g |- f_tapp D] => ?
 
 | [g |- f_tlam \a.D] => ?;
+
 
 %{
 Theorem tyrel_functional : forall L A a b, ctx_r L -> {L |- tyrel A a} -> {L |- tyrel A b} -> a = b.
@@ -460,11 +476,11 @@ Theorem tyrel_tot_pres_fl : forall LF A, {LF |- isty_f A} -> forall LR LL, ctxre
 Theorm tyrel_correspondence_lf : forall a, ({typing_l a prp} -> exists A, {tyrel A a} /\ {isty_f A}) /\ ((exists A, {tyrel A a} /\ {isty_f A}) -> {typing_l a prp}).
 
 Theorem tmrel_correspondence_lf :
-forall a b,
-(({typing_l a b} /\ {typing_l b prp}) -> exists M A, {tmrel M a} /\ {tyrel A b} /\ {typing_f M A})
+forall n b,
+(({typing_l n b} /\ {typing_l b prp}) -> exists M A, {tmrel M n} /\ {tyrel A b} /\ {typing_f M A})
 
 /\
 
-((exists M A, {tmrel M a} /\ {tyrel A b} /\ {typing_f M A}) -> ({typing_l a b} /\ {typing_l b prp})).
+((exists M A, {tmrel M n} /\ {tyrel A b} /\ {typing_f M A}) -> ({typing_l n b} /\ {typing_l b prp})).
 
 }%
