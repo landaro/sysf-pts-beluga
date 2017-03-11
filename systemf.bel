@@ -363,7 +363,8 @@ rec tmrel_total_fl: (g:t_ctx_ext) [g |- hastype M A] -> [g |- typing_der M A] =
 % exist_tmrel
 
 exist_tmrel: obj -> obj -> type.
-ex_tmrel: {M:tm_f}{A:ty_f}tmrel M N -> hastype M A -> tyrel A B -> exist_tmrel N B.
+ex_tmrel: tmrel M N -> hastype M A -> tyrel A B
+	  -> exist_tmrel N B.
 
 wtyp: obj -> obj -> type.
 wf_typ: oftype N B -> oftype B prp -> wtyp N B.
@@ -371,17 +372,45 @@ wf_typ: oftype N B -> oftype B prp -> wtyp N B.
 schema ctx = some [b:obj,b':ty_f]
               block x:tm_f, y:obj, v:tmrel x y, u:oftype y b, w:hastype x b', r:tyrel b' b;
 
-rec tmrel_correspondence_lf1: (g:ctx)
+rec tmrel_correspondence_lf1: (g:t_ctx_ext)
 				  [g |- oftype N B] -> [g |- oftype B prp] -> [g |- exist_tmrel N B] =
 
     fn d, f => case d of
-| {#p:[g |- block x:tm_f, y:obj, v:tmrel x y, u:oftype y B[..], w:hastype x B'[..], r:tyrel B'[..] B[..]]}
-      [g |- #p.4] => [g |- ex_tmrel #p.1 B'[..] #p.3 #p.5 #p.6]
+| {#p:[g |- block x:tm_f, y:obj, v:tmrel x y, w:hastype x B'[..], r:tyrel B'[..] B[..], u:oftype y B[..] ]}
+      [g |- #p.6] => [g |- ex_tmrel #p.3 #p.4 #p.5]
 | [g |- t_ax] => impossible f
 | [g |- t_pi Da U \x.\u.Db] => impossible f
+
 | [g |- t_lam Da U (\x.\u.Db) (\x.\v.D)] =>
-  ?
-| [g |- t_app D1 D2] =>
+  let [g |- Da] : [g |- oftype A _] = [g |- Da] in
+  let [g |- ex_tyrel R] = tyrel_total_lf f in
+  (case [g |- R] of
+   | [g |- r_arr Ra \x.Rb] : [g |- tyrel (arr A' B') (pi A \x.B)] => 
+     let % {A':[g|-ty_f]}
+	 % {A:[g |- obj]}
+	 % {B':[g |- ty_f]}
+	 % {B:[g, y:obj |- obj]}
+	 % {M':[g, x:tm_f |- tm_f]}
+	 % {M :[g, x:obj |- obj]}
+	  {Rm:[g, x:tm_f, y:obj, v:tmrel x y,r:tyrel (A'[ ..]) (A[ ..])  |-  tmrel M'[..,x] M[..,y]]}
+	 % {Tm:[g, x:tm_f, w:hastype x (A'[ ..]) |-  hastype M'[..,x] B'[..]]}
+	  {Ra0:[g, y:obj, r:tyrel (A'[ ..]) (A[ ..]) |-  tyrel B'[..] B[..,y]]}
+	 [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..]) % |- Q] =
+			   		  |- ex_tmrel Rm[.., b.x, b.y, b.v, b.r] Tm[.., b.x, b.w] Ra0[..,b.y,b.r] ] =
+
+  tmrel_correspondence_lf1 [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..])
+					|- Db[..,b.y,b.u]]
+			   [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..]) |- D[..,b.y, b.u]] in
+     let [g |- Ra] : [g |- tyrel A' A] = [g |- Ra] in
+     let [g, x : tm_f, y : obj, v : tmrel x y |- Tm'] = [g, x : tm_f, y : obj, v : tmrel x y |- Rm[..,x,y,v,Ra[..]] ] in
+
+     let [g, y:obj |- Rb']  : [g, y:obj |- tyrel B'[..] B] = [g,y:obj |- Ra0[..,y,Ra[..]]] in
+     %% -bp Not entirely sure why this is necessary and we can't simply use Rb
+     [g |- ex_tmrel (r_lam Ra (\x.\y.\v.Tm')) (f_lam \x.\u.Tm) (r_arr Ra \x.Rb')]
+
+   | [g |- r_all \x.\y.\r.Rb] : [g |- tyrel (all \x.R) (pi prp \x.B)] => ?
+)
+   | [g |- t_app D1 D2] =>
   ?
 ;
 
