@@ -395,7 +395,7 @@ rec tmrel_correspondence_lf1: (g:t_ctx_ext)
 	  {Rm:[g, x:tm_f, y:obj, v:tmrel x y,r:tyrel (A'[ ..]) (A[ ..])  |-  tmrel M'[..,x] M[..,y]]}
 	 % {Tm:[g, x:tm_f, w:hastype x (A'[ ..]) |-  hastype M'[..,x] B'[..]]}
 	  {Ra0:[g, y:obj, r:tyrel (A'[ ..]) (A[ ..]) |-  tyrel B'[..] B[..,y]]}
-	 [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..]) % |- Q] =
+	 [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..]) 
 			   		  |- ex_tmrel Rm[.., b.x, b.y, b.v, b.r] Tm[.., b.x, b.w] Ra0[..,b.y,b.r] ] =
 
   tmrel_correspondence_lf1 [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..])
@@ -408,8 +408,17 @@ rec tmrel_correspondence_lf1: (g:t_ctx_ext)
      %% -bp Not entirely sure why this is necessary and we can't simply use Rb
      [g |- ex_tmrel (r_lam Ra (\x.\y.\v.Tm')) (f_lam \x.\u.Tm) (r_arr Ra \x.Rb')]
 
-   | [g |- r_all \x.\y.\r.Rb] : [g |- tyrel (all \x.R) (pi prp \x.B)] => ?
-)
+   | [g |- r_all \x.\y.\r.Rb] => % : [g |- tyrel (all \x.R) (pi prp \x.B)] =>
+     let  % {Rm:[g, x:tm_f, y:obj, r:tyrel x y |-  tmrel M'[..,x] M[..,y]]}
+	  % {Ra0:[g, x:tm_f, y:obj, r:tyrel x y |-  tyrel R[..,x] B[..,y]]} 
+	 [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- ex_tmrel Rm[.., b.x, b.y, b.u] Tm[.., b.x] Ra0[.., b.x, b.y, b.u]] =
+	 tmrel_correspondence_lf1 [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |-  Db[..,b.y,b.v]]
+				  [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |-  D[..,b.y,b.v]] in
+     let [g,b:block (x : ty_f, y : obj, u: tyrel x y) |- ty_refl] =
+	 tyrel_inj [g, b:block (x : ty_f, y : obj, u: tyrel x y) |- Rb[.., b.x, b.y, b.u]]
+		   [g, b:block (x : ty_f, y : obj, u: tyrel x y) |- Ra0[.., b.x, b.y, b.u]] in     
+     [g |- ex_tmrel (r_tlam \x.\y.\u.Rm) (f_tlam \x.Tm) (r_all \x.\y.\u.Ra0)]
+  )
    | [g |- t_app D1 D2] =>
   ?
 ;
