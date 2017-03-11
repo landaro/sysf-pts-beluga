@@ -445,10 +445,25 @@ rec tmrel_correspondence_lf2: (g:t_ctx_ext)[g |- tmrel M N] -> [g |- hastype M D
 
 | [g |- f_lam \x.\u.D] =>
   let [g |- r_lam Ra  \x.\y.\r.Rm] = r in
+  let [g |- Ra] : [g |- tyrel A' A] = [g |- Ra] in
   let [g |- r_arr Ra' \x.Rb] = r' in
+  let [g, x:obj |- Rb] : [g, x : obj |- tyrel B'[ ..] B0] = [g, x:obj |- Rb] in
   let [g |- o_refl] = tyrel_func [g |- Ra] [g |- Ra'] in  % relying on ctx subsumption
-  ?
-
+  let [g, b:block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..])
+		  |- wf_typ Tm[..,b.y, b.u] Tb[.., b.y, b.u] ] =
+      tmrel_correspondence_lf2
+      [g, b:block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..])
+		  |- Rm[.., b.x, b.y, b.v]]
+      [g, b |- D[..,b.x, b.w]]
+      [g, b |- Rb[.., b.y]] in
+  let [g,b:block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..]) |- der' _ X[..] _ TA[..]] =
+      tmrel_total_fl
+      [g,b:block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..]) |- b.w] in
+  let [g |- o_refl] = tyrel_func [g |- Ra] [g |- X] in
+  let [g |- Db] = [g |- t_pi TA u_prp (\a.\u.Tb)] in
+  let [g |- Dm] = [g |- t_lam TA u_prp (\a.\u.Tm) (\a.\u.Tb)] in
+  [g |- wf_typ Dm Db]
+	    
 | [g |- f_tapp D] => ?
 
 | [g |- f_tlam \a.D] => ?;
