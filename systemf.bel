@@ -464,8 +464,25 @@ rec tmrel_correspondence_lf2: (g:t_ctx_ext)[g |- tmrel M N] -> [g |- hastype M D
   let [g |- Dm] = [g |- t_lam TA u_prp (\a.\u.Tm) (\a.\u.Tb)] in
   [g |- wf_typ Dm Db]
 	    
-| [g |- f_tapp D] => ?
-
+| [g |- f_tapp D] =>
+  let [g |- D] : [g |- hastype M (all \y.A')] = [g |- D] in
+  let [g |- r_tapp Rm Ra] = r in
+  let [g |- D'] = tyrel_pres_fl [g |- Ra] in
+  let [g |- der' Rm' Ra0 Tm' Ta] = tmrel_total_fl [g |- D] in
+  let [g |- o_refl] = tmrel_func [g |- Rm] [g |- Rm'] in
+  let [g |- r_all \x.\y.\u.Rb] = [g |- Ra0] in
+  let [g |- wf_typ Dm Db] =
+      tmrel_correspondence_lf2 [g |- Rm] [g |- D] [g |- Ra0] in
+  let [g |- r_all \x.\y.\u.Rb] = [g |- Ra0] in
+  let [g |- Dm] : [g |- oftype M' (pi prp (\x.S))] = [g |- Dm] in
+  let [g |- Deriv1] = [g |- t_app Dm D'] in
+  let [g |- Ra] : [g |- tyrel A X] = [g |- Ra] in 
+  let [g |- o_refl] = tyrel_func r' [g |- Rb[.., A, X, Ra]] in 
+  let [g |- t_pi _ _ \a.\u.Deriv2] = [g |- Ta] in 
+   [g |- wf_typ Deriv1 Deriv2[..,X,D']]
+% -- this is a bit odd, since we have the assumption
+% {Ta : [g |- oftype (pi prp (\z10. S)) prp]}
+								   
 | [g |- f_tlam \a.D] => ?;
 
 
