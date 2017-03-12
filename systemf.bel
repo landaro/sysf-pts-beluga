@@ -483,7 +483,15 @@ rec tmrel_correspondence_lf2: (g:t_ctx_ext)[g |- tmrel M N] -> [g |- hastype M D
 % -- this is a bit odd, since we have the assumption
 % {Ta : [g |- oftype (pi prp (\z10. S)) prp]}
 								   
-| [g |- f_tlam \a.D] => ?;
+| [g |- f_tlam \a.D] =>
+  let [g |- r_tlam \x.\y.\r.Tm] = r in
+  let [g |- r_all \x.\y.\r.Ta] = r' in
+  let [g,b:block x:ty_f, y:obj, r:tyrel x y,v:oftype y prp |- wf_typ D1[..,b.y,b.v] D2[..,b.y,b.v]] =
+      tmrel_correspondence_lf2 [g, b:block x:ty_f, y:obj, r:tyrel x y,v:oftype y prp |- Tm[..,b.x, b.y, b.r]]
+			       [g, b |- D[..,b.x]]
+			       [g, b |- Ta[..,b.x, b.y, b.r]] in
+  [g |- wf_typ (t_lam t_ax u_typ (\y.\v.D1) \y.\v.D2) (t_pi t_ax u_typ \y.\v.D2)]
+;
 
 
 %{
