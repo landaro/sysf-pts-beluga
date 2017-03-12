@@ -451,8 +451,9 @@ let [g |- ex_tmrel Rm Tm Rab ] : [g |- exist_tmrel M (pi A \x. B)] =
    [g |- ex_tmrel (r_app Rm Rn) (f_app Tm Tn) Rb[..,_]]
 
  | [g |- r_all \x.\y.\r.Rb] : [g |- tyrel (all \x.R) (pi prp \x.B)] => 
+   let [g |- ex_tyrel Rn] = tyrel_total_lf [g |- D2] in
+   [g |- ex_tmrel (r_tapp Rm Rn) (f_tapp Tm) Rb[.., _, _, Rn] ]
      
-   ?  
 
 ;
 
@@ -462,7 +463,6 @@ and tmrel_correspondence_lf2b: (g:ctx) [g |- exist_tmrel N B] -> [g |- oftype B 
 ;
 
 }%
-
 
 rec tmrel_correspondence_lf2: (g:t_ctx_ext)[g |- tmrel M N] -> [g |- hastype M D] -> [g |- tyrel D F] ->  [g |- wtyp N F] =
     fn r, d, r' => case d of
