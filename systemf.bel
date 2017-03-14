@@ -110,7 +110,10 @@ t_correct_type : oftype B U -> univ U -> type_correct B.
 
 rec oftype_propagation : (g:pts_ctx) [g |- oftype A B] -> [g |- type_correct B] =
     / total d (oftype_propagation g a b d) /
-      fn d => ? ;
+      fn d => ? ; % induction on the derivation d
+
+rec oftype_typ_degenerate : (g:pts_ctx) [g |- oftype A typ] -> [g |- eq_obj A prp] = ? ;
+% needs induction on the derivation, several inversions and propagation.
 
 % PART 1 -- Relating types of SysF to PTS terms of type prp -- tyrel
 
