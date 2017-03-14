@@ -96,10 +96,11 @@ rec prp_prp_contra: (g:pts_ctx)[g |- oftype prp prp] -> [ |- false] =
     / total d (prp_prp_contra g d) /
       fn d => impossible d;
 
-% Preliminary : PTS propagation
+rec typ_type_contra: (g:pts_ctx)[g |- oftype typ A] -> [ |- false] =
+    / total d (typ_type_contra g d) /
+      fn d => impossible d;
 
-% COQ: Version:
-% Theorem typingL_propagation Gamma a b : typingL Gamma a b -> b = SortL Typ \/ exists u, typingL Gamma b (SortL u).
+% Preliminaries
 
 type_correct: obj -> type.
 t_correct_typ: type_correct typ.
@@ -108,17 +109,44 @@ t_correct_type : oftype B U -> univ U -> type_correct B.
 % ex_univ: obj -> type.
 % ex_univers: oftype A U -> univ U -> ex_univ A.
 
-rec oftype_propagation : (g:pts_ctx) [g |- oftype A B] -> [g |- type_correct B] =
+% JK -- QUESTION: is this context schema sensible/correct?
+% schema pts_ctx_tc = some [a:obj,u:obj] block y:obj, v:oftype y a, ha:oftype a u, hu: univ u;
+schema pts_ctx_tc = block y:obj, v:oftype y prp +
+                    some [a:obj] block y:obj, v:oftype y a, ha:oftype a prp;
+
+% PTS Propagation / Type Correctness
+rec oftype_propagation : (g:pts_ctx_tc) [g |- oftype A B] -> [g |- type_correct B] =
     / total d (oftype_propagation g a b d) /
       fn d => case d of
 	[g |- t_ax ] => [g |- t_correct_typ]
-      | [g |- t_pi Ta U \x.\u.Tb] => ?
-      | [g |- t_lam Ta U (\x.\u.Tm ) (\x.\u.Tb)] => ?
-      | [g |- t_app Tab Ta] => 	?
-      | [g |- #p.2] => ?; 
+      | [g |- t_pi Ta U \x.\u.Tb] => [g |- t_correct_type t_ax u_typ]
+      | [g |- t_lam Ta U (\x.\u.Tm ) (\x.\u.Tb)] => [g |- t_correct_type (t_pi Ta U \x.\u.Tb) u_prp]
+      | [g |- t_app Tab Ta] =>
+        let [g |- t_lam Ta' U (\x.\u.Tm ) (\x.\u.Tb)] = [g |- Tab] in
+        [g |- t_correct_type Tb[..,_,Ta] u_prp]
+      | {#p:[g |- block y:obj, v:oftype y prp]} [g |- #p.2] => [g |- t_correct_type t_ax u_typ]
+      | {#p:[g |- block y:obj, v:oftype y A[..], ha:oftype A[..] prp]} [g |- #p.2] => [g |- t_correct_type #p.3 u_prp]
+      | {#p:[g |- block y:obj, v:oftype y A[..], ha:oftype A[..] prp]} [g |- #p.3] => [g |- t_correct_type t_ax u_typ]
+;
 
-rec oftype_typ_degenerate : (g:pts_ctx) [g |- oftype A typ] -> [g |- eq_obj A prp] = ? ;
-% needs induction on the derivation, several inversions and propagation.
+% rec oftype_typ_degenerate : (g:pts_ctx_tc) [g |- oftype A B] -> [g |- eq_obj B typ] -> [g |- eq_obj A prp] =
+%     / total c (oftype_typ_degenerate g a b c d) /
+%       fn c => fn d => case c of
+% 	[g |- t_ax ] => [g |- o_refl]
+%       | [g |- t_pi Ta U \x.\u.Tb] => impossible d
+%       | [g |- t_lam Ta U (\x.\u.Tm ) (\x.\u.Tb)] => impossible d
+%       | [g |- t_app Tab Ta] =>
+%         let [g |- t_correct_type Hab U] = oftype_propagation [g |- Tab] in
+%         let [g |- t_pi Ha V \x.\u.Hb] = [g |- Hab] in
+%         let [g |- Tab] : [g |- oftype M (pi A \x.B)] = [g |- Tab] in
+%         let [g |- Ta] : [g |- oftype N A] = [g |- Ta] in ?
+%       % Remaining Proof: assert from Ta and Hb, that [g |- oftype (B .. (N ..)) prp],
+%       % then from d it should follow that [g |- oftype typ prp], which is impossible, see typ_type_contra
+%       | {#p:[g |- block y:obj, v:oftype y prp]} [g |- #p.2] => impossible d
+%       | {#p:[g |- block y:obj, v:oftype y A[..], ha:oftype A[..] prp]} [g |- #p.2] =>
+%         let [g |- o_refl] = d in ? % impossible #p.3 ... HOW?
+%       | {#p:[g |- block y:obj, v:oftype y A[..], ha:oftype A[..] prp]} [g |- #p.3] => impossible d
+% ;
 
 % PART 1 -- Relating types of SysF to PTS terms of type prp -- tyrel
 
@@ -404,8 +432,8 @@ rec tmrel_tot_pres_lf: (g:t_ctx_ext)[g |- oftype N B] -> [g |- oftype B prp] -> 
 | {#p:[g |- block x:tm_f, y:obj, v:tmrel x y, w:hastype x B'[..], r:tyrel B'[..] B[..], u:oftype y B[..] ]}
       [g |- #p.6] => [g |- e_rel_term #p.3 #p.4 #p.5]
 | {#p:[g |- block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp]}
-      [g |- #p.4] => ?
-			 
+      [g |- #p.4] => impossible f
+
 | [g |- t_ax] => impossible f
 | [g |- t_pi Da U \x.\u.Db] => impossible f
 
@@ -447,9 +475,13 @@ rec tmrel_tot_pres_lf: (g:t_ctx_ext)[g |- oftype N B] -> [g |- oftype B prp] -> 
      [g |- e_rel_term (r_tlam \x.\y.\u.Rm) (f_tlam \x.Tm) (r_all \x.\y.\u.Ra0)]
   )
 | [g |- t_app D1 D2] =>
+
+  % JK: This should do the trick ...
+  let [g |- t_correct_type Hab U] = oftype_propagation [g |- D1] in
+  let [g |- t_pi Ha Ua \x.\u.Hb] = [g |- Hab] in %QUESTION: why is Hab no longer shown in the context after this, it appears to still exist ...
+
 let [g |- e_rel_term Rm Tm Rab ] : [g |- exists_rel_term M (pi A \x. B)] =
-    tmrel_tot_pres_lf [g |- D1]   ?  in
-%  let [g |- e_rel_term Rm Tm Rab] = tmrel_tot_pres_lf [g |- D1]  (? : [g |- oftype (pi A \x.B0) prp]) in
+    tmrel_tot_pres_lf [g |- D1] [g |- Hab]  in % QUESTION: with the ? as second argument, Hab does not appear in the proof state
 
  let [g |- Rm] : [g |- tmrel M' M] = [g |- Rm] in
  let [g |- Tm] : [g |- hastype M' C] = [g |- Tm] in
