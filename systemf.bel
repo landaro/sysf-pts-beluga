@@ -102,7 +102,7 @@ rec prp_prp_contra: (g:pts_ctx)[g |- oftype prp prp] -> [ |- false] =
 % Theorem typingL_propagation Gamma a b : typingL Gamma a b -> b = SortL Typ \/ exists u, typingL Gamma b (SortL u).
 
 type_correct: obj -> type.
-t_correct_typ: eq_obj B typ -> type_correct B.
+t_correct_typ: type_correct typ.
 t_correct_type : oftype B U -> univ U -> type_correct B.
 
 % ex_univ: obj -> type.
@@ -110,7 +110,12 @@ t_correct_type : oftype B U -> univ U -> type_correct B.
 
 rec oftype_propagation : (g:pts_ctx) [g |- oftype A B] -> [g |- type_correct B] =
     / total d (oftype_propagation g a b d) /
-      fn d => ? ; % induction on the derivation d
+      fn d => case d of
+	[g |- t_ax ] => [g |- t_correct_typ]
+      | [g |- t_pi Ta U \x.\u.Tb] => ?
+      | [g |- t_lam Ta U (\x.\u.Tm ) (\x.\u.Tb)] => ?
+      | [g |- t_app Tab Ta] => 	?
+      | [g |- #p.2] => ?; 
 
 rec oftype_typ_degenerate : (g:pts_ctx) [g |- oftype A typ] -> [g |- eq_obj A prp] = ? ;
 % needs induction on the derivation, several inversions and propagation.
@@ -317,7 +322,7 @@ e_rel_proof: tmrel M P -> tyrel A Q -> oftype P Q -> oftype Q prp -> exists_rel_
 
 schema t_ctx_ext =
        block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp +
-some [a:ty_f,f:obj] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a, r:tyrel a f, w:oftype y f;
+       some [a:ty_f,f:obj] block x:tm_f, y:obj, u:tmrel x y, v:hastype x a, r:tyrel a f, w:oftype y f;
 
 % tmrel is left-total on the well-type F-terms and relates to well-typed PTS proofs
 % of the corresponding PTS propositions
@@ -414,7 +419,7 @@ rec tmrel_tot_pres_lf: (g:t_ctx_ext)[g |- oftype N B] -> [g |- oftype B prp] -> 
 	  {Rm:[g, x:tm_f, y:obj, v:tmrel x y,r:tyrel (A'[ ..]) (A[ ..])  |-  tmrel M'[..,x] M[..,y]]}
 	 % {Tm:[g, x:tm_f, w:hastype x (A'[ ..]) |-  hastype M'[..,x] B'[..]]}
 	  {Ra0:[g, y:obj, r:tyrel (A'[ ..]) (A[ ..]) |-  tyrel B'[..] B[..,y]]}
-	 [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..])
+	  [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..])
 			   		  |- e_rel_term Rm[.., b.x, b.y, b.v, b.r] Tm[.., b.x, b.w] Ra0[..,b.y,b.r] ] =
 
   tmrel_tot_pres_lf [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..])
