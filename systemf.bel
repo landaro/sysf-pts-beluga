@@ -96,6 +96,21 @@ rec prp_prp_contra: (g:pts_ctx)[g |- oftype prp prp] -> [ |- false] =
     / total d (prp_prp_contra g d) /
       fn d => impossible d;
 
+% Preliminary : PTS propagation
+
+% COQ: Version:
+% Theorem typingL_propagation Gamma a b : typingL Gamma a b -> b = SortL Typ \/ exists u, typingL Gamma b (SortL u).
+
+type_correct: obj -> type.
+t_correct_typ: eq_obj B typ -> type_correct B.
+t_correct_type : oftype B U -> univ U -> type_correct B.
+
+% ex_univ: obj -> type.
+% ex_univers: oftype A U -> univ U -> ex_univ A.
+
+rec oftype_propagation : (g:pts_ctx) [g |- oftype A B] -> [g |- type_correct B] =
+    / total d (oftype_propagation g a b d) /
+      fn d => ? ;
 
 % PART 1 -- Relating types of SysF to PTS terms of type prp -- tyrel
 
@@ -456,8 +471,6 @@ wtyp: obj -> obj -> type.
 wf_typ: oftype N B -> oftype B prp -> wtyp N B.
 
 
-ex_univ: obj -> type.
-ex_univers: oftype A U -> univ U -> ex_univ A.
 
 %{rec oftype_inv: (g:t_ctx_ext){B:[g, x:obj |- obj]}
 			      [g |- oftype C prp] -> [g |- eq_obj C B[..,N0]] -> [g |- oftype N0 A']
