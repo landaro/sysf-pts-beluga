@@ -399,9 +399,13 @@ schema ctx = some [b:obj,b':ty_f]
 % tmrel is right-total on the well-typed PTS proofs and relates to well-typed F-terms
 % TODO: totality?
 rec tmrel_tot_pres_lf: (g:t_ctx_ext)[g |- oftype N B] -> [g |- oftype B prp] -> [g |- exists_rel_term N B] =
+/ total d (tmrel_tot_pres_lf g n b d) /
     fn d, f => case d of
 | {#p:[g |- block x:tm_f, y:obj, v:tmrel x y, w:hastype x B'[..], r:tyrel B'[..] B[..], u:oftype y B[..] ]}
       [g |- #p.6] => [g |- e_rel_term #p.3 #p.4 #p.5]
+| {#p:[g |- block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp]}
+      [g |- #p.4] => ?
+			 
 | [g |- t_ax] => impossible f
 | [g |- t_pi Da U \x.\u.Db] => impossible f
 
@@ -427,10 +431,9 @@ rec tmrel_tot_pres_lf: (g:t_ctx_ext)[g |- oftype N B] -> [g |- oftype B prp] -> 
 			   [g, b: block (x:tm_f, y:obj, v:tmrel x y, w:hastype x A'[..], r:tyrel A'[..] A[..], u:oftype y A[..]) |- D[..,b.y, b.u]] in
      let [g |- Ra] : [g |- tyrel A' A] = [g |- Ra] in
      let [g, x : tm_f, y : obj, v : tmrel x y |- Tm'] = [g, x : tm_f, y : obj, v : tmrel x y |- Rm[..,x,y,v,Ra[..]] ] in
-
      let [g, y:obj |- Rb']  : [g, y:obj |- tyrel B'[..] B] = [g,y:obj |- Ra0[..,y,Ra[..]]] in
-     %% -bp Not entirely sure why this is necessary and we can't simply use Rb
-     [g |- e_rel_term (r_lam Ra (\x.\y.\v.Tm')) (f_lam \x.\u.Tm) (r_arr Ra \x.Rb')]
+     % -bp Not entirely sure why this is necessary and we can't simply use Rb
+      [g |- e_rel_term (r_lam Ra (\x.\y.\v.Tm')) (f_lam \x.\u.Tm) (r_arr Ra \x.Rb')]
 
    | [g |- r_all \x.\y.\r.Rb] => % : [g |- tyrel (all \x.R) (pi prp \x.B)] =>
      let  % {Rm:[g, x:tm_f, y:obj, r:tyrel x y |-  tmrel M'[..,x] M[..,y]]}
