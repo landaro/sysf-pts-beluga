@@ -143,6 +143,15 @@ rec oftype_typ_degenerate : (g:pts_ctx_wf) [g |- oftype A B] -> [g |- eq_obj B t
       % where is {H : [g |- oftype (B .. (N ..)) prp]}? Not shown in context.
       % let [g |- o_refl] = d in ? % this fails, I expected it to change the (B .. (N ..) in H to typ ...
       % now "impossible [g |- H]" should close the case ...
+
+      % {Hb : [g, a : obj, y13 : oftype a (A[ ..]) |- oftype (B[ .., a]) prp]}
+      % {Ta : [g |- oftype N A]}
+      %   H : [g |- oftype (B[.., N]) prp      
+      % 
+      % pattern matching on d, is asking Beluga to unify B[..,N]  with typ. This cannot possibly succeed with a unique answer.
+      %   B could be \x.typ   or  N = typ and B = \x.x 
+      %   
+
       | {#p:[g |- block y:obj, v:oftype y prp]} [g |- #p.2] => impossible d
       | {#p:[g |- block y:obj, v:oftype y A[..], ha:oftype A[..] prp]} [g |- #p.2] =>
         let [g |- o_refl] = d in impossible [g |- #p.3]
