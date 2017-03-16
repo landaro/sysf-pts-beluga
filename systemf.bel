@@ -108,6 +108,7 @@ t_correct_typ: type_correct typ.
 t_correct_type : oftype B U -> univ U -> type_correct B.
 
 % QUESTION: this context schema should give well-formed PTS contexts, sensible?
+% ANSWER: Yes, it looks sensible
 schema pts_ctx_wf = block y:obj, v:oftype y prp +
                     some [a:obj] block y:obj, v:oftype y a, ha:oftype a prp;
 
@@ -249,17 +250,29 @@ rec tyrel_lf_tot_pres: (g:tyrel_ctx_wf_alt) [g |- oftype F prp] -> [g |- exists_
 
 % COROLLARY: we can invert the tyrel_lf implication:
 rec tyrel_lf_tot_pres_inv: (g:tyrel_ctx_wf)[g |- exists_rel_type F ] -> [g |- oftype F prp] =
-    / total d (tyrel_lf_tot_pres_inv g f d) /
+%    / total d (tyrel_lf_tot_pres_inv g f d) /
+    / total  (tyrel_lf_tot_pres_inv) /
       % QUESTION: is there a keyword for non-recursive functions (then immediately total)? The guide suggests
       % "let", but replacing "rec" with "let" produces and error ...
+      % ANSWER: No. The totality declaration could be simplified.
+      %             / total  (tyrel_lf_tot_pres_inv) /
       fn d =>
       let [g |- e_rel_type Raf] = d in
       let [g |- Raf] : [g |- tyrel A F] = [g |- Raf] in
       % QUESTION: is there a way to obtain Raf, as well as the explicit names A and F from the preceeding two lines
       % with a single let binding?
+      % ANSWER: Well, as an alternative you could specify the type of Raf...
+      %         let {Raf: [g |- tyrel A F]}[g |- e_rel_type Raf] = d in 
+      %         should work. 
+      %         A better way is to make the A explicit in declaring e_rel_type
+      %         e_rel_type: {A:ty_f}tyrel A F -> exists_rel_type F.
+      % and then you simply write
+      % let [g |- e_rel_type A Raf] = d in 
+      % this seems more elegant, since it exposes the instantiation of your "existential" 
       let [g |- e_rel_prop Raf' H] = tyrel_fl_tot_pres [g] [g |- A] in
       let [g |- Raf'] : [g |- tyrel A F'] = [g |- Raf'] in
       % SAME QUESTION HERE ...
+      % ANSWER: But here you don't need to retrieve the names A and F'.... so this let-binding is useless.
       let [g |- o_refl] = tyrel_func [g |- Raf] [g |- Raf'] in
       [g |- H]
 ;
@@ -432,9 +445,13 @@ rec tmrel_lf_tot_pres: (g:tmrel_ctx_wf)[g |- oftype N B] -> [g |- oftype B prp] 
         % JK: This should do the trick ...
         let [g |- t_correct_type Hab U] = oftype_propagation [g |- D1] in
         let [g |- t_pi Ha Ua \x.\u.Hb] = [g |- Hab] in
-        %QUESTION: why is Hab no longer shown in the context after this, it appears to still exist ...
+        % QUESTION: why is Hab no longer shown in the context after this, it appears to still exist ...
+        % ANSWER: You are pattern matching on [g |- Hab] and in general Hab is an index-object; pattern matching on index objects may and often must refine the types. We therefore always replace Hab with what it stands for after the pattern match. It is now equal to t_pi Ha Ua \x.\u.Hb. 
+         % For the user it appears as it still exists, but in fact type reconstruction will eliminate all uses of Hab with t_pi Ha Ua \x.\u.Hb
+
         let [g |- e_rel_term Rm Tm Rab ] : [g |- exists_rel_term M (pi A \x. B)] =
             % QUESTION: with the ? as second argument, Hab does not appear in the proof state?
+            % See answer above.
             tmrel_lf_tot_pres [g |- D1] [g |- Hab] in
         let [g |- Rm] : [g |- tmrel M' M] = [g |- Rm] in
         let [g |- Tm] : [g |- hastype M' C] = [g |- Tm] in
@@ -455,6 +472,8 @@ rec tmrel_fl_tot_pres_inv: (g:tmrel_ctx_wf) [g |- exists_rel_proof M A] -> [g |-
     / total d (tmrel_fl_tot_pres_inv g m a d) /
       % QUESTION: again, this does not need to be recursive, how do I sepcify that and
       % avoid the totaliy annotation ...
+      % ANSWER: You always need the totality declaration as totality checks also coverage.
+      %         But you can simply say: / total (tmrel_fl_tot_pres_inv) /
       fn d =>
       let [g |- e_rel_proof Rmp Raq Tp Tq] = d in
       let [g |- e_rel_term Rm'p H Ra'q] = tmrel_lf_tot_pres [g |- Tp] [g |- Tq] in
@@ -471,6 +490,7 @@ rec tmrel_lf_tot_pres_inv: (g:tmrel_ctx_wf) [g |- exists_rel_term N B] -> [g |- 
     / total d (tmrel_lf_tot_pres_inv g n b d) /
       % QUESTION: again, this does not need to be recursive, how do I sepcify that and
       % avoid the totaliy annotation ...
+      % See Answer above to the same question
       fn d =>
       let [g |- e_rel_term Rmn Tm Rab] = d in
       let [g |- e_rel_proof Rmn' Rab' H1 H2] = tmrel_fl_tot_pres [g |- Tm] in
