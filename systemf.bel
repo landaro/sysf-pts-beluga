@@ -148,7 +148,7 @@ rec oftype_typ_degenerate : (g:pts_ctx_wf) [g |- oftype A B] -> [g |- eq_obj B t
       % {Ta : [g |- oftype N A]}
       %   H : [g |- oftype (B[.., N]) prp      
       % 
-      % pattern matching on d, is asking Beluga to unify B[..,N]  with typ. This cannot possibly succeed with a unique answer.
+      % pattern matching on d, is asking higher-order unification to unify B[..,N]  with typ. This cannot possibly succeed with a unique answer.
       %   B could be \x.typ   or  N = typ and B = \x.x 
       %   
 
