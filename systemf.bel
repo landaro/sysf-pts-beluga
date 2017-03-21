@@ -118,8 +118,8 @@ rec oftype_propagation : (g:pts_ctx_wf) [g |- oftype A B] -> [g |- type_correct 
       | [g |- t_pi Ta U \x.\u.Tb] => [g |- t_correct_type t_ax u_typ]
       | [g |- t_lam Ta U (\x.\u.Tm ) (\x.\u.Tb)] => [g |- t_correct_type (t_pi Ta U \x.\u.Tb) u_prp]
       | [g |- t_app Tab Ta] =>
-        let [g |- t_lam Ta' U (\x.\u.Tm ) (\x.\u.Tb)] = [g |- Tab] in
-        [g |- t_correct_type Tb[..,_,Ta] u_prp]
+        let [g |- t_correct_type TP U] = oftype_propagation [g |- Tab] in
+        let [g |- t_pi TA UA \x.\u.Tb] = [g |- TP] in [g |- t_correct_type Tb[..,_,Ta] u_prp]
       | {#p:[g |- block y:obj, v:oftype y prp]} [g |- #p.2] => [g |- t_correct_type t_ax u_typ]
       | {#p:[g |- block y:obj, v:oftype y A[..], ha:oftype A[..] prp]} [g |- #p.2] => [g |- t_correct_type #p.3 u_prp]
       | {#p:[g |- block y:obj, v:oftype y A[..], ha:oftype A[..] prp]} [g |- #p.3] => [g |- t_correct_type t_ax u_typ]
@@ -236,6 +236,7 @@ rec tyrel_lf_tot_pres: (g:tyrel_ctx_wf_alt) [g |- oftype F prp] -> [g |- exists_
             tyrel_lf_tot_pres [g, b:block y:obj, u:oftype y C[..], v:tyrel A[..] C[..], w:oftype C[..] prp |- Db[..,b.1,b.2]] in
         [g |- e_rel_type _ (r_arr Rac \x.Rb)]
       | {#p: [g |- block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp]} [g |- #p.4] => [g |- e_rel_type #p.1 #p.3]
+      | {#p: [g |- block y:obj, u:oftype y prp, v:tyrel A[..] prp, w:oftype prp prp]} [g |- #p.2] => impossible [g |- #p.4]
       | {#p: [g |- block y:obj, u:oftype y B[..], v:tyrel A[..] B[..], w:oftype B[..] prp]} [g |- #p.4] => [g |- e_rel_type A[..] #p.3]
 ;
 
@@ -340,36 +341,36 @@ schema tmrel_ctx_wf =
 rec tmrel_fl_tot_pres: (g:tmrel_ctx_wf) [g |- hastype M A] -> [g |- exists_rel_proof M A] =
     / total d (tmrel_fl_tot_pres g m a d)/
       fn d => case d of
-      % | [g |- f_app Dm Dn] =>
-      %   let [g |- e_rel_proof Rm RA Tm1 Tm2] = tmrel_fl_tot_pres [g |- Dm] in
-      %   let [g |- e_rel_proof Rn Ra Tn1 Tn2] = tmrel_fl_tot_pres [g |- Dn] in
-      %   let [g |- Rm] : [g |- tmrel M Pm] = [g |- Rm] in
-      %   let [g |- Rn] : [g |- tmrel N Pn] = [g |- Rn] in
-      %   let [g |- R1] : [g |- tmrel (app M N) (apply Pm Pn)] = [g |- r_app Rm Rn] in
-      %   let [g |- r_arr Ra' (\x.Rb) ] = [g |-  RA] in
-      %   let [g |- o_refl] = tyrel_func [g |- Ra'] [g |- Ra] in
-      %   let [g |- t_pi _ _ (\a.\u.Tb)]  = [g |- Tm2] in
-      %   [g |-  e_rel_proof R1 Rb[..,Pn] (t_app Tm1 Tn1)   Tb[.., Pn, Tn1]]
+      | [g |- f_app Dm Dn] =>
+        let [g |- e_rel_proof Rm RA Tm1 Tm2] = tmrel_fl_tot_pres [g |- Dm] in
+        let [g |- e_rel_proof Rn Ra Tn1 Tn2] = tmrel_fl_tot_pres [g |- Dn] in
+        let [g |- Rm] : [g |- tmrel M Pm] = [g |- Rm] in
+        let [g |- Rn] : [g |- tmrel N Pn] = [g |- Rn] in
+        let [g |- R1] : [g |- tmrel (app M N) (apply Pm Pn)] = [g |- r_app Rm Rn] in
+        let [g |- r_arr Ra' (\x.Rb) ] = [g |-  RA] in
+        let [g |- o_refl] = tyrel_func [g |- Ra'] [g |- Ra] in
+        let [g |- t_pi _ _ (\a.\u.Tb)]  = [g |- Tm2] in
+        [g |-  e_rel_proof R1 Rb[..,Pn] (t_app Tm1 Tn1)   Tb[.., Pn, Tn1]]
       | [g |- f_lam \x.\u.Dm] : [g |- hastype (lam A \x.M) (arr A B)] =>
         let [g |- e_rel_prop F TyrA Ta] : [g |- exists_rel_prop A] = tyrel_fl_tot_pres [g] [g |- A] in
         let [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..], r:tyrel A[..] F[..], w:oftype y F[..] |- e_rel_proof Rm[..,b.1,b.2,b.3] Ra[..,b.2] Tm1[..,b.2,b.6] Tm2[..,b.2,b.6]] =
             tmrel_fl_tot_pres [g, b:block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..], r:tyrel A[..] F[..], w:oftype y F[..] |- Dm[.., b.x, b.v]] in
         [g |- e_rel_proof (r_lam TyrA (\x.\y.\u.Rm)) (r_arr TyrA \x.Ra) (t_lam Ta u_prp (\x.\u.Tm1) (\x.\u.Tm2)) (t_pi Ta u_prp (\x.\u.Tm2))]
-      % | [g |- f_tapp Dm] : [g |- hastype (tapp M A) _ ] =>
-      %   let [g |- e_rel_proof Rm RA T1 T2] = tmrel_fl_tot_pres [g |- Dm] in
-      %   let [g |- r_all \x.\y.\r.RB] : [g |- tyrel (all \x.B) (pi prp (\x.S))] = [g |- RA] in
-      %   let [g |- t_pi TA _ (\a.\u.TB)] = [g |- T2] in
-      %   let [g |- e_rel_prop TyrA Ta] = tyrel_fl_tot_pres [g] [g |- A] in
-      %   let [g |- R] = [g |- r_tapp Rm TyrA] in
-      %     [g |- e_rel_proof R RB[.., _, _, TyrA] (t_app T1 Ta) TB[.., _, Ta]]
+      | [g |- f_tapp Dm] : [g |- hastype (tapp M A) _ ] =>
+        let [g |- e_rel_proof Rm RA T1 T2] = tmrel_fl_tot_pres [g |- Dm] in
+        let [g |- r_all \x.\y.\r.RB] : [g |- tyrel (all \x.B) (pi prp (\x.S))] = [g |- RA] in
+        let [g |- t_pi TA _ (\a.\u.TB)] = [g |- T2] in
+        let [g |- e_rel_prop _ TyrA Ta] = tyrel_fl_tot_pres [g] [g |- A] in
+        let [g |- R] = [g |- r_tapp Rm TyrA] in
+          [g |- e_rel_proof R RB[.., _, _, TyrA] (t_app T1 Ta) TB[.., _, Ta]]
       | [g |- f_tlam \a.Dm] =>
 	let [g,b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- e_rel_proof Rm[..,b.1, b.2, b.3] Ra[..,b.1,b.2,b.3] T1[..,b.2,b.4] T2[..,b.2,b.4]] =
 	    tmrel_fl_tot_pres [g, b:block x:ty_f, y:obj, u:tyrel x y, v:oftype y prp |- Dm[..,b.1]] in
 	[g |- e_rel_proof (r_tlam \x.\y.\u.Rm) (r_all \x.\y.\u.Ra) (t_lam t_ax u_typ (\x.\u.T1) (\x.\u.T2)) (t_pi t_ax u_typ (\x.\u.T2)) ]
-      % | {#p: [g |- block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..],  r:tyrel A[..] G[..], w:oftype y G[..]]} [g |- #p.4]  =>
-      %   let [g |- e_rel_prop F TyrA Ta] = tyrel_fl_tot_pres [g] [g |- A] in
-      %   let [g |- o_refl] = tyrel_func [g |- #p.5] [g |- TyrA] in
-      %   [g |- e_rel_proof #p.3 TyrA #p.6 Ta]
+      | {#p: [g |- block x:tm_f, y:obj, u:tmrel x y, v:hastype x A[..],  r:tyrel A[..] G[..], w:oftype y G[..]]} [g |- #p.4]  =>
+        let [g |- e_rel_prop F TyrA Ta] = tyrel_fl_tot_pres [g] [g |- A] in
+        let [g |- o_refl] = tyrel_func [g |- #p.5] [g |- TyrA] in
+        [g |- e_rel_proof #p.3 TyrA #p.6 Ta]
 ;
 
 
