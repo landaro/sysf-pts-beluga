@@ -1,0 +1,23 @@
+# the following is produced by basic tex
+*.aux
+*.log
+*.out
+*.thm
+*.dvi
+*.pdf
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.toc
+*.nav
+*.snm
+*.vtc
+
+# this comes from AuCTeX
+auto/
+*.synctex.gz
+
+#autosave
+*~
+*#*#
