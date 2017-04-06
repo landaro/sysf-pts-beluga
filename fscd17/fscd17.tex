@@ -11,7 +11,7 @@
 \bibliographystyle{plainurl}% the recommended bibstyle
 
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Relating System F and $\lambda$2: A case study in Coq, Abella and Beluga}
+\title{Relating System F and $\lambda$2: A Case Study in Coq, Abella and Beluga}
 \titlerunning{Relating System F and $\lambda2$}
 
 %% Please provide for each author the \author and \affil macro, even when authors have the same affiliation, i.e. for each author there needs to be the  \author and \affil macros
@@ -19,7 +19,7 @@
 \author[2]{Brigitte Pientka}
 \author[1]{Gert Smolka}
 \affil[1]{Saarland University, Saarbrücken, Germany\\
-  \texttt{[jkaiser,smolka]}@ps.uni-saarland.de}
+  \texttt{\{jkaiser,smolka\}}@ps.uni-saarland.de}
 \affil[2]{school, city, country\\
   \texttt{MAIL}}
 \authorrunning{J. Kaiser, B. Pientka and G. Smolka} %mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et. al.'
@@ -67,7 +67,6 @@
 \newcommand{\eqdef}{\mrel{:=}}
 \newcommand{\set}[1]{\ensuremath{\{#1\}}}
 
-\newcommand{\SysF}{\ensuremath{\mathsf{F}}\xspace}
 \newcommand{\SysL}{$\lambda$2\xspace}
 
 
@@ -92,8 +91,8 @@
 \makeatother
 \newcommand{\tsAnnot}[2]{\vdash\hspace{-.7em}^{\raisemath{1.5pt}{\scriptscriptstyle{#2}}}_{\raisemath{0.3pt}{\scriptscriptstyle{#1}}}} % note: wrap instances in \mathbin
 \newcommand{\cts}[2]{\ensuremath{(\,#1 #2 {})}} % context + turnstile for CMs
-\newcommand{\tfF}{\tsAnnot{\SysF}{\ty}}  % for type formation judgement
-\newcommand{\tyF}{\tsAnnot{\SysF}{\tm}}  % for typing judgement
+\newcommand{\tfF}{\tsAnnot{F}{\ty}}  % for type formation judgement
+\newcommand{\tyF}{\tsAnnot{F}{\tm}}  % for typing judgement
 \newcommand{\istyF}[2]{\ensuremath{{#1} \mathrel{\tfF} #2}}
 \newcommand{\typingF}[3]{\ensuremath{{#1} \mathrel{\tyF} #2 \OF #3}}
 \newcommand{\tyL}{\tsAnnot{\lambda}{}} % for typing judgement
@@ -101,7 +100,7 @@
 \newcommand{\inL}{\mrel{\in_{\lambda}}}
 \newcommand{\tfP}{\tsAnnot{\mathsf{P}}{\ty}}  % for type formation judgement
 \newcommand{\istyFh}[1]{\ensuremath{#1\ms\mathsf{ty}}}
-\newcommand{\typingFh}[2]{\ensuremath{#1 \mathbin{:_{\SysF}} #2}}
+\newcommand{\typingFh}[2]{\ensuremath{#1 \mathbin{:_{F}} #2}}
 \newcommand{\sortLh}[1]{\ensuremath{\mathcal{S}\ms#1}}
 \newcommand{\typingLh}[2]{\ensuremath{#1 \mathbin{:_{\lambda}} #2}}
 
@@ -122,7 +121,7 @@
 % L-Prolog syntax
 \newcommand{\lpPi}[1]{\mathbf{\Pi} #1.\ms\ms}
 \newcommand{\lpApp}[2]{#1\langle#2\rangle}
-\newcommand{\lpImp}{\ms\Rightarrow\ms}
+\newcommand{\lpImp}{\mrel{=\!\blacktriangleright}}
 
 % Object Syntax
 \newcommand{\Prp}{\ensuremath{\textrm{\textasteriskcentered}}}
@@ -156,8 +155,8 @@
 \maketitle
 
 \begin{abstract}
-  We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~\SysF and its single-sorted pure type system (PTS) variant \SysL.
-  This is established by reducing the typability problem of \SysF to \SysL and vice versa.
+  We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~F and its single-sorted pure type system (PTS) variant \SysL.
+  This is established by reducing the typability problem of F to \SysL and vice versa.
   A key challenge is the treatment of variable binding and contextual information.
   The formalisations all share the same high level proof structure, using syntactical relations.
   They do, however, differ significantly in their representation and manipulation of variables and contextual information.
@@ -175,7 +174,7 @@
 TODO
 
 \begin{itemize}
-\item Different variants of System~\SysF~\cite{Girard1972, DBLP:conf/programm/Reynolds74} used interchangable, only valid with suitable equivalence results.
+\item Different variants of System~F~\cite{Girard1972, DBLP:conf/programm/Reynolds74} used interchangable, only valid with suitable equivalence results.
   Briefly discussed but not in detail in~\cite{Geuvers1993}
 \item Until recently taken for granted, never considered in detail.
 \item We have prior work in Coq \cite{KaiserEtAl:2017:sysf_pts_equiv_coq}
@@ -266,19 +265,19 @@ It is of course possible to restrict the proof to well-formed contexts (and in B
 
 Where necessary, well-formedness of F-contexts can be defined as follows:
 \begin{mathpar}
-  \inferrule*{~}{\mathbf{wf}_{\SysF}\;\;\cc{\emptyset}{\emptyctx}} \and
-  \inferrule*[right=$X \notin \Delta$]{\mathbf{wf}_{\SysF}\;\;\cc{\Delta}{\emptyctx}}{\mathbf{wf}_{\SysF}\;\;\cc{\Delta,X}{\emptyctx}} \and
-  \inferrule*[right=$x \notin \dom{\Gamma}$]{\mathbf{wf}_{\SysF}\;\;\cc{\Delta}{\Gamma} \\ \istyF{\Delta}{A}}{\mathbf{wf}_{\SysF}\;\;\cc{\Delta}{\Gamma, x \of A}}
+  \inferrule*{~}{\mathbf{wf}_{F}\;\;\cc{\emptyset}{\emptyctx}} \and
+  \inferrule*[right=$X \notin \Delta$]{\mathbf{wf}_{F}\;\;\cc{\Delta}{\emptyctx}}{\mathbf{wf}_{F}\;\;\cc{\Delta,X}{\emptyctx}} \and
+  \inferrule*[right=$x \notin \dom{\Gamma}$]{\mathbf{wf}_{F}\;\;\cc{\Delta}{\Gamma} \\ \istyF{\Delta}{A}}{\mathbf{wf}_{F}\;\;\cc{\Delta}{\Gamma, x \of A}}
 \end{mathpar}
 
 Note that the second rule is restricted to the empty term-variable context.
 This is to align the well-formedness relation with an internalisation function
 \begin{align*}
-  \mathsf{intern}_{\SysF} \OF \mathsf{CtxTy}_{\SysF} \to \mathsf{CtxTm}_{\SysF} \to \TyF \to \TmF \to \TmF \times \TyF
+  \mathsf{intern}_{F} \OF \mathsf{CtxTy}_{F} \to \mathsf{CtxTm}_{F} \to \TyF \to \TmF \to \TmF \times \TyF
 \end{align*}
 which satisfies
 \begin{align*}
-  \mathbf{wf}_{\SysF}\;\;\cc{\Delta}{\Gamma} \implies \mathsf{intern}_{\SysF}\,\Delta\,\Gamma\,s\,A = (t,B) \implies (\typingF{\cc{\Delta}{\Gamma}}{s}{A} \iff \typingF{\cc{\emptyset}{\emptyctx}}{t}{B})
+  \mathbf{wf}_{F}\;\;\cc{\Delta}{\Gamma} \implies \mathsf{intern}_{F}\,\Delta\,\Gamma\,s\,A = (t,B) \implies (\typingF{\cc{\Delta}{\Gamma}}{s}{A} \iff \typingF{\cc{\emptyset}{\emptyctx}}{t}{B})
 \end{align*}
 This is what allows us to only consider closed judgements at the top-level.
 The non-empty contexts of open judgements can always be internalised.
@@ -388,7 +387,7 @@ Substitutions are parallel, that is, they are functions from indices to terms (o
       \inferrule*{\typingF{\cc{N+1}{\Gamma\subst{\shift}}}{s}{A}}{\typingF{\cc{N}{\Gamma}}{\TyLam s}{\All A}}
     \end{mathpar}
   \end{center}
-  \caption{System~\SysF{} -- de Bruijn encoding in Coq.}
+  \caption{System~F -- de Bruijn encoding in Coq.}
   \label{fig:sys-f-coq}
 \end{figure}
 
@@ -412,7 +411,7 @@ Substitutions are parallel, that is, they are functions from indices to terms (o
 \end{figure}
 
 \begin{itemize}
-\item Figure~\ref{fig:sys-f-coq} gives the de Bruijn encoding of \SysF.
+\item Figure~\ref{fig:sys-f-coq} gives the de Bruijn encoding of F.
   Figure~\ref{fig:sys-l-coq} gives the de Bruijn encoding of \SysL.
   For the latter observe the dependent context lookup necessary due to de Bruijn term not being invariant under context modifications.
 \item Remark on detour via System~P to obtain strengthening for type formation and propagation in \SysL without assuming well-formedness.
@@ -499,7 +498,7 @@ which satisfies the following:
 Let us briefly pause at this point and consider what we just did.
 If we compare the previous result to what we did in \cite{KaiserEtAl:2017:sysf_pts_equiv_coq} it will quickly become apparent that $\tyctxrelFL{N}{R}{\Gamma}$ is the relational generalisation of the context morphism $\xi\ms:\ms\cts{N}{\tfF}\to\cts{\Gamma}{\tfP}$.
 Thus Lemma~\ref{lem:tyr_fl_tot_pres} is simply the relational analogue to the context morphism lemma for type formation from F to P (Lemma~15) in \cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
-As noted above, our relational approach allows us to bypass the intermediate P from the earlier paper, that is we relate \SysF and \SysL directly.
+As noted above, our relational approach allows us to bypass the intermediate P from the earlier paper, that is we relate F and \SysL directly.
 
 For the direction from right to left we simply give the respective relational morphism definition and state the result:
 \begin{lemma}
@@ -514,7 +513,7 @@ For the direction from right to left we simply give the respective relational mo
   Induction on $\typingL{\Gamma}{a}{\Prp}$, using extension properties for $\tyctxrelLF{N}{R}{\Gamma}$.
   The correct function space is chosen by discriminating on the sort of the product domain.
   This in turn relies on the degeneracy of the sort $\Typ$.
-  Finally, propagation and substitutivity of $\tyL$ are used to discharge the spurious application case, which has no related type on the \SysF{}-side
+  Finally, propagation and substitutivity of $\tyL$ are used to discharge the spurious application case, which has no related type on the F-side
 \end{proof}
 
 Before we can now tackle the term relation $\tmr^R_S$ we need a bit of extra machinery.
@@ -549,7 +548,7 @@ We can then lift this easily to our type and term relations, namely
 Now all that is left are the proofs of left and right totality as well as preservation of typing for $\tmr^R_S$.
 This, however, is the most technical part of the development.
 There are no additional major ideas involved in the following, but the number of moving parts increases noticeably.
-We start with the direction from \SysF to \SysL and define
+We start with the direction from F to \SysL and define
 \begin{align*}
   \tmctxrelFL{\Delta}{R}{S}{\Gamma} \eqdef \mAll {x \of A \in \Delta} \mEx{y\,a} A\,\tyr^R\,a \mAnd x\,S\,y \mAnd y \of a \inL \Gamma
 \end{align*}
@@ -608,7 +607,7 @@ Our design of this structure was heavily influenced by the generalised notions o
 \begin{figure}
   \begin{center}
     \begin{mathpar}
-      \mprset{fraction={{}{\,\cdot\,}{}}}
+%      \mprset{fraction={{}{\,\cdot\,}{}}}
       \inferrule*{\istyFh{A} \\ \istyFh{B}}{\istyFh{(A \to B)}} \and
       \inferrule*{\lpPi x \istyFh{x} \lpImp \istyFh{\lpApp{A}{x}}}{\istyFh{(\All{A})}} \and
       \inferrule*{\typingFh{s}{\All{B}} \\ \istyFh{A}}{\typingFh{s\,A}{\lpApp{B}{A}}} \\
@@ -617,14 +616,14 @@ Our design of this structure was heavily influenced by the generalised notions o
       \inferrule*{\typingFh{s}{A \to B} \\ \typingFh{t}{A}}{\typingFh{s\,t}{B}}
     \end{mathpar}
   \end{center}
-  \caption{HOAS specification of \SysF in Abella.}
+  \caption{HOAS specification of F in Abella.}
   \label{fig:sys-f-abella}
 \end{figure}
 
 \begin{figure}
   \begin{center}
     \begin{mathpar}
-      \mprset{fraction={{}{\,\cdot\,}{}}}
+%      \mprset{fraction={{}{\,\cdot\,}{}}}
       \inferrule*{~}{\sortLh{\Typ}} \and
       \inferrule*{~}{\sortLh{\Prp}} \and
       \inferrule*{~}{\typingLh{\Prp}{\Typ}} \and
@@ -640,8 +639,8 @@ Our design of this structure was heavily influenced by the generalised notions o
 Let us now consider the first of our two HOAS solutions in more detail.
 Abella is a system designed around a two-level logic approach.
 The lower \emph{specification level}, essentially verbatim $\lambda$Prolog, is used to encode the object languages.
-For our Abella variant of \SysF we define predicates $\istyFh{A} \OF o$ for type formation and $\typingFh{s}{A} \OF o$ for typing, where $o$ is Abella's type of $\lambda$Prolog predicates.
-The Abella variant of the type system of \SysF is given in Figure~\ref{fig:sys-f-abella}, where dotted lines represent entailment at the $\lambda$Prolog level (as opposed to the inductive definitions we saw earlier).
+For our Abella variant of F we define predicates $\istyFh{A} \OF o$ for type formation and $\typingFh{s}{A} \OF o$ for typing, where $o$ is Abella's type of $\lambda$Prolog predicates.
+The Abella variant of the type system of F is given in Figure~\ref{fig:sys-f-abella}.
 The binders here are again nameless, but this time due to the fact that object level binding is delegated to the binding of the specification logic.
 That is in $\Lam{A}{s}$ the body $s \OF \TmF \to \TmF$ is a specification logic function.
 We use $\lpApp{s}{t}$ denote the application of specification logic function $s$ to an argument $t$.
@@ -657,7 +656,7 @@ This inductive structure is accessible in $\mathcal{G}$ with propositions of the
 More generally, the derivation of $J$ may depend on hypotheses $I_0,\ldots,I_n$.
 This set of hypotheses is exposed in the form of a list $L \OF \mathsf{list}\,o$, and the embedding is written as $\{L \vdash J\}$.
 At this point it is interesting to observe what happens with hypothetical ($\lpImp$) and $\mathbf{\Pi}$-quantified premises.
-Consider the premise of \SysF type formation rule for $\All A$.
+Consider the premise of F type formation rule for $\All A$.
 Embedded in $\mathcal{G}$ it takes the form $\{L \vdash\ \lpPi x \istyFh{x} \lpImp \istyFh{\lpApp{A}{x}}\}$ which is immediately converted to $\nabla x.\ms \{L, \istyFh{x} \vdash \istyFh{\lpApp{A}{x}}\}$.
 The crucial thing to note is that $L$ and $A$ are both quantified outside of the $\nabla$, hence $\mathcal{G}$ enforces that $x$ is fresh for these two quantities.
 In other words $x$ really is a variable in the usual sense.
@@ -684,10 +683,10 @@ So the $L$ in $\{L \vdash \istyFh{A}\}$ should be of the form
   \istyFh{n_i}, \istyFh{n_j}, \istyFh{n_k}, \ldots
 \end{align*}
 Meanwhile, for the derivation of a typing judgement $\{L \vdash \typingFh{s}{A}\}$, the elements of $L$ should only of the form $\istyFh{n_i}$ or $\typingFh{n_k}{A}$ (where $A$ is well-formed).
-We can achieve this with an inductive $\mathcal{G}$-predicate that ensures the well-formedness of a \SysF{}-typing context:
+We can achieve this with an inductive $\mathcal{G}$-predicate that ensures the well-formedness of a F-typing context:
 \newcommand{\ac}[3]{\ensuremath{\mathbb{C}_{#1}^{#2}\ms (#3)}}
-\newcommand{\acFty}[1]{\ac{\SysF}{\ty}{#1}}
-\newcommand{\acFtm}[1]{\ac{\SysF}{\tm}{#1}}
+\newcommand{\acFty}[1]{\ac{F}{\ty}{#1}}
+\newcommand{\acFtm}[1]{\ac{F}{\tm}{#1}}
 \begin{mathpar}
   \inferrule*{~}{\acFtm{\emptyctx}} \and
   \inferrule*{\acFtm{L} \\ x \notin L}{\acFtm{L,\istyFh{x}}}\and
@@ -738,26 +737,26 @@ Apart from several inversion lemmas with respect to context extraction, similar 
 This in turn is a consequence of the fact that $L$ only contains pairs of related nominals which are, in particular, suitably fresh.
 
 When it comes to the totality and preservation statements, things become more interesting.
-Let us consider a first attempt of formulating left totality of $\tyr$ and the preservation of type formation from \SysF to \SysL:
+Let us consider a first attempt of formulating left totality of $\tyr$ and the preservation of type formation from F to \SysL:
 \begin{align*}
-  \{L_{\SysF} \vdash \istyFh{A}\} \implies \mEx{a} \{ L_{\tmr} \vdash A \tyr a \} \mAnd \{L_{\lambda} \vdash \typingLh{a}{\Prp}\}
+  \{L_{F} \vdash \istyFh{A}\} \implies \mEx{a} \{ L_{\tmr} \vdash A \tyr a \} \mAnd \{L_{\lambda} \vdash \typingLh{a}{\Prp}\}
 \end{align*}
-We will eventually prove the desired result by induction on $\{L_{\SysF} \vdash \istyFh{A}\}$ and it will become quickly apparent that we have to enforce well-formedness of the contexts.
+We will eventually prove the desired result by induction on $\{L_{F} \vdash \istyFh{A}\}$ and it will become quickly apparent that we have to enforce well-formedness of the contexts.
 It is however insufficient to simply assume that each of the three contexts is locally well-formed.
-While this would ensure that the contexts only contain information about variables (that is only contain nominal assumptions) it misses one key insight: the free variables in $L_{\SysF}$ and those in $L_{\lambda}$ should be associated according to $L_{\tmr}$.
+While this would ensure that the contexts only contain information about variables (that is only contain nominal assumptions) it misses one key insight: the free variables in $L_{F}$ and those in $L_{\lambda}$ should be associated according to $L_{\tmr}$.
 The solution to this is to define a single ternary inductive context predicate that establishes the correspondence.
 The freshness assumptions are implemented again with $\nabla$.
 \newcommand{\acR}[3]{\ac{R}{~}{#1 \mid #2 \mid #3}}
 \begin{mathpar}
   \inferrule*{~}{\acR{\emptyctx}{\emptyctx}{\emptyctx}} \and
-  \inferrule*{\acR{L_{\SysF}}{L_{\tmr}}{L_{\lambda}} \\ x, y \notin L_{i}}{\acR{L_{\SysF}, \istyFh{x}}{L_{\tmr}, x \tyr y}{L_{\lambda}, \typingLh{y}{\Prp}}} \and
-  \inferrule*{\acR{L_{\SysF}}{L_{\tmr}}{L_{\lambda}} \\ x, y \notin L_{i},A,a \\\\ \{L_{\SysF} \vdash \istyFh{A}\} \\ \{ L_{\tmr} \vdash A \tyr a \} \\ \{L_{\lambda} \vdash \typingLh{a}{\Prp}\}}{\acR{L_{\SysF}, \typingFh{x}{A}}{L_{\tmr}, x \tmr y}{L_{\lambda}, \typingLh{y}{a}}}
+  \inferrule*{\acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \\ x, y \notin L_{i}}{\acR{L_{F}, \istyFh{x}}{L_{\tmr}, x \tyr y}{L_{\lambda}, \typingLh{y}{\Prp}}} \and
+  \inferrule*{\acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \\ x, y \notin L_{i},A,a \\\\ \{L_{F} \vdash \istyFh{A}\} \\ \{ L_{\tmr} \vdash A \tyr a \} \\ \{L_{\lambda} \vdash \typingLh{a}{\Prp}\}}{\acR{L_{F}, \typingFh{x}{A}}{L_{\tmr}, x \tmr y}{L_{\lambda}, \typingLh{y}{a}}}
 \end{mathpar}
-It should be clear that $\acR{L_{\SysF}}{L_{\tmr}}{L_{\lambda}}$ entails the local well-formedness of each $L_i$.
+It should be clear that $\acR{L_{F}}{L_{\tmr}}{L_{\lambda}}$ entails the local well-formedness of each $L_i$.
 Next we establish inversion lemmas that yield for any $J \in L_i$ both the structure of $J$, including the fact that we deal with a nominal, as well as the corresponding $J'$ and $J''$ in the two other contexts.
 So to obtain our result we prove the following generalisation and use the outlined inversion principle to handle the variable case:
 \begin{align*}
-  \{L_{\SysF} \vdash \istyFh{A}\} \implies \mAll{L_{\tmr}L_{\lambda}} \acR{L_{\SysF}}{L_{\tmr}}{L_{\lambda}} \implies \mEx{a} \{ L_{\tmr} \vdash A \tyr a \} \mAnd \{L_{\lambda} \vdash \typingLh{a}{\Prp}\}
+  \{L_{F} \vdash \istyFh{A}\} \implies \mAll{L_{\tmr}L_{\lambda}} \acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \implies \mEx{a} \{ L_{\tmr} \vdash A \tyr a \} \mAnd \{L_{\lambda} \vdash \typingLh{a}{\Prp}\}
 \end{align*}
 The result for closed judgements and empty contexts is a trivial corollary:
 \begin{align*}
@@ -767,7 +766,7 @@ The $a$ is unique due to functionality of $\tyr$.
 
 The other three equivalences can be obtained with the same ternary predicate.
 The usual pattern of first proving results about type-formation and then using them to establish the corresponding results for typing reappears.
-It is also again the case that propagation (for both \SysF and \SysL) plays a major role, as well as the degeneracy of the sort $\Typ$.
+It is also again the case that propagation (for both F and \SysL) plays a major role, as well as the degeneracy of the sort $\Typ$.
 For the HOAS syntaxes and type systems, however, these properties are relatively easy to obtain.
 
 \section{Beluga}
@@ -781,7 +780,7 @@ Such entities are, for example, terms that are tagged with contexts that have to
 
 So both Abella and Beluga delegate object level-binding to meta-level binding, but while Abella then proceeds to utilises global nominal constants, Beluga instead employs local contexts.
 The difference is best illustrated with an example.
-Consider, in Abella, the \SysF{}-function type $n_1 \to n_2$.
+Consider, in Abella, the F-function type $n_1 \to n_2$.
 It is relatively easy to prove that $\{\emptyctx \vdash \istyFh{n_1 \to n_2}\}$ entails absurdity.
 In other words, there exist types $A \OF \TyF$, that are not well-formed.
 To be precise, well-formedness checks that a type does not have dangling variables (this is the reason we have made the empty context explicit).
@@ -790,12 +789,12 @@ To be precise, well-formedness checks that a type does not have dangling variabl
 In Beluga on the other hand, our example does not even exist.
 The expression \[\bc{\emptyctx}{X \to Y} \OF \bc{\emptyctx}{\TyF}\] is ill-typed in Beluga's type theory, since $\emptyctx$ does not cover the local variables $X$ and $Y$.
 Also observe how the type itself is a contextual object.
-An immediate consequence of this is that the concept of a \SysF type formation judgement does not even make sense in Beluga, which will have an impact on the representation of our equivalences.
+An immediate consequence of this is that the concept of a F type formation judgement does not even make sense in Beluga, which will have an impact on the representation of our equivalences.
 
 In contrast to Coq, where contexts are modelled explicitly and are located conceptually on the same level as object language terms and types, and Abella, where the implicit object level reasoning context appears as an explicit list of arbitrary judgements at the reasoning level, Beluga contexts are special reasoning level first class objects that can exhibit rather complex structures.
 
 The definition of our object languages in Beluga is almost identical to the one in Abella.
-The only difference is that term abstraction and type application rules of the \SysF type system do not request the respective types are well-formed, as this is immediate for the above reasons.
+The only difference is that term abstraction and type application rules of the F type system do not request the respective types are well-formed, as this is immediate for the above reasons.
 Hence we won't repeat the formal definitions and instead focus on Beluga's treatment of contextual information.
 
 As mentioned above, Beluga contexts can have a lot of structure.
@@ -886,7 +885,7 @@ In other words, we get directly $\Gamma \of S_{\tyr}$ rather than $\mathsf{str}(
 The only other interesting aspect here than is the injectivity of $\tmr$ relies on $\tyr$ and $\tmr$ having disjoint ranges, which thanks to higher-order unification is very easy to obtain under contexts $\Gamma \of S_{\tmr}$.
 
 When it comes to the totality and preservation results we again have to use encoding tricks to represent the existential nature of the goal.
-We define, for example, a predicate that codes the existence of a related PTS proposition for a given \SysF type:
+We define, for example, a predicate that codes the existence of a related PTS proposition for a given F type:
 \begin{align*}
   \mathsf{exists\_rel\_prop}\,A \iff \mEx{a} A \tyr a \mAnd \typingLh{a}{\Prp}
 \end{align*}
@@ -899,7 +898,7 @@ The result itself is then established with a function of type
   \mAll{\Gamma \of S_{\tyr W}^{\rightarrow}} \mAll{A \of \bc{\Gamma}{\TyF}} \bc{\Gamma}{\mathsf{exists\_rel\_prop}\,A}
 \end{align*}
 We are not going to present its construction in detail.
-The interesting part is due to the fact that we cannot have an object level type formation judgement for Beluga's variant of \SysF types.
+The interesting part is due to the fact that we cannot have an object level type formation judgement for Beluga's variant of F types.
 The key part here is the typing $A \of \bc{\Gamma}{\TyF}$ which is itself contextual.
 Since every type is well-formed by construction, we prove this result immediately by induction on $A$.
 Recall that this was not possible in the Abella proof, where the well-formedness required a separate predicate that in turn was essential to carry the induction through.
