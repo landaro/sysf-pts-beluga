@@ -1,3 +1,11 @@
-We discuss three formalisations of the equivalence proof between the usual, two-sorted presentation of System~\SysF and its single-sorted pure type system (PTS) variant \SysL. This is established by reducing the typability problem of \SysF to \SysL and vice versa.
- A key challenge is the treatment of variable binding and contextual information. The formalisations all share the same high level proof structure, using syntactical relations. They do, however, differ significantly in their representation and manipulation of variables and contextual information. In Coq, we use pure de Bruijn indices and parallel substitutions. In Abella, we use higher-order abstract syntax (HOAS) and nominal constants of the ambient reasoning logic. In Beluga, we also use HOAS but within contextual modal type theory. Our contribution is twofold.
-  First, we present and compare a collection of machine-checked solutions to a non-trivial theoretical result. In particular, we focus on the role of contexts. Second, we observe that the demands on a proof assistant or framework for relating multiple syntactic systems are different from those for the development of the theory of a single system. We thus propose our proof as a benchmark that complements the POPLmark challenge. 
+We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~F and its single-sorted pure type system (PTS) variant \lambda{}2.
+This is established by reducing the typability problem of F to \lambda{}2 and vice versa.
+A key challenge is the treatment of variable binding and contextual information.
+The formalisations all share the same high level proof structure using relations to connect the type systems.
+They do, however, differ significantly in their representation and manipulation of variables and contextual information.
+In Coq, we use pure de~Bruijn indices and parallel substitutions.
+In Abella, we use higher-order abstract syntax (HOAS) and nominal constants of the ambient reasoning logic.
+In Beluga, we also use HOAS but within contextual modal type theory.
+Our contribution is twofold.
+First, we present and compare a collection of machine-checked solutions to a non-trivial theoretical result.
+Second, we propose our proof as a benchmark, complementing the POPLmark challenge by testing how well a given proof assistant or framework handles complex contextual information involving multiple type systems.
