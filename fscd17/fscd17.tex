@@ -75,6 +75,11 @@
 \newcommand{\TmF}{\ensuremath{\mathsf{Tm_{F}}}}
 \newcommand{\TmL}{\ensuremath{\mathsf{Tm_{\lambda}}}}
 
+\newcommand{\TyCtxF}{\ensuremath{\mathsf{C_{F}^{ty}}}}
+\newcommand{\TmCtxF}{\ensuremath{\mathsf{C_{F}^{tm}}}}
+\newcommand{\CtxL}{\ensuremath{\mathsf{C_{\lambda}}}}
+
+
 % Generic type-system judgement predicates
 \newcommand{\istyFpr}{\ensuremath{\mathsf{isty_{F}}}}
 \newcommand{\typingFpr}{\ensuremath{\mathsf{ofty_{F}}}}
@@ -91,8 +96,8 @@
 \makeatother
 \newcommand{\tsAnnot}[2]{\vdash\hspace{-.7em}^{\raisemath{1.5pt}{\scriptscriptstyle{#2}}}_{\raisemath{0.3pt}{\scriptscriptstyle{#1}}}} % note: wrap instances in \mathbin
 \newcommand{\cts}[2]{\ensuremath{(\,#1 #2 {})}} % context + turnstile for CMs
-\newcommand{\tfF}{\tsAnnot{F}{\ty}}  % for type formation judgement
-\newcommand{\tyF}{\tsAnnot{F}{\tm}}  % for typing judgement
+\newcommand{\tfF}{\tsAnnot{\mathsf{F}}{\ty}}  % for type formation judgement
+\newcommand{\tyF}{\tsAnnot{\mathsf{F}}{\tm}}  % for typing judgement
 \newcommand{\istyF}[2]{\ensuremath{{#1} \mathrel{\tfF} #2}}
 \newcommand{\typingF}[3]{\ensuremath{{#1} \mathrel{\tyF} #2 \OF #3}}
 \newcommand{\tyL}{\tsAnnot{\lambda}{}} % for typing judgement
@@ -210,7 +215,8 @@ Suggestions and Observations:
 \begin{figure}
   \begin{center}
     \begin{align*}
-      A, B &\bnfdef X \mid A \to B \mid \nAll X A & s, t &\bnfdef x \mid s\,t \mid \Lam {x \of A} s \mid s\,A \mid \nTyLam X s
+      &\TyF & A, B &\bnfdef X \mid A \to B \mid \nAll X A & \quad\qquad&\TmF & s, t &\bnfdef x \mid s\,t \mid \Lam {x \of A} s \mid s\,A \mid \nTyLam X s\\
+      &\TyCtxF & \Delta &\bnfdef \emptyset \mid \Delta, X & \quad\qquad&\TmCtxF & \Gamma &\bnfdef \emptyctx \mid \Gamma, x \of A
     \end{align*}
     \begin{mathpar}
       \inferrule*{X \in \Delta}{\istyF{\Delta}{X}} \and
@@ -223,25 +229,46 @@ Suggestions and Observations:
       \inferrule*[right=$X \notin \Delta$]{\typingF{\cc{\Delta, X}{\Gamma}}{s}{A}}{\typingF{\cc{\Delta}{\Gamma}}{\nTyLam X s}{\nAll X A}}
     \end{mathpar}
   \end{center}
-  \caption{System~F, two-sorted with explicit type variable context $\Delta$.}
+  \caption{Stratified System~F: types, terms, contexts, type formation and typing.}
   \label{fig:sys-f}
 \end{figure}
 
 \begin{figure}
   \begin{center}
     \begin{align*}
-      a, b &\bnfdef s \mid x \mid a\,b \mid \Lam a b \mid \Prod a b & s &\in \set{\Prp, \Typ}
+      &\TmL & a, b, c, d &\bnfdef \Prp \mid \Typ \mid x \mid a\,b \mid \Lam{x \of a} b \mid \Prod{x \of a} b & \qquad\qquad&\CtxL & \Psi &\bnfdef \emptyctx \mid \Psi, x \of a
     \end{align*}
     \begin{mathpar}
-      \inferrule*{~}{\typingL{\Gamma}{\Prp}{\Typ}} \and
-      \inferrule*{x \of a \in \Gamma \\ \typingL{\Gamma}{a}{s}}{\typingL{\Gamma}{x}{a}} \and
-      \inferrule*[right=$x \notin \dom{\Gamma}$]{\typingL{\Gamma}{a}{s} \\ \typingL{\Gamma,x \of a}{b}{\Prp}}{\typingL{\Gamma}{\Prod{x \of a} b}{\Prp}} \\
-      \inferrule*{\typingL{\Gamma}{a}{\Prod{x \of c} d} \\ \typingL{\Gamma}{b}{c}}{\typingL{\Gamma}{a\, b}{d\subst{b/x}}} \and
-      \inferrule*[right=$x \notin \dom{\Gamma}$]{\typingL{\Gamma}{a}{s} \\ \typingL{\Gamma, x \of a}{b}{c} \\ \typingL{\Gamma, x \of a}{c}{\Prp}}{\typingL{\Gamma}{\Lam{x \of a} b}{\Prod{x \of a} c}}
+      \mprset{sep=1.5em}
+      \inferrule*{~}{\typingL{\Psi}{\Prp}{\Typ}} \and
+      \inferrule*{x \of a \in \Psi \\ \typingL{\Psi}{a}{s}}{\typingL{\Psi}{x}{a}} \and
+      \inferrule*[right=$x \notin \dom{\Psi}$]{\typingL{\Psi}{a}{s} \\ \typingL{\Psi,x \of a}{b}{\Prp}}{\typingL{\Psi}{\Prod{x \of a} b}{\Prp}} \\
+      \inferrule*{\typingL{\Psi}{a}{\Prod{x \of c} d} \\ \typingL{\Psi}{b}{c}}{\typingL{\Psi}{a\, b}{d\subst{b/x}}} \and
+      \inferrule*[right=$x \notin \dom{\Psi}$]{\typingL{\Psi}{a}{s} \\ \typingL{\Psi, x \of a}{b}{c} \\ \typingL{\Psi, x \of a}{c}{\Prp}}{\typingL{\Psi}{\Lam{x \of a} b}{\Prod{x \of a} c}}
     \end{mathpar}
   \end{center}
-  \caption{\SysL, single-sorted, uniform pure type system with dependent context.}
+  \caption{PTS: terms, contexts, and the uniform type system \SysL; $s$ ranges over the sorts $\Prp$ and $\Typ$.}
   \label{fig:sys-l}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \begin{align*}
+      \Theta &\bnfdef \emptyctx \mid \Theta, (X,y) & \Sigma &\bnfdef \emptyctx \mid \Sigma, (x,y)
+    \end{align*}
+    \begin{mathpar}
+      \inferrule*{(X,y) \in \Theta}{\Theta \vdash X \tyr y} \and
+      \inferrule*[right=$x \notin \Theta$]{\Theta \vdash A \tyr a \\ \Theta \vdash B \tyr b}{\Theta \vdash A \to B \tyr \Prod{y \of a} b} \and
+      \inferrule*[right={$X,y \notin \Theta$}]{\Theta, (X,y) \vdash A \tyr a}{\Theta \vdash \nAll{X} A \tyr \Prod{y \of \Prp} a}\\
+      \inferrule*{(x,y) \in \Sigma}{\cc{\Theta}{\Sigma} \vdash x \tmr y} \and
+      \inferrule*{\cc{\Theta}{\Sigma} \vdash s \tmr a \\ \cc{\Theta}{\Sigma} \vdash t \tmr b}{\cc{\Theta}{\Sigma} \vdash s\,t \tmr a\,b} \and
+      \inferrule*{\cc{\Theta}{\Sigma} \vdash s \tmr a \\ \Theta \vdash A \tyr b}{\cc{\Theta}{\Sigma} \vdash s\,A \tmr a\,b}\\
+      \inferrule*[right={$x,y \notin \Theta,\Sigma$}]{\Theta \vdash A \tyr a \\ \cc{\Theta}{\Sigma, (x,y)} \vdash s \tmr b}{\cc{\Theta}{\Sigma} \vdash \Lam{x \of A} s \tmr \Lam{y \of a} b} \and
+      \inferrule*[right={$X,y \notin \Theta,\Sigma$}]{\cc{\Theta, (X,y)}{\Sigma} \vdash s \tmr a}{\cc{\Theta}{\Sigma} \vdash \nTyLam{X} s \tmr \Lam{y \of \Prp} a}
+    \end{mathpar}
+  \end{center}
+  \caption{Inductive characterisation of $\tyr$ and $\tmr$; $\Theta$ and $\Sigma$ track related type and terms variables.}
+  \label{fig:rel}
 \end{figure}
 
 We consider two variants of System F.
@@ -263,20 +290,17 @@ This design decision has a number of interesting consequences, as we will see la
 It is of course possible to restrict the proof to well-formed contexts (and in Beluga this happens almost automatically), but it can be helpful, and indeed in \cite{KaiserEtAl:2017:sysf_pts_equiv_coq} it was essential, to leave the constraint off.
 
 Where necessary, well-formedness of F-contexts can be defined as follows:
+\newcommand{\wfF}[1]{\ensuremath{\mathbf{wf}_{\mathsf{F}}\;#1}}
 \begin{mathpar}
-  \inferrule*{~}{\mathbf{wf}_{F}\;\;\cc{\emptyset}{\emptyctx}} \and
-  \inferrule*[right=$X \notin \Delta$]{\mathbf{wf}_{F}\;\;\cc{\Delta}{\emptyctx}}{\mathbf{wf}_{F}\;\;\cc{\Delta,X}{\emptyctx}} \and
-  \inferrule*[right=$x \notin \dom{\Gamma}$]{\mathbf{wf}_{F}\;\;\cc{\Delta}{\Gamma} \\ \istyF{\Delta}{A}}{\mathbf{wf}_{F}\;\;\cc{\Delta}{\Gamma, x \of A}}
+  \inferrule*{~}{\wfF{\cc{\emptyset}{\emptyctx}}} \and
+  \inferrule*[right=$X \notin \Delta$]{\wfF{\cc{\Delta}{\emptyctx}}}{\wfF{\cc{\Delta,X}{\emptyctx}}} \and
+  \inferrule*[right=$x \notin \dom{\Gamma}$]{\wfF{\cc{\Delta}{\Gamma}} \\ \istyF{\Delta}{A}}{\wfF{\cc{\Delta}{\Gamma, x \of A}}}
 \end{mathpar}
 
 Note that the second rule is restricted to the empty term-variable context.
-This is to align the well-formedness relation with an internalisation function
+This is to align the well-formedness relation with an internalisation function $\mathsf{intern}_{\mathsf{F}}$ which satisfies
 \begin{align*}
-  \mathsf{intern}_{F} \OF \mathsf{CtxTy}_{F} \to \mathsf{CtxTm}_{F} \to \TyF \to \TmF \to \TmF \times \TyF
-\end{align*}
-which satisfies
-\begin{align*}
-  \mathbf{wf}_{F}\;\;\cc{\Delta}{\Gamma} \implies \mathsf{intern}_{F}\,\Delta\,\Gamma\,s\,A = (t,B) \implies (\typingF{\cc{\Delta}{\Gamma}}{s}{A} \iff \typingF{\cc{\emptyset}{\emptyctx}}{t}{B})
+  \wfF{\cc{\Delta}{\Gamma}} \implies \mathsf{intern}_{\mathsf{F}}\,\Delta\,\Gamma\,s\,A = (t,B) \implies (\typingF{\cc{\Delta}{\Gamma}}{s}{A} \iff \typingF{\cc{\emptyset}{\emptyctx}}{t}{B})
 \end{align*}
 This is what allows us to only consider closed judgements at the top-level.
 The non-empty contexts of open judgements can always be internalised.
@@ -298,47 +322,26 @@ At the heart of the problem sits the fact that only the well-typed fragments of 
 To obtain the reduction results using syntactic translation functions it is however necessary to handle this ``junk'' and face the fact that outside of the well-typed fragment there are significant differences in expressivity.
 So in order to avoid these issues we opt for a relational approach that can concentrate exclusively on the meaningful parts of the languages.
 
-The idea is to construct two relations $\tyr$ and $\tmr$ that put the types and terms of the two languages in correspondence.
-The equivalence statement than factors into a number of properties that these relations should exhibit.
+The idea is to establish the correspondence of the two systems with a pair of relations, $\tyr$ for the terms and $\tmr$ for the types.
+A high-level inductive characterisation of these relations is given in Figure~\ref{fig:rel}.
 
-\subsection{The Benchmark / Challenge}
-\label{sec:benchmark--challenge}
-
-\begin{enumerate}
-\item Define the syntactic sorts $\TyF$, $\TmF$ and $\TmL$ to encode the languages of Figures~\ref{fig:sys-f}~and~\ref{fig:sys-l}, respectively.
-\item For each language, define the corresponding type system.
-  That is, define predicates
-  \begin{align*}
-    \istyFpr &\OF \TyF \to \Prop\\
-    \typingFpr &\OF \TmF \to \TyF \to \Prop\\
-    \typingLpr &\OF \TmL \to \TmL \to \Prop
-  \end{align*}
-  When the encodings of the languages are explicitly tracking contextual information, then further arguments may be required.
-\item Define two relations that associate the types and, respectively, the terms of the two languages:
-  \begin{align*}
-    \tyr &\OF \TyF \to \TmL \to \Prop\\
-    \tmr &\OF \TmF \to \TmL \to \Prop
-  \end{align*}
-  It may again be necessary to augment these with additional contextual information.
-  We will use infix notation, e.g.\ $A \tyr a$.
-\item Prove the following properties:
-  \begin{itemize}
+Before we can tackle the equivalence result itself we have to prove the following properties:
+\begin{itemize}
   \item $\tyr$ is functional and injective.
   \item $\tyr$ is left-total and type-formation preserving on the well-formed types of F.
   \item $\tyr$ is right-total and type-formation preserving on the propositions of \SysL.
   \item $\tmr$ is functional and injective.
   \item $\tmr$ is left-total and typing preserving on the well-typed terms of F.
   \item $\tmr$ is right-total and typing preserving on the proofs of \SysL.
-  \end{itemize}
-  Note that a proposition of \SysL is any term $a \OF \TmL$ such that $\typingLpr\,a\,\Prp$ holds.
-  A proof of \SysL is any term $b \OF \TmL$ such that $\typingLpr\,b\,a$ holds for $a$ a proposition of \SysL.
-\end{enumerate}
-At this point we can formulate, and easily prove, the following equivalences:
+\end{itemize}
+Note that a proposition of \SysL is any term $a \OF \TmL$ such that $\typingL{}{a}{\Prp}$ holds.
+A proof of \SysL is any term $b \OF \TmL$ such that $\typingL{}{b}{a}$ holds for $a$ a proposition of \SysL.
+We can now formulate, and easily prove, the following equivalences:
 
 \begin{theorem}[Reductions from F to \SysL]
   \begin{align*}
-    \istyFpr\,A &\iff \mExu{a} A \tyr a \mAnd \typingLpr\,a\,\Prp\\
-    \typingFpr\,s\,A &\iff \mExu{b a} s \tmr b \mAnd A \tyr a \mAnd \typingLpr\,b\,a \mAnd \typingLpr\,a\,\Prp
+    \istyF{}{A} &\iff \mExu{a} \vdash A \tyr a \mAnd \typingL{}{a}{\Prp}\\
+    \typingF{}{s}{A} &\iff \mExu{b a} \vdash s \tmr b \mAnd \vdash A \tyr a \mAnd \typingL{}{b}{a} \mAnd \typingL{}{a}{\Prp}
   \end{align*}
 \end{theorem}
 
@@ -350,8 +353,8 @@ At this point we can formulate, and easily prove, the following equivalences:
 
 \begin{theorem}[Reductions from \SysL to F]
   \begin{align*}
-    \typingLpr\,a\,\Prp &\iff \mExu{A} A \tyr a \mAnd \istyFpr\,A\\
-    \typingLpr\,b\,a \mAnd \typingLpr\,a\,\Prp &\iff \mExu{s A} s \tmr b \mAnd A \tyr a \mAnd \typingFpr\,s\,A
+    \typingL{}{a}{\Prp} &\iff \mExu{A} \vdash A \tyr a \mAnd \istyF{}{A}\\
+    \typingL{}{b}{a} \mAnd \typingL{}{a}{\Prp} &\iff \mExu{s A} \vdash s \tmr b \mAnd \vdash A \tyr a \mAnd \typingF{}{s}{A}
   \end{align*}
 \end{theorem}
 
@@ -373,7 +376,7 @@ Substitutions are parallel, that is, they are functions from indices to terms (o
 \begin{figure}
   \begin{center}
     \begin{align*}
-      A, B &\bnfdef x_\ty \mid A \to B \mid \All A & s, t &\bnfdef x_\tm \mid s\,t \mid \Lam A s \mid s\,A \mid \TyLam s & &x \OF \Nat
+      A, B &\bnfdef x_\ty \mid A \to B \mid \All A & s, t &\bnfdef x_\tm \mid s\,t \mid \Lam A s \mid s\,A \mid \TyLam s & &x, N \OF \Nat
     \end{align*}
     \begin{mathpar}
       \inferrule*{x < N}{\istyF{N}{x_\ty}} \and
@@ -386,26 +389,27 @@ Substitutions are parallel, that is, they are functions from indices to terms (o
       \inferrule*{\typingF{\cc{N+1}{\Gamma\subst{\shift}}}{s}{A}}{\typingF{\cc{N}{\Gamma}}{\TyLam s}{\All A}}
     \end{mathpar}
   \end{center}
-  \caption{System~F -- de Bruijn encoding in Coq.}
+  \caption{System~F -- de Bruijn encoding in Coq; term variable contexts $\Gamma$ are lists of types.}
   \label{fig:sys-f-coq}
 \end{figure}
 
-\begin{figure}%[t] s.o.
+\begin{figure}
   \begin{center}
     \begin{align*}
-      s &\bnfdef \Prp \mid \Typ & a, b, c, d &\bnfdef s \mid x \mid a\,b \mid \Lam a b \mid \Prod a b & &x \OF \Nat
+      a, b, c, d &\bnfdef \Prp \mid \Typ \mid x \mid a\,b \mid \Lam a b \mid \Prod a b & &x \OF \Nat
     \end{align*}
     \begin{mathpar}
-      \inferrule*{~}{0 \of a\subst{\shift} \inL \Gamma,a}\and
-      \inferrule*{x \of a \inL \Gamma}{(x+1) \of a\subst{\shift} \inL \Gamma,b}\and
-      \inferrule*{~}{\typingL{\Gamma}{\Prp}{\Typ}} \and
-      \inferrule*{x \of a \inL \Gamma \\ \typingL{\Gamma}{a}{s}}{\typingL{\Gamma}{x}{a}} \\
-      \inferrule*{\typingL{\Gamma}{a}{s} \\ \typingL{\Gamma,a}{b}{\Prp}}{\typingL{\Gamma}{\Prod a b}{\Prp}} \and
-      \inferrule*{\typingL{\Gamma}{a}{\Prod c d} \\ \typingL{\Gamma}{b}{c}}{\typingL{\Gamma}{a\, b}{d\subst{b\scons\id}}} \and
-      \inferrule*{\typingL{\Gamma}{a}{s} \\\\ \typingL{\Gamma, a}{b}{c} \\ \typingL{\Gamma, a}{c}{\Prp}}{\typingL{\Gamma}{\Lam a b}{\Prod a c}}
+      \mprset{sep=1.5em}
+      \inferrule*{~}{0 \of a\subst{\shift} \inL \Psi,a}\and
+      \inferrule*{x \of a \inL \Psi}{(x+1) \of a\subst{\shift} \inL \Psi,b}\and
+      \inferrule*{~}{\typingL{\Psi}{\Prp}{\Typ}} \and
+      \inferrule*{x \of a \inL \Psi \\ \typingL{\Psi}{a}{s}}{\typingL{\Psi}{x}{a}} \\
+      \inferrule*{\typingL{\Psi}{a}{s} \\ \typingL{\Psi,a}{b}{\Prp}}{\typingL{\Psi}{\Prod a b}{\Prp}} \and
+      \inferrule*{\typingL{\Psi}{a}{\Prod c d} \\ \typingL{\Psi}{b}{c}}{\typingL{\Psi}{a\, b}{d\subst{b\scons\id}}} \and
+      \inferrule*{\typingL{\Psi}{a}{s} \\\\ \typingL{\Psi, a}{b}{c} \\ \typingL{\Psi, a}{c}{\Prp}}{\typingL{\Psi}{\Lam a b}{\Prod a c}}
     \end{mathpar}
   \end{center}
-  \caption{\SysL -- de Bruijn encoding in Coq.}
+  \caption{\SysL{} -- de Bruijn encoding in Coq; dependent contexts $\Psi$ are lists of terms.}
   \label{fig:sys-l-coq}
 \end{figure}
 
