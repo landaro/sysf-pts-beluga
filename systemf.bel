@@ -103,6 +103,7 @@ rec typ_type_contra: (g:pts_ctx)[g |- eq_tml A typ] -> [g |- typing_l A B] -> [ 
     / total d (typ_type_contra g c d) /
       fn c => fn d => let [g |- tml_refl] = c in impossible d ;
 
+
 % Preliminaries
 
 type_correct: tm_l -> type.
