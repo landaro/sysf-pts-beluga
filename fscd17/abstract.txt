@@ -1,9 +1,9 @@
-We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~F and its single-sorted pure type system (PTS) variant \lambda{}2.
-This is established by reducing the typability problem of F to \lambda{}2 and vice versa.
+We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System F and its single-sorted pure type system (PTS) variant $\lambda$2.
+This is established by reducing the typability problem of F to $\lambda$2 and vice versa.
 A key challenge is the treatment of variable binding and contextual information.
 The formalisations all share the same high level proof structure using relations to connect the type systems.
 They do, however, differ significantly in their representation and manipulation of variables and contextual information.
-In Coq, we use pure de~Bruijn indices and parallel substitutions.
+In Coq, we use pure de Bruijn indices and parallel substitutions.
 In Abella, we use higher-order abstract syntax (HOAS) and nominal constants of the ambient reasoning logic.
 In Beluga, we also use HOAS but within contextual modal type theory.
 Our contribution is twofold.
