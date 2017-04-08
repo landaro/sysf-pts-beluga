@@ -23,11 +23,13 @@
 %% Please provide for each author the \author and \affil macro, even when authors have the same affiliation, i.e. for each author there needs to be the  \author and \affil macros
 \author[1]{Jonas Kaiser}
 \author[2]{Brigitte Pientka}
-\author[1]{Gert Smolka}
+\author[3]{Gert Smolka}
 \affil[1]{Saarland University, Saarbrücken, Germany\\
-  \texttt{\{jkaiser,smolka\}}@ps.uni-saarland.de}
+  \texttt{jkaiser@ps.uni-saarland.de}}
 \affil[2]{School of Computer Science, Montreal, Canada\\
   \texttt{bpientka@cs.mcgill.ca}}
+\affil[3]{Saarland University, Saarbrücken, Germany\\
+  \texttt{smolka@ps.uni-saarland.de}}
 \authorrunning{J. Kaiser, B. Pientka and G. Smolka} %mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et. al.'
 
 \Copyright{Jonas Kaiser, Brigitte Pientka and Gert Smolka}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
@@ -180,45 +182,9 @@
 \end{abstract}
 
 \section{Introduction}
+\label{sec:intro}
 
-TODO
-
-\begin{itemize}
-\item Different variants of System~F~\cite{Girard1972, DBLP:conf/programm/Reynolds74} used interchangable, only valid with suitable equivalence results.
-  Briefly discussed but not in detail in~\cite{Geuvers1993}
-\item Until recently taken for granted, never considered in detail.
-\item We have prior work in Coq \cite{KaiserEtAl:2017:sysf_pts_equiv_coq}
-\item Now: 3 proofs, all following the same relational structure.
-  \begin{itemize}
-  \item Coq: Still uses de Bruijn, but inductive relations instead of translation functions.
-    Generalises context morphisms to context relations.
-  \item Abella: HOAS Syntax and HOAS definition of relations, heavy use of nominal variables at meta-level to represent object-level variables.
-    Contexts are unstructured bags of judgements.
-    Dangling variables are a possibility.
-  \item Beluga: also HOAS encoded, but using contextual modal type theory at the meta level.
-    As a consequence contexts have a lot more structure (compared to Abella), and it is further impossible to write down judgements with dangling variables.
-    In contrast to Coq and Abella, Beluga does not provide a tactic language so all proofs have to be given as explicit proof terms.
-  \end{itemize}
-\item Brief History: Abella does not have functions so when we ported our result from Coq to Abella we were forced to use relations instead.
-  Since the languages have different expressivity in their ill-typed fragment, it is impossible to establish a full 1-1 correspondence.
-  Moreover, even on the well-typed fragments, obtaining the correspondence is only relative to a suitable correspondence of free variables.
-  Due to these considerations of partiality it turns out that relations are in fact the more natural choice to formulate and prove the problem.
-  Since Abella contexts don't exhibit a lot of structure out of the box, this structure has to be retrofitted with suitable predicates over contexts, together with corresponding lookup and inversion principles.
-  This then brings us to Beluga, where the underlying theory provides the requisite structures and thus removes a lot of boilerplate.
-  To demonstrate that the use of relations instead of functions is independent of the concrete syntax representation, we back-ported the Abella/Beluga proof to Coq and where happy to find that the use of de Bruijn syntax does not lead to any significant obstacles.
-  Doing the proof this many times has clearly delineated which aspects are inherent to the problem and which are simply artefacts of the machinery in use.
-\end{itemize}
-
-Suggestions and Observations:
-\begin{itemize}
-\item HOAS should really be understood as a high level abstraction layer, then either a system supports it directly, or it has an underlying implementation of this abstraction, e.g.\ via de Bruijn with parallel substitutions (see HYBRID for Coq).
-\item Our Challenge stands orthogonal to the POPLmark Challenge~\cite{poplmark}
-\end{itemize}
-
-\section{Equivalence}
-\label{sec:equivalence}
-
-\begin{figure}
+\begin{figure}[t]
   \begin{center}
     \begin{align*}
       &\TyF & A, B &\bnfdef X \mid A \to B \mid \nAll X A & \quad\qquad&\TmF & s, t &\bnfdef x \mid s\,t \mid \Lam {x \of A} s \mid s\,A \mid \nTyLam X s\\
@@ -239,7 +205,7 @@ Suggestions and Observations:
   \label{fig:sys-f}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
   \begin{center}
     \begin{align*}
       &\TmL & a, b, c, d &\bnfdef \Prp \mid \Typ \mid x \mid a\,b \mid \Lam{x \of a} b \mid \Prod{x \of a} b & \qquad\qquad&\CtxL & \Psi &\bnfdef \emptyctx \mid \Psi, x \of a
@@ -257,7 +223,36 @@ Suggestions and Observations:
   \label{fig:sys-l}
 \end{figure}
 
-\begin{figure}
+There are different presentations of ``System~F'' in the literature and they are effectively considered equivalent, which is used to justify the transport of theoretical results between said presentations.
+The assumed notion of equivalence is primarily a reduction of the typability problem from one system to the other.
+While the existence of a suitable correspondence between the systems may appear likely or obvious, it turns out that actually proving it formally is surprisingly intricate.
+As long as the systems in question use the same expression syntax, the proofs are usually tedious but straightforward.
+If, on the other hand, not only the type systems, but also the syntactic languages differ, then establishing the correct correspondence becomes much more involved.
+The goal of this paper is to showcase various formalisation techniques to deal with intricacies that arise in such an equivalence proof.
+
+System~F in its original form is due to Girard~\cite{Girard1972, Girard1989}, who introduced it in the context of proof theory.
+It was also independently discovered by Reynolds~\cite{DBLP:conf/programm/Reynolds74} as the polymorphic $\lambda$-calculus.
+For the purposes of this paper we consider two presentations that differ sufficiently to demonstrate the various complications.
+The first, called F and shown in Figure~\ref{fig:sys-f}, is the common two-sorted, or stratified, presentation, as for example given by Harper~\cite{Harper2013}.
+The second, given in Figure~\ref{fig:sys-l}, is the pure type system (PTS) \SysL, which appears as a corner in Barendregt's $\lambda$-cube~\cite{DBLP:journals/jfp/Barendregt91}.
+
+In~\cite{Geuvers1993}, Geuvers gives a proof sketch that valid typing judgements can be translated between these two presentations.
+In~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} we then gave the first proof, machine-checked in Coq, of the full reduction result.
+There we use translation functions, defined recursively over the respective syntactic languages, to map the terms and types of one system into the respective other.
+We then proceed to show that these translations correctly transport typability in both directions to obtain the following reduction theorem:
+\begin{align*}
+  \typingF{}{s}{A} &\iff \typingL{}{\lfloor s \rfloor}{\lfloor A \rfloor} \mAnd \typingL{}{\lfloor A \rfloor}{\Prp}\\
+  \typingL{}{a}{b} \mAnd \typingL{}{b}{\Prp} &\iff \typingF{}{\lceil a \rceil}{\lceil b \rceil}
+\end{align*}
+
+For the proof we developed the versatile notion of generalised context morphism lemmas (CML) to reason about various properties of the translations.
+This allowed us to cope with the fact that the translations had to be defined on the untyped syntax and eventually prove certain cancellation laws.
+However, working with the untyped syntax felt wrong in sense, as only well-formed types and well-typed terms carry actual meaning.
+We remedy this dissonance here by instead using relations to precisely construct the often informally assumed correspondence of the two systems.
+These relations are formally realised as inductive predicates.
+Their definitions are given in Figure~\ref{fig:rel}.
+
+\begin{figure}[t]
   \begin{center}
     \begin{align*}
       \Theta &\bnfdef \emptyctx \mid \Theta, (X,y) & \Sigma &\bnfdef \emptyctx \mid \Sigma, (x,y)
@@ -277,77 +272,71 @@ Suggestions and Observations:
   \label{fig:rel}
 \end{figure}
 
-We consider two variants of System F.
+While the use of these relations allows us to focus on the well-typed parts of the two systems and hence bypass several of the complications outlined in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}, we still have to face the metaphorical elephant in the room, namely variable binding and context manipulation.
+More precisely, we have to represent and handle contexts that track various kinds of information, like the set of defined variables, their associated types, their correspondence to other variables, relational assumptions on types of said variables, and so on.
+To make the situation fully explicit: our contexts are linearisations of directed acyclic graphs of dependent records.
 
-The version in Figure~\ref{fig:sys-f} is a standard, two-sorted presentation that cleanly separates terms and types.
-We refer to this variant in the following simply as F.
-For a number of reasons we chose to include an explicit type variable context and a type formation judgement, similar to the one found in \cite{Harper2013}.
-The main reason for this that, depending on the representation of choice, the well-formedness of types may be immediate (as is the case in Beluga) or left as a proof obligation (as in Abella and Coq).
-Moreover, explicitly tracking this information brings the system closer to our PTS, which inherently tracks type formation information.
+In the following we present three formalisations that each deal with the complexities of contextual information and variable binding in different ways.
 
-The second variant is the uniform, single-sorted PTS \SysL given in Figure~\ref{fig:sys-l}.
-This system is very close to the respective corner in Barendregt's $\lambda$-cube~\cite{DBLP:journals/jfp/Barendregt91}, though we omit the conversion rule.
-This is justified since well-formed \SysL types do not contain any $\beta$-redices.
+The first (Section~\ref{sec:coq}) is a pure de Bruijn setup with parallel substitutions.
+This is done in Coq with major support from the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15}.
+The development reveals yet another occurrence of CMLs, this time generalised from renamings to variable relations.
+The tracking of context information has to be implemented and managed explicitly.
 
-Note that neither of the systems requires their contexts to be completely well-formed.
-To ensure that the type systems are sill meaningful we check the well-formedness of types, whenever we add them to or extract them from the context.
-So effectively we require contexts to be semi-well-formed, that is well-formed on the types that are actually accessed.
-This design decision has a number of interesting consequences, as we will see later.
-It is of course possible to restrict the proof to well-formed contexts (and in Beluga this happens almost automatically), but it can be helpful, and indeed in \cite{KaiserEtAl:2017:sysf_pts_equiv_coq} it was essential, to leave the constraint off.
+The second formalisation (Section~\ref{sec:abella}) is done in Abella, using higher-order abstract syntax (HOAS).
+The HOAS approach delegates the binding mechanisms of the object languages to those of the meta theory.
+In Abella, this happens to be a first order logic with nominal constants, which are used to represent object variables.
+Contextual information is handled implicitly at the object level and appears as an unstructured list of judgements at the meta level.
+Considerable work then goes into reifying the aforementioned dependency structure of the context.
 
-Where necessary, well-formedness of F-contexts can be defined as follows:
-\newcommand{\wfF}[1]{\ensuremath{\mathbf{wf}_{\mathsf{F}}\;#1}}
-\begin{mathpar}
-  \inferrule*{~}{\wfF{\cc{\emptyset}{\emptyctx}}} \and
-  \inferrule*[right=$X \notin \Delta$]{\wfF{\cc{\Delta}{\emptyctx}}}{\wfF{\cc{\Delta,X}{\emptyctx}}} \and
-  \inferrule*[right=$x \notin \dom{\Gamma}$]{\wfF{\cc{\Delta}{\Gamma}} \\ \istyF{\Delta}{A}}{\wfF{\cc{\Delta}{\Gamma, x \of A}}}
-\end{mathpar}
+The third proof (Section~\ref{sec:beluga}) is done in Beluga, also following the HOAS design.
+Here the meta theory is contextual modal type theory, which, as the name suggests, is very good at expressing and manipulating fairly complex context structures.
+In contrast to the other two results, the Beluga proofs have to be given as explicit proof terms, some of which are of considerable size.
+Fortunately, Beluga's strong support for manipulating contextual information allows us to get away with the smallest amount of language-local meta theory, which ameliorates this somewhat.
 
-Note that the second rule is restricted to the empty term-variable context.
-This is to align the well-formedness relation with an internalisation function $\mathsf{intern}_{\mathsf{F}}$ which satisfies
-\begin{align*}
-  \wfF{\cc{\Delta}{\Gamma}} \implies \mathsf{intern}_{\mathsf{F}}\,\Delta\,\Gamma\,s\,A = (t,B) \implies (\typingF{\cc{\Delta}{\Gamma}}{s}{A} \iff \typingF{\cc{\emptyset}{\emptyctx}}{t}{B})
-\end{align*}
-This is what allows us to only consider closed judgements at the top-level.
-The non-empty contexts of open judgements can always be internalised.
-For \SysL we argue similarly.
+All three proofs follow the same basic structure, which we briefly outline in Section~\ref{sec:equi}.
+This allows us to concentrate on, and better compare, the various ways in which the low-level technicalities are handled.
 
-The objective of the benchmark is to formally establish the equivalence of these two languages.
-More precisely, the goal is a bidirectional reduction of the typability problem.
-
-In \cite{KaiserEtAl:2017:sysf_pts_equiv_coq} such an equivalence result was established via syntactic translation functions.
-The reduction result then takes the following form:
-\begin{align*}
-  A &\iff B\\
-  C &\iff D
-\end{align*}
-Due to various alignment mismatches between the two languages, one direction of the above translation is necessarily partial.
-This partiality leads to quite a number of technically intricate complications throughout the proof.
-
-At the heart of the problem sits the fact that only the well-typed fragments of the languages should be considered as relevant, the rest is ``junk''.
-To obtain the reduction results using syntactic translation functions it is however necessary to handle this ``junk'' and face the fact that outside of the well-typed fragment there are significant differences in expressivity.
-So in order to avoid these issues we opt for a relational approach that can concentrate exclusively on the meaningful parts of the languages.
-
-The idea is to establish the correspondence of the two systems with a pair of relations, $\tyr$ for the terms and $\tmr$ for the types.
-A high-level inductive characterisation of these relations is given in Figure~\ref{fig:rel}.
-
-Before we can tackle the equivalence result itself we have to prove the following properties:
+Our contributions:
 \begin{itemize}
+\item We present and compare three rather different machine checked formalisations of the technically intricate reduction of typability from System~F to the PTS \SysL and vice versa.
+\item We propose that our equivalence proof serves as a benchmark for reasoning about and relating multiple type systems and languages that involve variable binding.
+  The key aspect of this benchmark is the representation and manipulation of contexts that track multiple kinds of information and exhibit complex dependency structures.
+  As such it can be seen as a complement to the POPLmark challenge~\cite{poplmark} which tests a frameworks ability to develop the theory of a single object language and type system.
+\end{itemize}
+
+\section{Equivalence}
+\label{sec:equi}
+
+The core challenge of the proof is the fact that F clearly distinguishes types and terms with separate syntactic sorts, $\TyF$ and $\TmF$ respectively, while \SysL merges these into a single syntactic sort $\TmL$.
+The distinction still exists in \SysL but it is semantically imposed through the type system, rather than at the level of syntax.
+Further consequences are the existence of two variable scopes in F, with separate abstraction and application mechanisms, while the same concepts are uniformly represented in \SysL for a single variable scope.
+This extends to the formation of (dependent) function spaces as well.
+In essence the two systems differ in how explicit and readily available certain structural properties are.
+
+As usual, removing structure is easier than recovering it, and this will become apparent in the following, where some of the required lemmas require noticeably more work than their seemingly symmetrical counterparts.
+
+The basic idea of the proof is to construct two relations $\tyr$ and $\tmr$ that put the types and respectively the terms of the two languages in correspondence.
+On one side the distinction is of course only semantic, as both live in the syntactic sort $\TmL$.
+A concrete construction of such relations is given in Figure~\ref{fig:rel}.
+
+To obtain the desired equivalence results we have to demonstrate that our relations exhibit the following properties:
+\begin{enumerate}
   \item $\tyr$ is functional and injective.
   \item $\tyr$ is left-total and type-formation preserving on the well-formed types of F.
   \item $\tyr$ is right-total and type-formation preserving on the propositions of \SysL.
   \item $\tmr$ is functional and injective.
   \item $\tmr$ is left-total and typing preserving on the well-typed terms of F.
   \item $\tmr$ is right-total and typing preserving on the proofs of \SysL.
-\end{itemize}
+\end{enumerate}
 Note that a proposition of \SysL is any term $a \OF \TmL$ such that $\typingL{}{a}{\Prp}$ holds.
 A proof of \SysL is any term $b \OF \TmL$ such that $\typingL{}{b}{a}$ holds for $a$ a proposition of \SysL.
 We can now formulate, and easily prove, the following equivalences:
 
 \begin{theorem}[Reductions from F to \SysL]
   \begin{align*}
-    \istyF{}{A} &\iff \mExu{a} \vdash A \tyr a \mAnd \typingL{}{a}{\Prp}\\
-    \typingF{}{s}{A} &\iff \mExu{b a} \vdash s \tmr b \mAnd \vdash A \tyr a \mAnd \typingL{}{b}{a} \mAnd \typingL{}{a}{\Prp}
+    \istyF{}{A} &\iff \mExu{a} {} \vdash A \tyr a \mAnd \typingL{}{a}{\Prp}\\
+    \typingF{}{s}{A} &\iff \mExu{b a} {} \vdash s \tmr b \mAnd {} \vdash A \tyr a \mAnd \typingL{}{b}{a} \mAnd \typingL{}{a}{\Prp}
   \end{align*}
 \end{theorem}
 
@@ -359,14 +348,16 @@ We can now formulate, and easily prove, the following equivalences:
 
 \begin{theorem}[Reductions from \SysL to F]
   \begin{align*}
-    \typingL{}{a}{\Prp} &\iff \mExu{A} \vdash A \tyr a \mAnd \istyF{}{A}\\
-    \typingL{}{b}{a} \mAnd \typingL{}{a}{\Prp} &\iff \mExu{s A} \vdash s \tmr b \mAnd \vdash A \tyr a \mAnd \typingF{}{s}{A}
+    \typingL{}{a}{\Prp} &\iff \mExu{A} {} \vdash A \tyr a \mAnd \istyF{}{A}\\
+    \typingL{}{b}{a} \mAnd \typingL{}{a}{\Prp} &\iff \mExu{s A} {} \vdash s \tmr b \mAnd {} \vdash A \tyr a \mAnd \typingF{}{s}{A}
   \end{align*}
 \end{theorem}
 
 \begin{proof}
   Dual to the previous result.
 \end{proof}
+
+For the remainder of the paper, we focus on how F, \SysL and the two relations $\tyr$ and $\tmr$ are represented in three proof assistants, and how the various properties of the relations are obtained.
 
 \section{Coq}
 \label{sec:coq}
@@ -794,6 +785,13 @@ In order to communicate the result to our colleagues as well, we usually need mo
 
 \section{Conclusion and Outlook}
 \label{sec:conclusion}
+
+Suggestions and Observations:
+\begin{itemize}
+\item HOAS should really be understood as a high level abstraction layer, then either a system supports it directly, or it has an underlying implementation of this abstraction, e.g.\ via de Bruijn with parallel substitutions (see HYBRID for Coq).
+\end{itemize}
+
+
 
 \subsection{Future Work}
 \label{sec:future-work}
