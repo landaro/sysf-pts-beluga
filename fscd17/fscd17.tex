@@ -12,6 +12,10 @@
 \renewcommand{\TirNameStyle}[1]{\small \textsf{#1}}
 \renewcommand{\RightTirNameStyle}[1]{\small \textsf{#1}}
 
+
+\newcommand{\fromF}[1]{\ulcorner#1\urcorner}
+\newcommand{\toF}[1]{\llcorner#1\lrcorner}
+
 %\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
 
 \bibliographystyle{plainurl}% the recommended bibstyle
@@ -238,16 +242,17 @@ The second, given in Figure~\ref{fig:sys-l}, is the pure type system (PTS) \SysL
 
 In~\cite{Geuvers1993}, Geuvers gives a proof sketch that valid typing judgements can be translated between these two presentations.
 In~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} we then gave the first proof, machine-checked in Coq, of the full reduction result.
-There we use translation functions, defined recursively over the respective syntactic languages, to map the terms and types of one system into the respective other.
+There we use translation functions, written as $\fromF{~}$ and $\toF{~}$ respectively, to map the terms and types of one system into the respective other. 
+They are defined recursively over the respective syntactic languages.
 We then proceed to show that these translations correctly transport typability in both directions to obtain the following reduction theorem:
 \begin{align*}
-  \typingF{}{s}{A} &\iff \typingL{}{\lfloor s \rfloor}{\lfloor A \rfloor} \mAnd \typingL{}{\lfloor A \rfloor}{\Prp}\\
-  \typingL{}{a}{b} \mAnd \typingL{}{b}{\Prp} &\iff \typingF{}{\lceil a \rceil}{\lceil b \rceil}
+  \typingF{}{s}{A} &\iff \typingL{}{\fromF s}{\fromF A} \mAnd \typingL{}{\fromF  A}{\Prp}\\
+  \typingL{}{a}{b} \mAnd \typingL{}{b}{\Prp} &\iff \typingF{}{\toF a}{\toF b}
 \end{align*}
 
 For the proof we developed the versatile notion of generalised context morphism lemmas (CML) to reason about various properties of the translations.
 This allowed us to cope with the fact that the translations had to be defined on the untyped syntax and eventually prove certain cancellation laws.
-However, working with the untyped syntax felt wrong in sense, as only well-formed types and well-typed terms carry actual meaning.
+However, working with the untyped syntax felt wrong in the sense that only well-formed types and well-typed terms carry actual meaning.
 We remedy this dissonance here by instead using relations to precisely construct the often informally assumed correspondence of the two systems.
 These relations are formally realised as inductive predicates.
 Their definitions are given in Figure~\ref{fig:rel}.
@@ -283,13 +288,13 @@ This is done in Coq with major support from the Autosubst framework~\cite{DBLP:c
 The development reveals yet another occurrence of CMLs, this time generalised from renamings to variable relations.
 The tracking of context information has to be implemented and managed explicitly.
 
-The second formalisation (Section~\ref{sec:abella}) is done in Abella, using higher-order abstract syntax (HOAS).
+The second formalisation (Section~\ref{sec:abella}) is done in Abella, using higher-order abstract syntax (HOAS)\cite{AbellaTutorial}.
 The HOAS approach delegates the binding mechanisms of the object languages to those of the meta theory.
 In Abella, this happens to be a first order logic with nominal constants, which are used to represent object variables.
 Contextual information is handled implicitly at the object level and appears as an unstructured list of judgements at the meta level.
 Considerable work then goes into reifying the aforementioned dependency structure of the context.
 
-The third proof (Section~\ref{sec:beluga}) is done in Beluga, also following the HOAS design.
+The third proof (Section~\ref{sec:beluga}) is done in Beluga, also following the HOAS design \cite{Pientka:CADE15}.
 Here the meta theory is contextual modal type theory, which, as the name suggests, is very good at expressing and manipulating fairly complex context structures.
 In contrast to the other two results, the Beluga proofs have to be given as explicit proof terms, some of which are of considerable size.
 Fortunately, Beluga's strong support for manipulating contextual information allows us to get away with the smallest amount of language-local meta theory, which ameliorates this somewhat.
@@ -302,7 +307,7 @@ Our contributions:
 \item We present and compare three rather different machine checked formalisations of the technically intricate reduction of typability from System~F to the PTS \SysL and vice versa.
 \item We propose that our equivalence proof serves as a benchmark for reasoning about and relating multiple type systems and languages that involve variable binding.
   The key aspect of this benchmark is the representation and manipulation of contexts that track multiple kinds of information and exhibit complex dependency structures.
-  As such it can be seen as a complement to the POPLmark challenge~\cite{poplmark} which tests a frameworks ability to develop the theory of a single object language and type system.
+  As such it can be seen as a complement to the benchmarks proposed by Felty, Momigliano and Pientka in \cite{Felty:ITP10,Felty:orbi-survey} which described various small crafted examples to highlight context reasoning and the POPLmark challenge~\cite{poplmark} which tests a frameworks ability to develop the theory of a single object language and type system.
 \end{itemize}
 
 \section{Equivalence}
