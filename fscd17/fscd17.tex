@@ -9,12 +9,31 @@
 \usepackage{wrapfig}
 \usepackage{float}
 
+% Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% For having two versions of a paper in one file.
+% Stuff that does not fit into the short version can be encosed in \LONGVERSION{...}
+
+\ifdefined\LONGVERSION
+  \relax
+\else
+% short version:
+ \newcommand{\LONGVERSION}[1]{}
+ \newcommand{\SHORTVERSION}[1]{#1}
+% % long version:
+% \newcommand{\LONGVERSION}[1]{#1}
+% \newcommand{\SHORTVERSION}[1]{}
+%\newcommand{\SHORTVERSION}[1]{BEGIN~SHORT\ #1 \ END~SHORT}
+\fi
+\newcommand{\LONGSHORT}[2]{\LONGVERSION{#1}\SHORTVERSION{#2}}
+
 \renewcommand{\TirNameStyle}[1]{\small \textsf{#1}}
 \renewcommand{\RightTirNameStyle}[1]{\small \textsf{#1}}
 
 
 \newcommand{\fromF}[1]{\ulcorner#1\urcorner}
 \newcommand{\toF}[1]{\llcorner#1\lrcorner}
+% Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
 
