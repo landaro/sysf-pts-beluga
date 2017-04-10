@@ -5,6 +5,7 @@
 % custom packages
 \usepackage{mathpartir}
 \usepackage{xspace}
+\usepackage{etoolbox}
 \usepackage{tikz}
 \usepackage{wrapfig}
 \usepackage{float}
@@ -31,8 +32,8 @@
 \renewcommand{\RightTirNameStyle}[1]{\small \textsf{#1}}
 
 
-\newcommand{\fromF}[1]{\ulcorner#1\urcorner}
-\newcommand{\toF}[1]{\llcorner#1\lrcorner}
+\newcommand{\fromF}[1]{\lfloor #1 \rfloor}
+\newcommand{\toF}[1]{\lceil #1 \rceil}
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
@@ -183,6 +184,10 @@
 \newcommand{\shift}{\ensuremath{\hspace{0.1em}\mathsf{+}\hspace{0.08em}\!1}}
 \newcommand{\ushift}{\ensuremath{\hspace{0.1em}\textsf{--}\hspace{0.1em}\!1}}
 
+% Facts without proof
+\theoremstyle{plain}
+\newtheorem{fact}[theorem]{Fact}
+%\AtEndEnvironment{fact}{\null\hfill\qedsymbol}%
 
 %%% Content macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -261,7 +266,7 @@ The second, given in Figure~\ref{fig:sys-l}, is the pure type system (PTS) \SysL
 
 In~\cite{Geuvers1993}, Geuvers gives a proof sketch that valid typing judgements can be translated between these two presentations.
 In~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} we then gave the first proof, machine-checked in Coq, of the full reduction result.
-There we use translation functions, written as $\fromF{~}$ and $\toF{~}$ respectively, to map the terms and types of one system into the respective other. 
+There we use translation functions, written as $\fromF{~}$ and $\toF{~}$ respectively, to map the terms and types of one system into the respective other.
 They are defined recursively over the respective syntactic languages.
 We then proceed to show that these translations correctly transport typability in both directions to obtain the following reduction theorem:
 \begin{align*}
@@ -386,14 +391,6 @@ For the remainder of the paper, we focus on how F, \SysL and the two relations $
 \section{Coq}
 \label{sec:coq}
 
-Let us next consider the first concrete instance of our benchmark proof, namely the variant in Coq that utilises pure de Bruijn syntax with parallel substitutions and inductively defined type and term relations.
-
-We begin with a brief survey of our syntax.
-Binders are not annotated with variable names and variables themselves are simply numerical indices, where index $n$ references the $n$th enclosing binder.
-Dangling indices count into the corresponding context.
-We use the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15}, to automatically generate substitutions and a normalisation procedure which allows to decide the equality of two terms (or types) with applied substitutions.
-Substitutions are parallel, that is, they are functions from indices to terms (or types) which act simultaneously on all free indices of a term (or type).
-
 \begin{figure}
   \begin{center}
     \begin{align*}
@@ -434,53 +431,30 @@ Substitutions are parallel, that is, they are functions from indices to terms (o
   \label{fig:sys-l-coq}
 \end{figure}
 
-\begin{itemize}
-\item Figure~\ref{fig:sys-f-coq} gives the de Bruijn encoding of F.
-  Figure~\ref{fig:sys-l-coq} gives the de Bruijn encoding of \SysL.
-  For the latter observe the dependent context lookup necessary due to de Bruijn term not being invariant under context modifications.
-\item Remark on detour via System~P to obtain strengthening for type formation and propagation in \SysL without assuming well-formedness.
-\end{itemize}
+For the Coq proof we reuse the pure de Bruijn encoding of the two systems and the corresponding language local meta theory developed in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} with major support from the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15}.
+The de Bruijn language definitions are given in Figures~\ref{fig:sys-f-coq}~and~\ref{fig:sys-l-coq}.
+The main feature of de Bruijn syntax is the absence of variable names.
+Variables are instead represented as numerical indices, where $n$ references the $n$th enclosing binder of the correct scope.
+Dangling references represent free variables that instead reference positions in an enclosing context, indexed from right to left.
+Note that we keep the dot around as a notational device to uniformly indicate the presence of a binding constructor, even if nothing remains to the left of it (e.g.\ $\TyLam s$), as it marks the precise spot where substitutions and indices have to be adjusted.
+The application of a parallel substitution $\sigma$ to a term $s$ is written $s\subst{\sigma}$ where $\sigma$ is a function from $\Nat$ that acts on all free variables of $s$ at once.
+The Autosubst framework provides a normalisation procedure for such terms with applied substitutions.
+The existence of computable normal forms was demonstrated in~\cite{SchaeferEtAl:2009:Completeness}.
+In the following we will only focus on those aspects that have an immediate impact on our present proof.
+For an in-depth discussion of the interaction of pure de Bruijn syntax, parallel substitutions and context morphism lemmas we refer to~\cite{deBruijn1972, SchaeferEtAl:2009:Completeness, DBLP:conf/itp/SchaferTS15, abadi1991, GoguenMcKinna1997, KaiserEtAl:2017:sysf_pts_equiv_coq}.
+
+In the definition of F in Figure~\ref{fig:sys-f-coq}, observe how the type variable context $\Delta$ degenerates to a plain natural number $N$.
+It is taken as an exclusive upper bound to the admissible type variable indices, hence $N = 0$ represents the empty context.
+The term variable context $\Gamma$ is simply a list of types, since free variables are coded as context positions.
+The $\beta$-substitution $B\scons{\id}$ used in the type specialisation rule maps the free index 0 to $B$ and lowers all other indices by 1.
+
+We further observe that for \SysL, defined in Figure~\ref{fig:sys-l-coq}, context lookup is characterised inductively: $x \of a \inL \Psi$.
+The need for this arises from the fact that the PTS contexts are dependent and the more general issue that in a de Bruijn setting, terms are not stable under context modifications.
+Hence, upon extraction of $a$ from a context $\Gamma$, all free variables of $a$ have to be adjusted by an amount that depends on the position of $a$ in $\Gamma$.
+The given inductive characterisation elegantly handles this complication.
 
 Now that we have a good understanding of how our systems operate concretely, let us consider how we relate them.
-What should be immediately apparent is that since our systems are explicitly tracking context information in the typing judgements, something similar will have to occur for the type and term relations.
-More precisely, before we can, for example, ascertain which types are related, we have to be able to track which type variables are related.
-If this sounds reminiscent of the discussion above that led to the notion of context morphism lemmas then the reader is certainly on the right track.
-
-We start with relations on indices, $R \subseteq \Nat \times \Nat$.
-Since we are going to transform such relations in a way that mirrors how parallel substitutions change when they traverse binders we are now looking at our concrete implementation, that is we define a type of variable relations $\mathsf{vr} \eqdef \mathsf{list}\,(\mathsf{var} \times \mathsf{var})$.
-Next we consider a function
-\begin{align*}
-  \mathsf{bimap} \OF (\mathsf{var} \to \mathsf{var}) \to (\mathsf{var} \to \mathsf{var}) \to \mathsf{vr} \to \mathsf{vr}
-\end{align*}
-which satisfies
-\begin{align*}
-  &x\,R\,y \to (\xi\,x)\,(\mathsf{bimap}\,\xi\,\zeta\,R)\,(\zeta\,y)\\
-  &x\,(\mathsf{bimap}\,\xi\,\zeta\,R)\,y \to \mEx{x'\,y'} x'\,R\,y' \wedge x = \xi\,x' \wedge y = \zeta\,y'
-\end{align*}
-We are going to require two particular operations on such variable relations, which both build on top of $\mathsf{bimap}$.
-The first encapsulates the idea of moving, in lockstep, underneath a binder on both sides the term (or type) relation we are in the process of setting up.
-In order to achieve this, we have to make sure that the indices $0$ on the left and $0$ on the right are related, which ties the two binders that were just traversed, together.
-Furthermore, all indices that are already related have to be shifted up by one.
-We obtain:
-\begin{align*}
-  \Rext{R} \eqdef (0,0) \mathop{::} \mathsf{bimap}\,(\shift)\,(\shift)\,R
-\end{align*}
-The other operation deals with the fact that we sometimes traverse a binder on one side, that has no counterpart on the other.
-As a consequence, only one component of each tuple needs to be shifted. We define
-\begin{align*}
-  \Rshift{R} \eqdef \mathsf{bimap}\,\id\,(\shift)\,R
-\end{align*}
-Note that we do not require the dual shift on the left, since we always have the PTS on the right of our relations.
-
-\begin{lemma}
-  Both $\Rext{R}$ and $\Rshift{R}$ preserve injectivity and functionality of $R$.
-\end{lemma}
-
-\begin{proof}
-  Straightforward, using the properties of $\mathsf{bimap}$.
-\end{proof}
-
-We now have all the ingredients to inductively define our relations $\tyr$ and $\tmr$:
+Similar to the way typing contexts are explicitly represented as lists of terms or types, we are going to track explicitly which variables are related in our definition of our relations $\tyr^R$ and $\tmr^R_S$, where the relational parameters $R$ and $S$ correspond to the contexts $\Theta$ and $\Sigma$ from Figure~\ref{fig:rel}:
 \begin{mathpar}
   \inferrule*{x\,R\,y}{x_\ty\,\tyr^R\,y} \and
   \inferrule*{A\,\tyr^R\,a \\ B\,\tyr^{\Rshift{R}}\,b}{A \to B\,\tyr^R\,\Prod a b} \and
@@ -491,139 +465,185 @@ We now have all the ingredients to inductively define our relations $\tyr$ and $
   \inferrule*{A\,\tyr^R\,a \\ s\,\tmr^{\Rshift{R}}_{\Rext{S}}\,b}{\Lam A s\,\tmr^R_S\,\Lam a b} \and
   \inferrule*{s\,\tmr^{\Rext{R}}_{\Rshift{S}}\,a}{\TyLam s\,\tmr^R_S\,\Lam \Prp a}
 \end{mathpar}
+It should be clear that $R$ and $S$ track pairs of indices of type, and respectively, term variables.
+We technically represent them as lists of type $\mathsf{list}\,(\mathsf{var} \times \mathsf{var})$ and use $x\,R\,y$ to denote that the pair $(x,y)$ is in $R$.
+The interesting part of this definition is how these auxiliary parameters have to be modified when binders are traversed, which we denoted above by $\Rshift{R}$ and $\Rext{R}$.
+In order to precisely define these operations, let us recall the required action on a parallel substitution $\sigma$ that is pushed underneath a binder:
+\begin{align*}
+  (\All A)\subst{\sigma} \qquad\longmapsto\qquad \All A\subst{0 \scons \sigma \scomp \shift}
+\end{align*}
+The $\subst{0 \scons \_}$ part ensures that any variable referencing the presently traversed binder is preserved as such.
+Meanwhile the $\subst{\_ \scons \sigma \scomp \shift}$ part ensures that every index $n + 1$ is mapped to $\sigma(n)\subst{\shift}$, where the $\shift$ ensures that no free variable in the range of $\sigma$ are accidentally captured.
+
+For our present proof we are now traversing binders \emph{almost} in lockstep.
+For the simple cases where we have a binder on both sides of the relation, and moreover, the bound variables actually correspond according to the information tracked in $R$, we define, analogously to the binder traversal for substitutions:
+\begin{align*}
+  \Rext{R} \eqdef (0,0) \mathop{::} \mathsf{bimap}\,(\shift)\,(\shift)\,R
+\end{align*}
+where $\mathsf{bimap}\,f\,g\,R$ simply applies $f$ to all left projections of $R$ and $g$ to all right projections.
+
+The other possible scenario has a binder on the \SysL side that has no counterpart in F with respect to the contextual information in $R$, like the \emph{not-really dependent} PTS product that corresponds to an arrow type in F.
+As a consequence of this spurious binding, the \SysL indices in $R$ have to be shifted relative to their F counterparts.
+This one-sided index adjustment is obtained with
+\begin{align*}
+  \Rshift{R} \eqdef \mathsf{bimap}\,\id\,(\shift)\,R
+\end{align*}
+
+\begin{fact}
+  \label{fac:rel-ext}
+  Both $\Rext{R}$ and $\Rshift{R}$ preserve injectivity and functionality of $R$.\hfill\qedsymbol
+\end{fact}
 
 \begin{lemma}
+  \label{lem:tyr-inj-fun}
   The type relation $\tyr^R$ is injective/functional, whenever $R$ is injective/functional.
 \end{lemma}
 \begin{proof}
-  Straightforward inductions.
+  Straightforward inductions using Fact~\ref{fac:rel-ext}.
 \end{proof}
+
+To obtain the same result for $\tmr^R_S$ we additionally rely on $R$ and $S$ having disjoint ranges, that is, no PTS variable is considered related to both a type and a term variable.
+We denote this by $R \| S$ and observe
+\begin{fact}
+  \label{fac:rel-disjoint}
+  The property $R \| S$ is preserved under extending one relation and shifting the other, that is w.l.o.g.: $R \| S \implies \Rshift{R} \| \Rext{S}$.\hfill\qedsymbol
+\end{fact}
+\begin{lemma}
+  \label{lem:rel-disjoint}
+  Disjointedness of ranges lifts from variable relations $R$ and $S$ to $\tyr^R$ and $\tmr^R_S$:
+  \begin{align*}
+    R \| S \implies A \tyr^R a \implies s \tmr^R_S a \implies \bot
+  \end{align*}
+\end{lemma}
+\begin{proof}
+  By induction on $A \tyr^R a$ and discriminating on $s \tmr^R_S a$, using Fact~\ref{fac:rel-disjoint}.
+\end{proof}
+\begin{lemma}
+  \label{lem:tmr-inj-fun}
+  The term relation $\tmr^R_S$ is functional, whenever $R$ and $S$ are functional.
+  It is injective, whenever $R$ and $S$ are injective and $R \| S$ holds.
+\end{lemma}
+\begin{proof}
+  Straightforward inductions.
+  Injectivity relies on the premise $R \| S$ and Lemma~\ref{lem:rel-disjoint} to discharge non-matching applications.
+  Subderivations for $\tyr^R$ are handled with Lemma~\ref{lem:tyr-inj-fun}.
+\end{proof}
+
 Proving the left and right totality and preservation results is slightly more interesting, as we have to generalise to open judgements and non-empty contexts.
-We start with the direction from left to right and define
-
+We achieve this with suitable proof invariants that are adapted from the notion of \emph{generalised context morphism} laid out in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
+The key difference is that instead of a renaming $\xi$ that maps from one context to another, we here consider a relation on variables that places two contexts in correspondence.
+All invariants are set up such that they vacuously hold when the initial context happens to be empty.
+We start with type formation and the direction from left (F) to right (\SysL):
 \begin{align*}
-  \tyctxrelFL{N}{R}{\Gamma} \eqdef \mAll {x < N} \mEx y x\,R\,y \mAnd y \of \Prp \inL \Gamma
+  \tyctxrelFL{N}{R}{\Psi} \eqdef \mAll {x < N} \mEx y x\,R\,y \mAnd y \of \Prp \inL \Psi
 \end{align*}
-which satisfies the following:
-\begin{align*}
-  &\tyctxrelFL{0}{R}{\Gamma} & &\tyctxrelFL{N}{R}{\Gamma} \implies \tyctxrelFL{N}{\Rshift{R}}{\Gamma,a} & &\tyctxrelFL{N}{R}{\Gamma} \implies \tyctxrelFL{N+1}{\Rext{R}}{\Gamma,\Prp}
-\end{align*}
-
+\begin{fact}
+  \label{fac:inv-tyfl-ext}
+  The invariant $\tyctxrelFL{N}{R}{\Psi}$ is preserved under corresponding extensions:
+  \begin{align*}
+    &\tyctxrelFL{N}{R}{\Psi} \implies \tyctxrelFL{N}{\Rshift{R}}{\Psi,a} & &\tyctxrelFL{N}{R}{\Psi} \implies \tyctxrelFL{N+1}{\Rext{R}}{\Psi,\Prp} \tag*{\qedsymbol}
+  \end{align*}
+\end{fact}
 \begin{lemma}
   \label{lem:tyr_fl_tot_pres}
   The type-relation $\tyr^R$ is total from left to right and preserves type formation:
   \begin{align*}
-    \istyF{N}{A} \implies \mAll {R\,\Gamma} \tyctxrelFL{N}{R}{\Gamma} \implies \mEx a A\,\tyr^R\,a \mAnd \typingL{\Gamma}{a}{\Prp}
+    \istyF{N}{A} \implies \mAll {R\,\Psi} \tyctxrelFL{N}{R}{\Psi} \implies \mEx a A\,\tyr^R\,a \mAnd \typingL{\Psi}{a}{\Prp}
   \end{align*}
 \end{lemma}
 \begin{proof}
-  By induction on $\istyF{N}{A}$. The two binder cases are handled via the respective properties of $\tyctxrelFL{N}{R}{\Gamma}$.
+  By induction on $\istyF{N}{A}$. The two binder cases use Fact~\ref{fac:inv-tyfl-ext}.
 \end{proof}
-Let us briefly pause at this point and consider what we just did.
-If we compare the previous result to what we did in \cite{KaiserEtAl:2017:sysf_pts_equiv_coq} it will quickly become apparent that $\tyctxrelFL{N}{R}{\Gamma}$ is the relational generalisation of the context morphism $\xi\ms:\ms\cts{N}{\tfF}\to\cts{\Gamma}{\tfP}$.
-Thus Lemma~\ref{lem:tyr_fl_tot_pres} is simply the relational analogue to the context morphism lemma for type formation from F to P (Lemma~15) in \cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
-As noted above, our relational approach allows us to bypass the intermediate P from the earlier paper, that is we relate F and \SysL directly.
 
-For the direction from right to left we simply give the respective relational morphism definition and state the result:
+For the inverse direction we establish preservation of type formation and right totality along the following invariant:
+\begin{align*}
+  \tyctxrelLF{N}{R}{\Psi} \eqdef \mAll {y} y\of\Prp \inL \Psi \implies \mEx x x\,R\,y \mAnd x < N
+\end{align*}
+\begin{fact}
+  \label{fac:inv-tylf-ext}
+  The invariant $\tyctxrelLF{N}{R}{\Psi}$ is preserved under corresponding extensions:
+  \begin{align*}
+    &\tyctxrelLF{N}{R}{\Psi} \implies \typingL{\Psi}{a}{\Prp} \implies \tyctxrelLF{N}{\Rshift{R}}{\Psi,a} & &\tyctxrelLF{N}{R}{\Psi} \implies \tyctxrelLF{N+1}{\Rext{R}}{\Psi,\Prp}\tag*{\qedsymbol}
+  \end{align*}
+\end{fact}
 \begin{lemma}
   \label{lem:tyr_lf_tot_pres}
-  The type-relation $\tyr^R$ is total from right to left and preserves type formation.
-  Let $\tyctxrelLF{N}{R}{\Gamma} \eqdef \mAll {y} y\of\Prp \inL \Gamma \implies \mEx x x\,R\,y \mAnd x < N$, then
+  The type-relation $\tyr^R$ is total from right to left and preserves type formation:
   \begin{align*}
     \typingL{\Gamma}{a}{\Prp} \implies \mAll {R\,N} \tyctxrelLF{N}{R}{\Gamma} \implies \mEx A A\,\tyr^R\,a \mAnd \istyF{N}{A}
   \end{align*}
 \end{lemma}
 \begin{proof}
-  Induction on $\typingL{\Gamma}{a}{\Prp}$, using extension properties for $\tyctxrelLF{N}{R}{\Gamma}$.
-  The correct function space is chosen by discriminating on the sort of the product domain.
-  This in turn relies on the degeneracy of the sort $\Typ$.
-  Finally, propagation and substitutivity of $\tyL$ are used to discharge the spurious application case, which has no related type on the F-side
+  Induction on $\typingL{\Gamma}{a}{\Prp}$, using Fact~\ref{fac:inv-tylf-ext}.
+  One complication is the disambiguation of a given PTS-product $\Prod{a} b$, where $a$ is known to live in some sort $s$.
+  Discriminating on $s$ allows us to correctly choose either an arrow type $A \to B$, or a universal quantification $\All B$.
+  Further requirements are the degeneracy of the sort $\Typ$, as well as propagation and substitutivity for $\tyL$.
 \end{proof}
 
-Before we can now tackle the term relation $\tmr^R_S$ we need a bit of extra machinery.
-First of all we require $\beta$-substitutivity for $\tyr^R$, that is
-\begin{align*}
-  B\,\tyr^R\,b \implies A\,\tyr^{\Rext{R}}\,a \implies A\subst{B\scons\id}\,\tyr^R\,a\subst{b\scons\id}
-\end{align*}
-The solution to this is again a CML-style generalisation, namely
-\begin{align*}
-  A\,\tyr^{R_1}\,a \implies \mAll {\sigma\,\tau\,R_2} R_1\stackrel{\sigma\mid\tau}{\longrightarrow}R_2 \implies A\subst{\sigma} \tyr^{R_2}\,a\subst{\tau}.
-\end{align*}
-where the definition of $R_1\stackrel{\sigma\mid\tau}{\longrightarrow}R_2$ should be obvious.
-Note that we have to have $\sigma$ and $\tau$ as full de Bruijn substitutions, which prevents us from simply using $\mathsf{bimap}$ here.
+When it comes to the preservation and totality results for $\tmr^R_S$, the overhead for explicitly tracking of contextual information becomes most apparent.
+Since some of the typing rules for applications ascribe types that a constructed from a non-trivial substitution operation, we require substitutivity results for the judgements under consideration.
+For $\tyr^R$, in particular we require $\beta$-substitutivity:
+\begin{fact}
+  The type relation $\tyr^R$ is closed under $\beta$-substitutions:
+  \begin{align*}
+    B\,\tyr^R\,b \implies A\,\tyr^{\Rext{R}}\,a \implies A\subst{B\scons\id}\,\tyr^R\,a\subst{b\scons\id} \tag*{\qedsymbol}
+  \end{align*}
+\end{fact}
+The proof of this fact is a lengthy but fairly straightforward construction that first generalises the two concrete $\beta$-substitutions to arbitrary parallel substitutions $\sigma$ and $\tau$.
+The result is still not provable directly, as closure of $\tyr^R$ under weakening is needed.
+This in turn is generalised to a statement for arbitrary renamings $\xi$ and $\zeta$ in place of $\sigma$ and $\tau$.
+In essence we again follow the CML proof pattern described in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
 
-
-We further recall that $\tmr^R_S$ actually uses two variable relations, $R$ for the type variables and $S$ for the term variables.
-In the following it is essential that these two relations are -- and remain -- disjoint with respect to their image, which we denote as $R \| S$.
-We observe the following facts:
+We can finally tackle the technically most intricate part of the proof.
+The invariant for preservation of typing from F to \SysL is
 \begin{align*}
-  R \| S &\implies \Rshift{R} \| \Rext{S} & R \| S &\implies \Rext{R} \| \Rshift{S}
+  \tmctxrelFL{\Gamma}{R}{S}{\Psi} \eqdef \mAll {x \of A \in \Gamma} \mEx{y\,a} A\,\tyr^R\,a \mAnd x\,S\,y \mAnd y \of a \inL \Psi
 \end{align*}
-We can then lift this easily to our type and term relations, namely
-\begin{align*}
-  R \| S \implies A\,\tyr^R\,a \implies s\,\tmr^R_S\,a \implies \bot
-\end{align*}
-
-\begin{lemma}
-  When $R$ and $S$ are functional then so is $\tmr^R_S$.
-  When $R$ and $S$ are injective and $R \| S$ holds, then $\tmr^R_S$ is injective.
-\end{lemma}
-
-Now all that is left are the proofs of left and right totality as well as preservation of typing for $\tmr^R_S$.
-This, however, is the most technical part of the development.
-There are no additional major ideas involved in the following, but the number of moving parts increases noticeably.
-We start with the direction from F to \SysL and define
-\begin{align*}
-  \tmctxrelFL{\Delta}{R}{S}{\Gamma} \eqdef \mAll {x \of A \in \Delta} \mEx{y\,a} A\,\tyr^R\,a \mAnd x\,S\,y \mAnd y \of a \inL \Gamma
-\end{align*}
-which satisfies
-\begin{align*}
-  &\tmctxrelFL{\Delta}{R}{S}{\Gamma} \implies A\,\tyr^R\,a \implies \tmctxrelFL{\Delta,A}{\Rshift{R}}{\Rext{S}}{\Gamma,a}\\
-  &\tmctxrelFL{\Delta}{R}{S}{\Gamma} \implies \tmctxrelFL{\Delta\subst{\shift}}{\Rext{R}}{\Rshift{S}}{\Gamma,\Prp}
-\end{align*}
+\begin{fact}
+  \label{fac:inv-tmfl-ext}
+  The invariant $\tmctxrelFL{\Gamma}{R}{S}{\Psi}$ is preserved under corresponding extensions:
+  \begin{align*}
+  &\tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies A\,\tyr^R\,a \implies \tmctxrelFL{\Gamma,A}{\Rshift{R}}{\Rext{S}}{\Psi,a} & &\tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies \tmctxrelFL{\Gamma\subst{\shift}}{\Rext{R}}{\Rshift{S}}{\Psi,\Prp}\tag*{\qedsymbol}
+  \end{align*}
+\end{fact}
 \begin{lemma}
   The term relation $\tmr^R_S$ is total from left to right and preserves typing.
   \begin{align*}
-    \typingF{\cc{N}{\Delta}}{s}{A} \implies \mAll{R\,S\,\Gamma} &R\ms\ms\mathsf{func} \implies \tyctxrelFL{N}{R}{\Gamma} \implies \tmctxrelFL{\Delta}{R}{S}{\Gamma} \implies \\
-                                                                &\mEx{a\,b} A\,\tyr^R\,b \mAnd s\,\tmr^R_S\,a \mAnd \typingL{\Gamma}{a}{b} \mAnd \typingL{\Gamma}{b}{\Prp}
+    \typingF{\cc{N}{\Gamma}}{s}{A} \implies &\mAll{R\,S\,\Psi} R\ms\ms\mathsf{func} \implies \tyctxrelFL{N}{R}{\Psi} \implies \tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies \\
+                                            &\mEx{a\,b} A\,\tyr^R\,b \mAnd s\,\tmr^R_S\,a \mAnd \typingL{\Psi}{a}{b} \mAnd \typingL{\Psi}{b}{\Prp}
   \end{align*}
 \end{lemma}
 \begin{proof}
-  By induction on $\typingF{\cc{N}{\Delta}}{s}{A}$.
-  Both the invariant $\tmctxrelFL{\Delta}{R}{S}{\Gamma}$, as well as Lemma~\ref{lem:tyr_fl_tot_pres}, are used to obtain related types in the variable case.
-  Functionality allows us to equate these.
-  For term-level application we require the strengthening for sort-typings in \SysL mentioned above: $\typingL{\Gamma,a}{b\subst{\shift}}{s} \implies \typingL{\Gamma}{b}{s}$.
-  Meanwhile the type-level application case requires $\beta$-substitutivity of both $\tyL$ and $\tyr^R$.
-  Both abstraction cases are relatively straightforward, given suitable extension laws.
+  By induction on $\typingF{\cc{N}{\Gamma}}{s}{A}$.
+  Both the invariant $\tmctxrelFL{\Gamma}{R}{S}{\Psi}$, as well as Lemma~\ref{lem:tyr_fl_tot_pres}, are used to obtain related types in the variable case.
+  Functionality of $R$ allows us to equate these.
 \end{proof}
 
-For the inverse direction we define
+The final piece is the preservation of typing from \SysL to F.
+Here we use:
 \begin{align*}
-  \tmctxrelLF{\Delta}{R}{S}{\Gamma} \eqdef \mAll{y\,a} y \of a \inL \Gamma \implies \typingL{\Gamma}{a}{\Prp} \implies \mEx{x\,A} A\,\tyr^R\,a \mAnd x\,S\,y \mAnd x \of A \in \Delta
+  \tmctxrelLF{\Gamma}{R}{S}{\Psi} \eqdef \mAll{y\,a} y \of a \inL \Psi \implies \typingL{\Psi}{a}{\Prp} \implies \mEx{x\,A} A\,\tyr^R\,a \mAnd x\,S\,y \mAnd x \of A \in \Gamma
 \end{align*}
-which satisfies
-\begin{align*}
-  &\tmctxrelLF{\Delta}{R}{S}{\Gamma} \implies A\,\tyr^R\,a \implies \tmctxrelLF{\Delta,A}{\Rshift{R}}{\Rext{S}}{\Gamma,a}\\
-  &\tmctxrelLF{\Delta}{R}{S}{\Gamma} \implies \tmctxrelLF{\Delta\subst{\shift}}{\Rext{R}}{\Rshift{S}}{\Gamma,\Prp}
-\end{align*}
+\begin{fact}
+  \label{fac:inv-tmfl-ext}
+  The invariant $\tmctxrelLF{\Gamma}{R}{S}{\Psi}$ is preserved under corresponding extensions:
+  \begin{align*}
+    &\tmctxrelLF{\Gamma}{R}{S}{\Psi} \implies A\,\tyr^R\,a \implies \tmctxrelLF{\Gamma,A}{\Rshift{R}}{\Rext{S}}{\Psi,a} & &\tmctxrelLF{\Gamma}{R}{S}{\Psi} \implies \tmctxrelLF{\Gamma\subst{\shift}}{\Rext{R}}{\Rshift{S}}{\Psi,\Prp}\tag*{\qedsymbol}
+  \end{align*}
+\end{fact}
 \begin{lemma}
   The term relation $\tmr^R_S$ is total from right to left and preserves typing:
   \begin{align*}
-    \typingL{\Gamma}{b}{\Prp} \implies \typingL{\Gamma}{a}{b} \implies \mAll{R\,S\,N\,\Delta} &R\ms\ms\mathsf{inj} \implies \tyctxrelLF{N}{R}{\Gamma} \implies \tmctxrelLF{\Delta}{R}{S}{\Gamma} \implies \\
-                                                                &\mEx{s\,A} A\,\tyr^R\,b \mAnd s\,\tmr^R_S\,a \mAnd \typingF{\cc{N}{\Delta}}{s}{A} \mAnd \istyF{N}{A}
+    \typingL{\Psi}{b}{\Prp} \implies \typingL{\Psi}{a}{b} \implies &\mAll{R\,S\,N\,\Gamma} R\ms\ms\mathsf{inj} \implies \tyctxrelLF{N}{R}{\Psi} \implies \tmctxrelLF{\Gamma}{R}{S}{\Psi} \implies \\
+                                                                &\mEx{s\,A} A\,\tyr^R\,b \mAnd s\,\tmr^R_S\,a \mAnd \typingF{\cc{N}{\Gamma}}{s}{A} \mAnd \istyF{N}{A}
   \end{align*}
 \end{lemma}
 \begin{proof}
-  By induction on $\typingL{\Gamma}{a}{b}$.
+  By induction on $\typingL{\Psi}{a}{b}$.
   The cases are mostly analogue to the previous result.
   Injectivity of $R$ is required for the variable case.
-  Note that we need to discriminate on the sorts of product domains to disambiguate the unified abstractions and applications correctly.
+  Note that we need to discriminate on the sorts of product domains again (cf.\ Lemma~\ref{lem:tyr_lf_tot_pres}), here to disambiguate the unified abstractions and applications correctly.
 \end{proof}
-
-In summary, the most interesting part here was the handling of the contextual information about corresponding free de Bruijn indices.
-In the present formalisation this was achieved with relations on indices, which were constrained in such a way that they connect corresponding contexts.
-On top of this, modifications were defined that mirror the adjustments of parallel substitutions during the traversal of binders.
-Our design of this structure was heavily influenced by the generalised notions of context morphism laid out in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
 
 \section{Abella}
 \label{sec:abella}
