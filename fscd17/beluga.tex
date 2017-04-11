@@ -15,8 +15,8 @@
 
 While the HOAS approach is quite elegant in general,  manual manipulation of contextual information, as is necessary in Abella, can be cumbersome and annoying.
 The need for copious amounts of inversion lemmas that mostly deal with the fact that contexts can a priori contain arbitrary judgements was particularly irritating.
-An alternative is the programming and proof environment Beluga \cite{Pientka:IJCAR10,Pientka:FLOPS10,Pientka:CADE15} where we can encode formal systems within the logical framewwork LF \cite{Harper93jacm} using HOAS and then reason about them by writing total programs that analyze derivation trees using pattern matching.
-In Beluga we do not simply deal with objects (like types, terms, typing derivations), but with contextual objects where we pair an object together with the context in which it is meaningful\cite{Nanevski:ICML05,Pientka:POPL08}.
+An alternative is the programming and proof environment Beluga~\cite{Pientka:IJCAR10,Pientka:FLOPS10,Pientka:CADE15} where we can encode formal systems within the logical framewwork LF~\cite{Harper93jacm} using HOAS and then reason about them by writing total programs that analyze derivation trees using pattern matching.
+In Beluga we do not simply deal with objects (like types, terms, typing derivations), but with contextual objects where we pair an object together with the context in which it is meaningful~\cite{Nanevski:ICML05,Pientka:POPL08}.
 Contexts describe all the free variables that occur in a given object and are first-class.
 % Context invariants can be described and checked by context schema checking
 
@@ -34,7 +34,7 @@ The definition of our object languages in Beluga is almost identical to the one 
 The only difference is that term abstraction and type application rules of the F type system do not request the respective types are well-formed, as this is immediate for the above reasons.
 Hence we won't repeat the formal definitions and instead focus on Beluga's treatment of contextual information.
 
-In contrast to Coq, where contexts are modelled explicitly and are located conceptually on the same level as object language terms and types, and Abella, where the implicit object level reasoning context appears as an explicit list of arbitrary judgements at the reasoning level, Beluga contexts are special reasoning level first class objects that can exhibit rather complex structures.
+In contrast to Coq, where contexts are modelled explicitly and are located conceptually at the same level as object language terms and types, and Abella, where the implicit object level reasoning context appears as an explicit list of arbitrary judgements at the reasoning level, Beluga contexts are special reasoning-level first class objects that can exhibit rather complex structures.
 %
 This is achieved through a separate typing mechanism that ascribes \emph{context schemas} to meta-level variables that represent contexts.
 In Beluga, a context is a structured ordered sequence of declarations where each declaration can depend on prior declarations and encapsulate multiple pieces of related information using a dependent record, i.e.~not only do we have dependency structures within each record but also possibly between multiple records.
@@ -189,10 +189,6 @@ Both can be established with suitable encodings of the existentials and the foll
   \mrel{+} &[x\of\TyF \mrel{;} y\of\TmL \mrel{;} h\of x \tyr y \mrel{;} v\of\typingLh{y}{\Prp}]
 \end{align*}
 
-Once this schema has been fixed, constructing the two proofs is rather technical and lengthy, but not inherently different from the proofs in Coq or Abella.
-Note that any $\Gamma \of S_{\tmr A}$ also matches both $S_{\tyr W}^{\rightarrow}$ and $S_{\tyr W}^{\leftarrow}$ so that corresponding results for type formation can easily be invoked.
-
-
 \begin{wrapfigure}{r}{0.3\textwidth}
 % \begin{figure}[htb]
   \centering
@@ -212,6 +208,9 @@ Note that any $\Gamma \of S_{\tmr A}$ also matches both $S_{\tyr W}^{\rightarrow
   \caption{Dependencies between Context Schemas}
   \label{fig:ctxschema}
 \end{wrapfigure}
+Once this schema has been fixed, constructing the two proofs is rather technical and lengthy, but not inherently different from the proofs in Coq or Abella.
+Note that any $\Gamma \of S_{\tmr A}$ also matches both $S_{\tyr W}^{\rightarrow}$ and $S_{\tyr W}^{\leftarrow}$ so that corresponding results for type formation can easily be invoked.
+
 In our proof development, we relied on different, but often related context schemas (invariants).
 Compared to many existing benchmarks, this challenge problem exhibits a particularly rich context structure.
 We describe the relationship between context schemas in Fig.~\ref{fig:ctxschema}. We can always weaken a context of schema $S_{\tyr}$ to any of the other schemas in the graph. Given our dependency graph of the different judgements (aka predicates), i.e.~$\tyr$, $\tmr$, etc., the graph also induces a strengthening relationship. We can always strengthen a context schema to pass it in place of a context that is higher in the hierarchy.
