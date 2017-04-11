@@ -817,50 +817,45 @@ For the HOAS syntaxes and type systems, however, these properties are relatively
 \label{sec:beluga}
 \input{beluga.tex}
 
-\section{Discussion and Observations}
-\label{sec:disc-observ}
-
-When we have to construct a proof for an intricate result, we are often tempted to just grab our favourite proof assistant and start hacking away.
-While the approach may, with sufficient expertise, lead to a technically correct proof it is often the case that the end product does not reveal much more about the problem than ``the result holds''.
-If we allow ourselves a moment of philosophical musing than we may recall that it is often claimed that the main purpose of a proof is to communicate, and convince, someone else that a certain fact follows from mutually accepted assumptions.
-In this regard, all we have achieved so far is to convince some machine of such a fact.
-In order to communicate the result to our colleagues as well, we usually need more than just a proof script or proof term -- we need intuitions.
-
-
-\section{Conclusion and Outlook}
+\section{Conclusion}
 \label{sec:conclusion}
 
-Suggestions and Observations:
-\begin{itemize}
-\item HOAS should really be understood as a high level abstraction layer, then either a system supports it directly, or it has an underlying implementation of this abstraction, e.g.\ via de Bruijn with parallel substitutions (see HYBRID for Coq).
-\end{itemize}
+We have considered a technically interesting proof and demonstrated how various formalisation techniques deal with the arising complexities.
+The development of three different formalisations allowed us to gain deep insights into the inherent complexities of the proof.
+In particular we were able to separate these from technical artefacts due to the chosen formalisation technique.
+Two examples of inherent complications are the not quite perfectly aligned binding structures and the missing typing information required to disambiguate the uniform PTS applications.
 
+Our set of developments demonstrates, that the various formalisation techniques can be arranged in a hierarchy of abstraction layers.
+At the lowest level we have pure de Bruijn with a lot of representation freedom, which, however, has to be manged manually.
+Higher up in the hierarchy sit the HOAS techniques, which hide a lot of the technicalities and provide a more meaningful abstraction.
+In comparison with Abella, Beluga appears to deliver the theoretically nicer interface, with the added features of contextual reasoning and the ability to perform inductions directly over the HOAS syntax.
+Practically though, both systems are relatively young with certain usability issues.
+Among the two, Abella's tactic language certainly gives it a head start.
 
+We observe that our proof contains a number of challenges that, taken as a whole, constitute a nice benchmark for systems designed to reason about type systems.
+It tests in particular, how well multiple type systems with binding constructs can be brought into correspondence.
+We hence propose it as a complement to the POPLmark challenge~\cite{poplmark} on the one hand, which solely tests how well a system can reason about a single type system, and the ORBI benchmarks~\cite{Felty:ITP10,Felty:orbi-survey} which cover small-scale contextual reasoning.
+It is our believe that such a benchmark could be very useful to those who seek to develop or improve systems for reasoning about type systems and similar syntactic systems with variable binding and complex contextual information.
 
 \subsection{Future Work}
 \label{sec:future-work}
 
-The results and observations obtained here are already interesting in their own right.
-As a benchmark, however, they are only of a preliminary nature.
-Thus we would like to extend the present work in at least two directions.
+We would like to continue this line of work into three largely orthogonal directions.
 
-Firstly we would like to cover additional frameworks in order to see how well these are able to handle the present challenge.
-Those of immediate interest are the so-called locally nameless techniques~\cite{DBLP:conf/popl/AydemirCPPW08} and the HYBRID framework~\cite{Capretta2007, Capretta2009, DBLP:journals/jar/FeltyM12}.
-The locally nameless approach provides an abstraction layer that can be seen as sitting between the pure and low-level de Bruijn approach on the one hand and the high-level HOAS approach on the other.
-The HYBRID framework for Coq, on the other hand, is in spirit very close to Abella and provides a HOAS layer for Coq.
-It does, however, lack Abella's $\nabla$ and neither is it equipped with Beluga's capabilities of fine-grained contextual reasoning, so it remains to be seen if the framework is capable of dealing with our benchmark.
-Should it turn out that HYBRID is not (yet) up to the task, then our benchmark could act as a useful guideline for future development.
+First, we would like to widen the scope of the benchmark itself and include a correspondence result for the computational behaviour of the two systems.
+Equi-reducebility is at least as interesting a problem as equi-typability, and likely to pose its own set of challenges.
+One of these is the fact that, prior to typing, \SysL has a lot more $\beta$-redices than its stratified counterpart, hence some form of typing information will have to tracked along with the relational assumptions.
+This will lead new forms of contexts that are likely comparable in complexity to those discussed here.
 
-The other direction we would like to focus on concerns the benchmark itself.
-At the moment, we only look at the equivalence of the typability problem.
-Note, however, that we are dealing with computational systems, and as such their reduction behaviours are at least as interesting as their typability problems.
-Equi-reducebility will likely present its own set of challenges, as the PTS has many more $\beta$-redices, at least prior to typing.
-And reduction is of course usually defined independent of typing.
+Second, we would like to test further frameworks against our benchmark.
+One candidate is the locally nameless approach~\cite{DBLP:conf/popl/AydemirCPPW08}.
+It provides an abstraction layer that sits somewhere between pure de Bruijn and HOAS.
+Our benchmark could test how stable this layer really is.
+Another is the HYBRID framework~\cite{Capretta2007, Capretta2009, DBLP:journals/jar/FeltyM12} that aims to bring HOAS to Coq.
+At present however, it is neither equipped with Abella's $\nabla$ nor Beluga's contextual types, so it remains to be seen if it can handle our challenge.
 
-Finally it would be interesting to formulate the whole setup not only for System~F, but also for the simply typed $\lambda$-calculus on the one hand and F$_\omega$ on the other.
-For the remaining corners of Barendregt's $\lambda$-cube, like for example the calculus of constructions, no corresponding two-sorted variants exist.
-It is thus unclear what a suitable benchmark would look like.
-
+Finally, we consider scaling the challenge both down to the simply typed $\lambda$-calculus, as well as up to F$_\omega$, to obtain a better understanding of where exactly certain complications originate from.
+While other systems of the $\lambda$-cube, like CC, also appear interesting, we are not aware of suitably stratified variants to consider for a correspondence proof.
 
 % \subparagraph*{Acknowledgements.}
 

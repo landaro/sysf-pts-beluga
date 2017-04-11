@@ -13,16 +13,16 @@
 
 \newcommand{\D}{\mathcal{D}}
 
-While the HOAS approach is quite elegant in general,  manual manipulation of contextual information, as is necessary in Abella, can be cumbersome and annoying. 
+While the HOAS approach is quite elegant in general,  manual manipulation of contextual information, as is necessary in Abella, can be cumbersome and annoying.
 The need for copious amounts of inversion lemmas that mostly deal with the fact that contexts can a priori contain arbitrary judgements was particularly irritating.
-An alternative is the programming and proof environment Beluga \cite{Pientka:IJCAR10,Pientka:FLOPS10,Pientka:CADE15} where we can encode formal systems within the logical framewwork LF \cite{Harper93jacm} using HOAS and then reason about them by writing total programs that analyze derivation trees using pattern matching. 
+An alternative is the programming and proof environment Beluga \cite{Pientka:IJCAR10,Pientka:FLOPS10,Pientka:CADE15} where we can encode formal systems within the logical framewwork LF \cite{Harper93jacm} using HOAS and then reason about them by writing total programs that analyze derivation trees using pattern matching.
 In Beluga we do not simply deal with objects (like types, terms, typing derivations), but with contextual objects where we pair an object together with the context in which it is meaningful\cite{Nanevski:ICML05,Pientka:POPL08}.
-Contexts describe all the free variables that occur in a given object and are first-class. 
+Contexts describe all the free variables that occur in a given object and are first-class.
 % Context invariants can be described and checked by context schema checking
 
-So both Abella and Beluga delegate object level-binding to meta-level binding, but while Abella then proceeds to utilise global nominal constants, Beluga instead employs local contexts and contextual objects. 
+So both Abella and Beluga delegate object level-binding to meta-level binding, but while Abella then proceeds to utilise global nominal constants, Beluga instead employs local contexts and contextual objects.
 The difference is best illustrated with an example.
-Consider, in Abella, the F-function type $n_1 \to n_2$ where $n_1$ and $n_2$ are global nominal constants. 
+Consider, in Abella, the F-function type $n_1 \to n_2$ where $n_1$ and $n_2$ are global nominal constants.
 It is relatively easy to prove that $\{\emptyctx \vdash \istyFh{n_1 \to n_2}\}$ entails absurdity.
 In other words, there exist types $A \OF \TyF$, that are not well-formed.
 To be precise, well-formedness checks that a type does not have dangling variables (this is the reason we have made the empty context explicit).
@@ -39,7 +39,7 @@ In contrast to Coq, where contexts are modelled explicitly and are located conce
 This is achieved through a separate typing mechanism that ascribes \emph{context schemas} to meta-level variables that represent contexts.
 In Beluga, a context is a structured ordered sequence of declarations where each declaration can depend on prior declarations and encapsulate multiple pieces of related information using a dependent record, i.e.~not only do we have dependency structures within each record but also possibly between multiple records.
 % A context schema is then a set of admissible $\Sigma$-types for such a list of records.
-In particular, this entails that contexts need not be homogeneous.  
+In particular, this entails that contexts need not be homogeneous.
 As a simple example consider the following schema, which is used to prove propagation for \SysL.
 \begin{align*}
   S_{\lambda W} \eqdef [x\of\TmL \mrel{;} \typingLh{x}{\Prp}] \mrel{+} [x\of\TmL \mrel{;} \typingLh{x}{a} \mrel{;} \typingLh{a}{\Prp}]
@@ -56,7 +56,7 @@ This is achieved by simply defining a predicate $\mathsf{type\_correct}\,a$ as f
 %\end{align*}
 \[
 \begin{array}{c}
-% \fbox{\textsf{type\_correct}~a}~~Type $a$ 
+% \fbox{\textsf{type\_correct}~a}~~Type $a$
 \inferrule*[right=p\_tc$_1$]{~}{\mathsf{type\_correct}~\Typ} \qquad
 \inferrule*[right=p\_tc$_2$]{ \typingLh{a}{u} \quad \sortLh{u}}{\mathsf{type\_correct}~a}
 \end{array}
@@ -67,26 +67,26 @@ Since Beluga is not equipped with a tactic language, we prove propagation by imp
 \end{align*}
 The proof proceeds by induction on $d \OF \bc{\Gamma}{\typingLh{A}{B}}$. There are 7 cases to consider, 3 of which are variable cases that arise from the context schema (see \cite{Pientka:TLCA15} for a description of coverage for contextual objects and contexts).
 Let us first look at the cases that arise from the four rules (\tax, \tpi, \tlam, \tapp)~defining ${\typingLh{A}{B}}$ in Fig.~\ref{fig:sys-l-abella}.
- 
+
 When $d$ is a derivation $\bc{\Gamma}{\tax}$ of $\bc{\Gamma}{\typingLh{\Prp}{\Typ}}$, then $\bc{\Gamma}{\mathsf{type\_correct}\,\Typ}$ clearly holds using \ptc$_1$ as a witness.
-When $d$ is a derivation ending in \tpi~rule, 
+When $d$ is a derivation ending in \tpi~rule,
  $\bc{\Gamma}{\mathsf{type\_correct}\,\Prp}$ is easily established using \ptc$_2$ the axioms from Fig.~\ref{fig:sys-l-abella}. For the case where $d$ ends in the abstraction rule \tlam~we have to show that $\bc{\Gamma}{\typingLh{\Prod{A}B}{\Prp}}$ holds, and thus $\bc{\Gamma}{\mathsf{type\_correct}\,\Prod{A}B}$, which is easy.
 
 The interesting case is application where we have $d = \bc{\Gamma}{\tapp\,\D_{AB}\,\D_{A}}$ and stands for $\bc{\Gamma}{\typingLh{M\,N}{\lpApp{B}{N}}}$, where $\D_{AB}$ is a sub-derivation for $\bc{\Gamma}{\typingLh{M}{\Prod{A}B}}$ and $\D_{A}$ stands for a sub-deriation $\bc{\Gamma}{\typingLh{N}{A}}$.
-Applying our inductive hypothesis to $\bc{\Gamma}{\D_{AB}}$ yields a derivation for $ \bc{\Gamma}{\mathsf{type\_correct}\,\Prod{A}B}$. Using pattern matching, we determine there is only one possible way we could construct a derivation of this type, namely using $\bc{\Gamma}{\mbox{\ptc}_2~\D~\D_u}$, since  $\Prod{A}B \neq \Typ$. Hence, we know that there is a sub-derivation $\D$ ending in 
+Applying our inductive hypothesis to $\bc{\Gamma}{\D_{AB}}$ yields a derivation for $ \bc{\Gamma}{\mathsf{type\_correct}\,\Prod{A}B}$. Using pattern matching, we determine there is only one possible way we could construct a derivation of this type, namely using $\bc{\Gamma}{\mbox{\ptc}_2~\D~\D_u}$, since  $\Prod{A}B \neq \Typ$. Hence, we know that there is a sub-derivation $\D$ ending in
 $\bc{\Gamma}{\typingLh{\Prod{A}B}{u}}$ and a derivation $\D_u$ standing for $\bc{\Gamma}{\sortLh{u}}$
 
 
 %By inversion on the definition of $\mathsf{type\_correct}$ using \textsc{p\_tc2}, we have two sub-deriations: $\D_P$ stands for know $\bc{\Gamma}{\Prod{A}B}} $
 % $\bc{\Gamma}{p_{\mathsf{tc2}}\,d_P\,d_u} \OF
 
-Further pattern matching on $\D_P$ using the \tpi~rule, 
-reveals a derivation $\D_B$ for $\typingLh{\lpApp{B}{x}}{\Prp}$ in the extended context $\Gamma, x\of\TmL, \typingLh{x}{A}$. 
+Further pattern matching on $\D_P$ using the \tpi~rule,
+reveals a derivation $\D_B$ for $\typingLh{\lpApp{B}{x}}{\Prp}$ in the extended context $\Gamma, x\of\TmL, \typingLh{x}{A}$.
 % $\bc{\Gamma, [x \of\TmL \mrel{;} \typingLh{x}{A}]}{\typingLh{\lpApp{B}{x}}{\Prp}}$
 %
 Substitutivity is natively provided in Beluga, so we have $\lpApp{\D_B}{N,d_A} \OF \bc{\Gamma}{\typingLh{\lpApp{B}{N}}{\Prp}}$ and can close the case.
 
-This brings us to variable cases where we extract a variable from the context. 
+This brings us to variable cases where we extract a variable from the context.
 Recall the context schema definition of $S_{\lambda W}$.
 The left alternative has one occurrence of a typing assumption, while the right alternative has two.
 Two of these fix $B = \Prp$ so the requisite universe containing $B$ is simply $\Typ$.
@@ -103,7 +103,7 @@ We begin with the functionality of $\tyr$, that is, we implement a recursive fun
 \begin{align*}
   \mAll{\Gamma \of S_{\tyr}} \bc{\Gamma}{A \tyr a} \implies \bc{\Gamma}{A \tyr a'} \implies \bc{\Gamma}{a =_{\lambda} a'},
 \end{align*}
-where 
+where
 \begin{align*}
   S_{\tyr} \eqdef [y \of \TmL] \mrel{+} [x\of\TyF \mrel{;} y\of\TmL \mrel{;} h\of x \tyr y]
 \end{align*}
@@ -114,20 +114,20 @@ We go over the definition of this function in detail to illustrate how contextua
 At a high level, the proof is by induction on the derivation of $d_1 \OF \bc{\Gamma}{A \tyr a}$ and pattern matching on $d_2 \OF \bc{\Gamma}{A \tyr a'}$.
 We have to cover three cases, two structural and one for a context extraction.
 
-Let $d_1$ be a derivation that ends in the rule \rarr, i.e.~ is $A = B \to C$ and $a = \Prod{b}c$ for some $B,C,b,c$. Then $d_1 = \bc{\Gamma}{\rarr~\D_{11}~\D_{12}}$ where 
+Let $d_1$ be a derivation that ends in the rule \rarr, i.e.~ is $A = B \to C$ and $a = \Prod{b}c$ for some $B,C,b,c$. Then $d_1 = \bc{\Gamma}{\rarr~\D_{11}~\D_{12}}$ where
 we have sub-derivations $\D_{11} \OF \bc{\Gamma}{B \tyr b}$ and $\D_{12} \OF \bc{\Gamma, y \of \TmL}{C \tyr \lpApp{c}{y}}$.
 As a consequence, $d_2$ must have also ended with the \rarr~rule. This is accomplished by pattern matching on $d_2 = \bc{\Gamma}{\rarr~\D_{21}~\D_{22}}$. Hence $a' = \Prod{b'}c'$, with sub-derivations $\D_{21} \OF \bc{\Gamma}{B \tyr b'}$ and $\D_{22} \OF \bc{\Gamma, [y \of \TmL]}{C \tyr \lpApp{c'}{y}}$.
 We have to prove that $\Prod{b}c =_{\lambda} \Prod{b'}c'$, which is only possible if we can unify $b$ with $b'$ and $c$ with $c'$.
 This is easily achieved through invocations of the inductive hypothesis on $\bc{\Gamma}{\D_{11}}$ and $\bc{\Gamma}{\D_{21}}$ and, respectively, on $\bc{\Gamma}{\D_{12}}$ and $\bc{\Gamma}{\D_{22}}$.
 
-Next we consider the \rall~rule. By pattern matching on $d_1$ with $\bc{\Gamma}{\rall~\lambda x.\lambda u.\D_1}$ we obtain $A = \All B$, $a = \Prod{\Prp} b$, 
-and $\D_1$ stands for $\bc{\Gamma, x \of \TyF, y \of \TmL, h \of x \tyr y}{\lpApp{B}{x} \tyr \lpApp{b}{y}}$.  
-Similarly, by pattern matching on $d_2$ with $\bc{\Gamma}{\rall~\lambda x.\lambda u.\D_2}$ we learn $a' = \Prod{\Prp} b'$ and $\D_2$ stands for 
-$\bc{\Gamma, x \of \TyF, y \of \TmL, h \of x \tyr y}{\lpApp{B}{x} \tyr \lpApp{b'}{y}}$.  
+Next we consider the \rall~rule. By pattern matching on $d_1$ with $\bc{\Gamma}{\rall~\lambda x.\lambda u.\D_1}$ we obtain $A = \All B$, $a = \Prod{\Prp} b$,
+and $\D_1$ stands for $\bc{\Gamma, x \of \TyF, y \of \TmL, h \of x \tyr y}{\lpApp{B}{x} \tyr \lpApp{b}{y}}$.
+Similarly, by pattern matching on $d_2$ with $\bc{\Gamma}{\rall~\lambda x.\lambda u.\D_2}$ we learn $a' = \Prod{\Prp} b'$ and $\D_2$ stands for
+$\bc{\Gamma, x \of \TyF, y \of \TmL, h \of x \tyr y}{\lpApp{B}{x} \tyr \lpApp{b'}{y}}$.
 %
-To apply the induction hypothesis, we also must ensure that the context invariant is satisfied. We hence pack the assumptions $ x \of \TyF, y \of \TmL, h \of x \tyr y$ in a dependent record $r$ and 
+To apply the induction hypothesis, we also must ensure that the context invariant is satisfied. We hence pack the assumptions $ x \of \TyF, y \of \TmL, h \of x \tyr y$ in a dependent record $r$ and
 invoke the induction hypothesis on $\bc{\Gamma, r}{\lpApp{\D_1}{r_x,r_y,r_h}}$ and $\bc{\Gamma, r}{\lpApp{\D_2}{r_x,r_y,r_h}}$. We rely on the built-in simultaneous substitution operation to replace $x$ with the projection $r_x$, $y$ with the projection $r_y$, and $h$ with the projection $r_h$. By uncurrying the LF functions denoting parametric and hypothetical derivations, we can enforce the stated context invariant which guarantees naturally that whenever we have a $\TyF$ variable $x$, we also must have a related  $\TmL$ variable $y$ (and vice versa).
- 
+
 % The scenario is similar for $d_{21}$.
 % That is, we cannot directly apply our inductive hypothesis to unify $b$ and $b'$.
 
@@ -139,11 +139,11 @@ We can use $S_{\tyr}$ to obtain injectivity of $\tyr$ in a similar fashion.
 In contrast, to context relations that are commonly used in Abella and Coq, Beluga supports developing proofs by enforcing context invariants using context schemas. While in this example, we can directly derive the context invariant needed in the proof from the definitions of $\tyr$ and $\tmr$, this may not always be the case.  Instead, we may need to generalize. The contrast between the joint context in Beluga versus the relational context approach in Abella is also highlighted in \cite{Felty:ITP10,Felty:orbi-survey}.
 
 
-To obtain functionality and injectivity of $\tmr$ we can follow a similar pattern, generalizing the previous context schema  to 
+To obtain functionality and injectivity of $\tmr$ we can follow a similar pattern, generalizing the previous context schema  to
 \begin{align*}
   S_{\tmr} \eqdef [x\of\TmF \mrel{;} y\of\TmL \mrel{;} h\of x \tmr y] \mrel{+} [x\of\TyF \mrel{;} y\of\TmL \mrel{;} h\of x \tyr y]
 \end{align*}
-Again this schema can be derived from the definition of the $\tmr$ rules. 
+Again this schema can be derived from the definition of the $\tmr$ rules.
 When we compare the two context schemas it should quickly be come apparent that any $\Gamma \of S_{\tmr}$ contains at least as much information as required by $S_{\tyr}$. We also note that while the rules $\tyr$ do only refer to $\tyr$ assumptions and not to $\tmr$ assumptions. Based on this dependency \cite{Virga99phd}, Beluga supports strengthening. In other words, if we need to appeal to functionality and injectivity of $\tyr$ within the proof of functionality and infjectivity of $\tmr$, we may strengthen the given context such that it satisfies $S_{\tyr}$, appeal to functionality and injectivity of $\tyr$, and the weaken the result to use it in the context satisfying $S_{\tmr}$ (see \cite{Felty:orbi-survey} for a detailled discussion especially in contrast to context relations).
 
 % Beluga is capable of implicitly strengthening contexts in this way.
@@ -151,7 +151,7 @@ When we compare the two context schemas it should quickly be come apparent that 
 % In other words, we get directly $\Gamma \of S_{\tyr}$ rather than $\mathsf{str}(\Gamma) \of S_{\tyr}$.
 % The only other interesting aspect here than is the injectivity of $\tmr$ relies on $\tyr$ and $\tmr$ having disjoint ranges, which thanks to higher-order unification is very easy to obtain under contexts $\Gamma \of S_{\tmr}$.
 
-When it comes to the totality and preservation results we define a predicate $\mathsf{exists\_rel\_prop}~A$ that succeeds, if there exists a type $A$ s.t. $A \tyr a$ and $\typingLh{a}{\Prp}$: 
+When it comes to the totality and preservation results we define a predicate $\mathsf{exists\_rel\_prop}~A$ that succeeds, if there exists a type $A$ s.t. $A \tyr a$ and $\typingLh{a}{\Prp}$:
 \begin{align*}
 \inferrule*{A \tyr a \quad \typingLh{a}{\Prp}}{ \mathsf{exists\_rel\_prop}\,A}
 %  \mathsf{exists\_rel\_prop}\,A \iff \mEx{a} A \tyr a \mAnd \typingLh{a}{\Prp}
@@ -176,14 +176,14 @@ For similar reasons the encoding of the goal for the inverse direction only yiel
   \mathsf{exists\_rel\_type}\,a \iff \mEx{A} A \tyr a,
 \end{align*}
 that is, if there is some $A$ at all that is related via $\tyr$ then $A$ is well-formed by construction.
-Interestingly, it appears that we need even more typing information in the left block of the schema in order to prove the respective Lemma\footnote{There are reasons to believe that the same schema should  in theory work for both directions, but we have not yet investigated this further.}:
+Interestingly, it appears that we need even more typing information in the left block of the schema in order to prove the respective Lemma:
 \begin{align*}
   S_{\tyr W}^{\leftarrow} \eqdef &[y\of\TmL \mrel{;} v\of\typingLh{y}{a} \mrel{;} h\of A \tyr a \mrel{;} w \of \typingLh{a}{\Prp}]\\
   \mrel{+} &[x\of\TyF \mrel{;} y\of\TmL \mrel{;} h\of x \tyr y \mrel{;} v\of\typingLh{y}{\Prp}]
 \end{align*}
 
 The final two results are left and right preservation and totality of $\tmr$.
-Both can be established with suitable encodings of the existentials and the following schema that interstingly works for both directions:\footnote{This is the reason we conjecture that for $\tyr$ the same should be doable.}
+Both can be established with suitable encodings of the existentials and the following schema that interstingly works for both directions:
 \begin{align*}
   S_{\tmr W} \eqdef &[x\of\TmF \mrel{;} y\of\TmL \mrel{;} h\of x \tmr y \mrel{;} u\of\typingFh{x}{A} \mrel{;} v\of\typingLh{y}{a} \mrel{;} j \of A \tyr a]\\
   \mrel{+} &[x\of\TyF \mrel{;} y\of\TmL \mrel{;} h\of x \tyr y \mrel{;} v\of\typingLh{y}{\Prp}]
@@ -208,13 +208,13 @@ Note that any $\Gamma \of S_{\tmr A}$ also matches both $S_{\tyr W}^{\rightarrow
 %          \path (z) -- (a) node [midway] {$\leq$};
 %          \path (z) -- (b) node [midway] {$\leq$};
               \end{tikzpicture}
-  \end{minipage}  
+  \end{minipage}
   \caption{Dependencies between Context Schemas}
   \label{fig:ctxschema}
 \end{wrapfigure}
-In our proof development, we relied on different, but often related context schemas (invariants). 
-Compared to many existing benchmarks, this challenge problem exhibits a particularly rich context structure. 
-We describe the relationship between context schemas in Fig.~\ref{fig:ctxschema}. We can always weaken a context of schema $S_{\tyr}$ to any of the other schemas in the graph. Given our dependency graph of the different judgements (aka predicates), i.e.~$\tyr$, $\tmr$, etc., the graph also induces a strengthening relationship. We can always strengthen a context schema to pass it in place of a context that is higher in the hierarchy. 
+In our proof development, we relied on different, but often related context schemas (invariants).
+Compared to many existing benchmarks, this challenge problem exhibits a particularly rich context structure.
+We describe the relationship between context schemas in Fig.~\ref{fig:ctxschema}. We can always weaken a context of schema $S_{\tyr}$ to any of the other schemas in the graph. Given our dependency graph of the different judgements (aka predicates), i.e.~$\tyr$, $\tmr$, etc., the graph also induces a strengthening relationship. We can always strengthen a context schema to pass it in place of a context that is higher in the hierarchy.
 
 
 
