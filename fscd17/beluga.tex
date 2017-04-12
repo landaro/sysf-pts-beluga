@@ -13,90 +13,67 @@
 
 \newcommand{\D}{\mathcal{D}}
 
-While the HOAS approach is quite elegant in general,  manual manipulation of contextual information, as is necessary in Abella, can be cumbersome and annoying.
-The need for copious amounts of inversion lemmas that mostly deal with the fact that contexts can a priori contain arbitrary judgements was particularly irritating.
-An alternative is the programming and proof environment Beluga~\cite{Pientka:IJCAR10,Pientka:FLOPS10,Pientka:CADE15} where we can encode formal systems within the logical framewwork LF~\cite{Harper93jacm} using HOAS and then reason about them by writing total programs that analyze derivation trees using pattern matching.
-In Beluga we do not simply deal with objects (like types, terms, typing derivations), but with contextual objects where we pair an object together with the context in which it is meaningful~\cite{Nanevski:ICML05,Pientka:POPL08}.
-Contexts describe all the free variables that occur in a given object and are first-class.
-% Context invariants can be described and checked by context schema checking
-
-So both Abella and Beluga delegate object level-binding to meta-level binding, but while Abella then proceeds to utilise global nominal constants, Beluga instead employs local contexts and contextual objects.
-The difference is best illustrated with an example.
-Consider, in Abella, the F-function type $n_1 \to n_2$ where $n_1$ and $n_2$ are global nominal constants.
-It is relatively easy to prove that $\{\emptyctx \vdash \istyFh{n_1 \to n_2}\}$ entails absurdity.
-In other words, there exist types $A \OF \TyF$, that are not well-formed.
-To be precise, well-formedness checks that a type does not have dangling variables (this is the reason we have made the empty context explicit).
-%
 \newcommand{\bc}[2]{\ensuremath{[\,#1\,\vdash #2\,]}}
-In Beluga on the other hand, this example cannot even be expressed, as \[\bc{\emptyctx}{x \to y} \OF \bc{\emptyctx}{\TyF}\] is not meaningful in Beluga's type theory. The local variables $x$ and $y$ must be declared in the context on the left hand side of $\vdash$ and hence Beluga will simply raise an error that $x$ and $y$ are free. This happens even before type checking. Also observe how the type itself is a contextual object. An immediate consequence of this is that the concept of a F type formation judgement does not even make sense in Beluga, which will have an impact on the representation of our equivalences.
 
-The definition of our object languages in Beluga is almost identical to the one in Abella.
-The only difference is that term abstraction and type application rules of the F type system do not request the respective types are well-formed, as this is immediate for the above reasons.
-Hence we won't repeat the formal definitions and instead focus on Beluga's treatment of contextual information.
+The programming and proof environment Beluga~\cite{Pientka:IJCAR10,Pientka:FLOPS10,Pientka:CADE15} is another system that supports HOAS.
+Object languages are encoded in the logical framework LF~\cite{Harper93jacm}, while proofs about these are expressed as total programs in contextual modal type theory, Beluga's reasoning logic.
+The programs analyse LF derivation trees using pattern matching and higher-order unification.
+In Beluga it is necessary to give the programs, or proof terms, explicitly, which are then proof checked as part of the type checker at compile time.
+This stands in contrast to Coq and Abella, both of which are interactive systems with a tactic language for proof term construction.
 
-In contrast to Coq, where contexts are modelled explicitly and are located conceptually at the same level as object language terms and types, and Abella, where the implicit object level reasoning context appears as an explicit list of arbitrary judgements at the reasoning level, Beluga contexts are special reasoning-level first class objects that can exhibit rather complex structures.
-%
-This is achieved through a separate typing mechanism that ascribes \emph{context schemas} to meta-level variables that represent contexts.
-In Beluga, a context is a structured ordered sequence of declarations where each declaration can depend on prior declarations and encapsulate multiple pieces of related information using a dependent record, i.e.~not only do we have dependency structures within each record but also possibly between multiple records.
-% A context schema is then a set of admissible $\Sigma$-types for such a list of records.
-In particular, this entails that contexts need not be homogeneous.
-As a simple example consider the following schema, which is used to prove propagation for \SysL.
+The biggest difference, however, lies with Beluga's treatment of object level variables.
+In particular, at the outermost level, there is no such thing as a free object variable.
+This is in stark contrast to Coq's dangling de Bruijn indices and Abella's global nominal constants.
+In Beluga we instead deal with \emph{contextual objects}, written $\bc{\Gamma}{K}$, that is objects $K$ (like types, terms, typing derivations) paired with contexts $\Gamma$ in which they are meaningful~\cite{Nanevski:ICML05,Pientka:POPL08}.
+
+A an example consider the function type $X \to X$ where $X$ is a free type variable.
+This function type is ill-formed under the empty type variable context $\Delta = \emptyset$.
+In Coq and Abella we can express this type, as $0_\ty \to 0_\ty$ and respectively $n_0 \to n_0$, and then prove that assuming well-formedness entails absurdity, $\istyF{0}{0_\ty \to 0_\ty} \implies \bot$ and $\aj{\emptyctx}{\istyFh{n_0 \to n_0}} \implies \bot$.
+Meanwhile in Beluga, we observe that the contextual object $\bc{\emptyctx}{x \to x}$ is not even syntactically well-formed, since $x \notin \emptyctx$.
+An immediate consequence of this is that the type formation judgement for F, which ensures that the context is covering all free type variables, becomes redundant.
+Beluga's definition of F is obtained from Fig.~\ref{fig:sys-f-abella} by removing all references to type formation.
+The definition of \SysL is identical to the one for Abella (Fig.\ref{fig:sys-l-abella}).
+
+Recall that context management was completely manual in Coq.
+Each judgement required well-chosen generalisations and custom invariants to accurately track contextual information.
+In Abella the situation was noticeably better, as contexts at the object level were kept implicit and handled by the system.
+At the reasoning level they did, however, surface as explicit, unstructured sequences of judgements.
+The desired contextual structure then had to be imposed with auxiliary predicates, together with copious amounts of inversion lemmas.
+
+Beluga contexts, on the other hand, are sequence of not necessarily homogeneous declarations.
+Each declaration can depend on prior declarations and encapsulate multiple pieces of related information using a dependent record.
+Contexts are first class citizens and \emph{context schema} ascription, $\Gamma \OF S$, is used to ensure that $\Gamma$ satisfies certain structural constraints.
+
+Schemas are Beluga's main device to enforce invariants on contextual information.
+The following allows us to prove propagation for \SysL.
 \begin{align*}
   S_{\lambda W} \eqdef [x\of\TmL \mrel{;} \typingLh{x}{\Prp}] \mrel{+} [x\of\TmL \mrel{;} \typingLh{x}{a} \mrel{;} \typingLh{a}{\Prp}]
 \end{align*}
-This schema already separates PTS variables that are used as types (i.e. those from records matching the left variant) and those used as terms (i.e. those from records matching the variant on the right).
-Recall that this is a semantic distinction, i.e.~syntactically there is only a single sort.
 
-Let us next consider the proof of \SysL propagation in Beluga, which can be done from first principles and surprisingly is the only language-local meta-theoretic result required to complete the challenge.
-We use this to illustrate how a simple inductive Beluga proof is constructed.
-The first hurdle we have to overcome is the absence of disjunction and existential quantification in Beluga's meta logic.
-This is achieved by simply defining a predicate $\mathsf{type\_correct}\,a$ as follows:
-%\begin{align*}
-%  \mathsf{type\_correct}\,a \iff a = \Typ \mOr \mEx{u} \typingLh{a}{u} \mAnd \sortLh{u}
-%\end{align*}
-\[
-\begin{array}{c}
-% \fbox{\textsf{type\_correct}~a}~~Type $a$
-\inferrule*[right=p\_tc$_1$]{~}{\mathsf{type\_correct}~\Typ} \qquad
-\inferrule*[right=p\_tc$_2$]{ \typingLh{a}{u} \quad \sortLh{u}}{\mathsf{type\_correct}~a}
-\end{array}
-\]
-Since Beluga is not equipped with a tactic language, we prove propagation by implementing a total recursive function of the following type:
+Note how it separates PTS variables into type and term variables via the associated typing information, which already imposes the necessary semantic contextual information.
+The prove of propagation for \SysL is then straightforward.\footnote{Surprisingly this is the only language local property required for the Beluga proof.}
+We simply implement a total recursive function of the following type:
 \begin{align*}
-  \mAll{\Gamma \of S_{\lambda W}} \bc{\Gamma}{\typingLh{A}{B}} \implies \bc{\Gamma}{\mathsf{type\_correct}\,B}
+  \mAll{\Gamma \of S_{\lambda W}} \bc{\Gamma}{\typingLh{a}{b}} \implies \bc{\Gamma}{\mathsf{type\_correct}\,b}
 \end{align*}
-The proof proceeds by induction on $d \OF \bc{\Gamma}{\typingLh{A}{B}}$. There are 7 cases to consider, 3 of which are variable cases that arise from the context schema (see \cite{Pientka:TLCA15} for a description of coverage for contextual objects and contexts).
-Let us first look at the cases that arise from the four rules (\tax, \tpi, \tlam, \tapp)~defining ${\typingLh{A}{B}}$ in Fig.~\ref{fig:sys-l-abella}.
 
-When $d$ is a derivation $\bc{\Gamma}{\tax}$ of $\bc{\Gamma}{\typingLh{\Prp}{\Typ}}$, then $\bc{\Gamma}{\mathsf{type\_correct}\,\Typ}$ clearly holds using \ptc$_1$ as a witness.
-When $d$ is a derivation ending in \tpi~rule,
- $\bc{\Gamma}{\mathsf{type\_correct}\,\Prp}$ is easily established using \ptc$_2$ the axioms from Fig.~\ref{fig:sys-l-abella}. For the case where $d$ ends in the abstraction rule \tlam~we have to show that $\bc{\Gamma}{\typingLh{\Prod{A}B}{\Prp}}$ holds, and thus $\bc{\Gamma}{\mathsf{type\_correct}\,\Prod{A}B}$, which is easy.
+The contextual predicate $\bc{\Gamma}{\mathsf{type\_correct}\,b}$ encodes that $b$ is either $\Typ$ or it can be typed with some sort $s$.
+We pattern match $\D \OF \bc{\Gamma}{\typingLh{a}{b}}$ and obtain seven cases.
+The first four are structural, recursively descending into sub-derivations.
+The only part that is non-obvious is the traversal of binders, where various pieces of information are added to the context.
+These have to be packaged into declaration blocks in order to satisfy $S_{\lambda W}$.
+More interesting though are the three base cases.
+When we compare the matched type against $S_{\lambda W}$, we observe three ways in which $\D$ could have been obtained from the context.
+The first and third are trivial as they unify $b$ with $\Prp$ which can be typed with the sort $\Typ$.
+For the remaining case we know that $b$ can be typed with the sort $\Prp$,  contextual information that was packaged together with the matched judgement.
+Note that throughout the construction we exploit that Beluga natively supports substitution into parametric sub-derivations.
 
-The interesting case is application where we have $d = \bc{\Gamma}{\tapp\,\D_{AB}\,\D_{A}}$ and stands for $\bc{\Gamma}{\typingLh{M\,N}{\lpApp{B}{N}}}$, where $\D_{AB}$ is a sub-derivation for $\bc{\Gamma}{\typingLh{M}{\Prod{A}B}}$ and $\D_{A}$ stands for a sub-deriation $\bc{\Gamma}{\typingLh{N}{A}}$.
-Applying our inductive hypothesis to $\bc{\Gamma}{\D_{AB}}$ yields a derivation for $ \bc{\Gamma}{\mathsf{type\_correct}\,\Prod{A}B}$. Using pattern matching, we determine there is only one possible way we could construct a derivation of this type, namely using $\bc{\Gamma}{\mbox{\ptc}_2~\D~\D_u}$, since  $\Prod{A}B \neq \Typ$. Hence, we know that there is a sub-derivation $\D$ ending in
-$\bc{\Gamma}{\typingLh{\Prod{A}B}{u}}$ and a derivation $\D_u$ standing for $\bc{\Gamma}{\sortLh{u}}$
+At this point we are able to constructed our third equivalence proof.
+The definitions of $\tyr$ and $\tmr$ exactly coincide with Abella.
+We are going to primarily concern ourselves with the schemas, which best illustrate Beluga's tracking of contextual information.
 
+{\color{red} -- MARK --}
 
-%By inversion on the definition of $\mathsf{type\_correct}$ using \textsc{p\_tc2}, we have two sub-deriations: $\D_P$ stands for know $\bc{\Gamma}{\Prod{A}B}} $
-% $\bc{\Gamma}{p_{\mathsf{tc2}}\,d_P\,d_u} \OF
-
-Further pattern matching on $\D_P$ using the \tpi~rule,
-reveals a derivation $\D_B$ for $\typingLh{\lpApp{B}{x}}{\Prp}$ in the extended context $\Gamma, x\of\TmL, \typingLh{x}{A}$.
-% $\bc{\Gamma, [x \of\TmL \mrel{;} \typingLh{x}{A}]}{\typingLh{\lpApp{B}{x}}{\Prp}}$
-%
-Substitutivity is natively provided in Beluga, so we have $\lpApp{\D_B}{N,d_A} \OF \bc{\Gamma}{\typingLh{\lpApp{B}{N}}{\Prp}}$ and can close the case.
-
-This brings us to variable cases where we extract a variable from the context.
-Recall the context schema definition of $S_{\lambda W}$.
-The left alternative has one occurrence of a typing assumption, while the right alternative has two.
-Two of these fix $B = \Prp$ so the requisite universe containing $B$ is simply $\Typ$.
-If however we happen to have extracted the first typing assumption from a record of the right variant, then $S_{\lambda W}$ tells us that the second typing assumption from the very same block assigns $B$ the type $\Prp$, which is the required universe to close the case.
-%
-The most interesting part here was the use of substitutivity, which in Coq required a significant amount of boilerplate development.
-In Abella we first had to obtain substitutivity of PTS typing as a special case of a cut theorem and combine this with the aforementioned context inversion Lemmas.
-
-At this point we can tackle the actual solution to our challenge.
-Both $\tyr$ and $\tmr$ are again encoded as LF types at the same level where the object languages are defined. The definitions are exactly identical to those in Abella.
 Since Beluga does not natively provide equality, we also define three LF types that encode equality of the various syntactic sorts, each with a single reflexive constructor.
 
 We begin with the functionality of $\tyr$, that is, we implement a recursive function of type
