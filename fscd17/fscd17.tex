@@ -652,152 +652,137 @@ Here we use:
 \begin{figure}
   \begin{center}
     \begin{mathpar}
-      \mprset{andskip=1.5em,sep=2em}
+      \mprset{andskip=1.5em,sep=1.5em}
       \inferrule*{~}{\sortLh{\Typ}} \and
       \inferrule*{~}{\sortLh{\Prp}} \and
-      \inferrule*[right=t\_ax]{~}{\typingLh{\Prp}{\Typ}} \and
-      \inferrule*[right=t\_pi]{\typingLh{a}{\Prod{c}{d}} \\ \typingLh{b}{c}}{\typingLh{a\,b}{\lpApp{d}{b}}} \and
-      \inferrule*[right=t\_lam]{\typingLh{a}{s} \\ \sortLh{s} \\\\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\Prp}}{\typingLh{\Prod{a}{b}}{\Prp}} \and
-      \inferrule*[right=t\_app]{\typingLh{a}{s} \\ \sortLh{s} \\  \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{c}{x}}{\Prp} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\lpApp{c}{x}}}{\typingLh{\Lam{a}{b}}{\Prod{a}{c}}}
+      \inferrule*{~}{\typingLh{\Prp}{\Typ}} \and
+      \inferrule*{\typingLh{a}{\Prod{c}{d}} \\ \typingLh{b}{c}}{\typingLh{a\,b}{\lpApp{d}{b}}} \and
+      \inferrule*{\typingLh{a}{s} \\ \sortLh{s} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\Prp}}{\typingLh{\Prod{a}{b}}{\Prp}} \and
+      \inferrule*{\typingLh{a}{s} \\ \sortLh{s} \\  \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{c}{x}}{\Prp} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\lpApp{c}{x}}}{\typingLh{\Lam{a}{b}}{\Prod{a}{c}}}
     \end{mathpar}
   \end{center}
   \caption{HOAS specification of \SysL in Abella.}
   \label{fig:sys-l-abella}
 \end{figure}
 
-Let us now consider the first of our two HOAS solutions in more detail.
+Abella supports the use of higher-order abstract syntax (HOAS).
+The main idea is to delegate variable binding at the object level to binding at the meta level.
+Take for example the term constructor $\mathsf{lam} \OF (\mathsf{tm} \to \mathsf{tm}) \to \mathsf{tm}$ that yields an abstraction of the untyped $\lambda$-calculus.
+The $s$ in $\mathsf{lam}\,s \OF \mathsf{tm}$ is a function of the meta level.
+Substitution at the object level is implemented as application at the meta level, which we denote by $\lpApp{s}{t}$ to distinguish it from the various object level applications.
+
+Note that HOAS is not inductive, due to the negative occurrences of expression types.
+It also relies on intensional function spaces at the meta level in order to structurally analyse functions.
+Both aspects prevent Coq from natively supporting HOAS.
+
 Abella is a system designed around a two-level logic approach.
-The lower \emph{specification level}, essentially verbatim $\lambda$Prolog, is used to encode the object languages.
-For our Abella variant of F we define predicates $\istyFh{A} \OF o$ for type formation and $\typingFh{s}{A} \OF o$ for typing, where $o$ is Abella's type of $\lambda$Prolog predicates.
-The Abella variant of the type system of F is given in Fig.~\ref{fig:sys-f-abella}.
-The binders here are again nameless, but this time due to the fact that object level binding is delegated to the binding of the specification logic.
-That is in $\Lam{A}{s}$ the body $s \OF \TmF \to \TmF$ is a specification logic function.
-We use $\lpApp{s}{t}$ denote the application of specification logic function $s$ to an argument $t$.
+The lower \emph{specification level}, essentially verbatim $\lambda$Prolog, is used to encode the object languages and their associated judgements.
+We then reason about these encoding at the \emph{meta level}, using the logic $\mathcal{G}$, which is the intuitionistic predicative fragment of Church's simple type theory, extended with natural induction, (co)inductive predicates and nominal quantification ($\nabla x . \ms s$).
+The axioms of $\mathcal{G}$ ensure that a $\nabla$-quantified identifier is fresh for everything bound above it.
+We are going to use these freshness guarantees to faithfully represent object level variables.
 
-To encode \SysL we define a unary predicate $\sortLh{s} \OF o$ to recognise the sorts $s$ and the typing predicate $\typingLh{a}{b} \OF o$.
-The definition of the type system is given in Fig.~\ref{fig:sys-l-abella}.
-
-In Abella, reasoning about this specifications happens at the \emph{meta level}, using the logic $\mathcal{G}$.
-This reasoning logic is the intuitionistic predicative fragment for Church's simple type theory, extended with natural induction, (co)inductive predicates and, for our exposition most relevant, nominal quantification ($\nabla x . \ms s$) -- a form of universal quantification, where the bound identifier is guaranteed to be suitably fresh.
-
-The two levels are connected as follows: whenever a $\lambda$Prolog judgement $J \OF o$ holds than it has a $\lambda$Prolog derivation, and such derivations exhibit an inductive structure.
-This inductive structure is accessible in $\mathcal{G}$ with propositions of the form $\{J\}$.
-More generally, the derivation of $J$ may depend on hypotheses $I_0,\ldots,I_n$.
-This set of hypotheses is exposed in the form of a list $L \OF \mathsf{list}\,o$, and the embedding is written as $\{L \vdash J\}$.
-At this point it is interesting to observe what happens with hypothetical ($\lpImp$) and $\mathbf{\Pi}$-quantified premises.
-Consider the premise of F type formation rule for $\All A$.
-Embedded in $\mathcal{G}$ it takes the form $\{L \vdash\ \lpPi x \istyFh{x} \lpImp \istyFh{\lpApp{A}{x}}\}$ which is immediately converted to $\nabla x.\ms \{L, \istyFh{x} \vdash \istyFh{\lpApp{A}{x}}\}$.
-The crucial thing to note is that $L$ and $A$ are both quantified outside of the $\nabla$, hence $\mathcal{G}$ enforces that $x$ is fresh for these two quantities.
-In other words $x$ really is a variable in the usual sense.
-Abella usually goes a step further and opens the quantification with a fresh nominal constant $n_i$ that is syntactically distinct from other quantities in the proof state.
-Let us briefly stay with this example and consider the following goal, where $n_1$ is a nominal constant:
-\begin{mathpar}
-  \mprset{flushleft,
-    fraction={===},
-    fractionaboveskip=0.5ex,
-    fractionbelowskip=0.5ex}
-  \inferrule*{\{L \vdash \istyFh{B}\} \\\\ \{L, \istyFh{n_1} \vdash \istyFh{\lpApp{A}{n_1}}\}}{\{L \vdash \istyFh{\lpApp{A}{B}}\}}
-\end{mathpar}
-The embedding of $\lambda$Prolog in $\mathcal{G}$ is equipped with generic instantiation and cut theorems that are made available to the user via specific tactics.
-With these we can instantiate the second premise above to $\{L, \istyFh{B} \vdash \istyFh{\lpApp{A}{B}}\}$.
-Then cutting this with the first premise yields the goal.
-This generic cut tactic immediately provides substitutivity results for object languages, something that usually takes a significant amount of work in low-level representations like de Bruijn.
-
-There is one aspect of the embedding that is prone to cause headaches, namely the treatment of contexts.
-Contexts are made available as lists of judgements of type $o$, but there is nothing that a priori guarantees that some $I_k \in L$ actually is of the form $\istyFh A$ for some $A$.
-Moreover, since these context should represent typing contexts (or type formation contexts) they should only really contain assumptions about variables.
-And variables of the object language appear in $\mathcal{G}$ as nominal constants.
-So the $L$ in $\{L \vdash \istyFh{A}\}$ should be of the form
+\newcommand{\aje}[1]{\ensuremath{\{#1\}}}
+\newcommand{\aj}[2]{\ensuremath{\{#1 \vdash #2\}}}
+The two levels are connected with a special inductive predicate that embeds the derivation of a $\lambda$Prolog judgement $J$ from hypothese $L = I_0,\ldots,I_n$ into $\mathcal{G}$, written $\aj{L}{J}$, or simply $\aje{J}$ in the absence of assumptions.
+Note that $\lambda$Prolog supports hypothetical ($J_1 \lpImp J_2$) and locally quantified ($\lpPi{x} J\subst{x}$) premises, which the embedding treats as follows:
 \begin{align*}
-  \istyFh{n_i}, \istyFh{n_j}, \istyFh{n_k}, \ldots
+  \aj{L}{J_1 \lpImp J_2} &\quad\leadsto\quad \aj{L, J_1}{J_2} & \aj{L}{\lpPi{x} J\subst{x}}&\quad\leadsto\quad \nabla x. \aj{L}{J\subst{x}}
 \end{align*}
-Meanwhile, for the derivation of a typing judgement $\{L \vdash \typingFh{s}{A}\}$, the elements of $L$ should only of the form $\istyFh{n_i}$ or $\typingFh{n_k}{A}$ (where $A$ is well-formed).
-We can achieve this with an inductive $\mathcal{G}$-predicate that ensures the well-formedness of a F-typing context:
+For the quantification case, observe that the context $L$ is usually quantified at the outermost level, hence $x$ is guaranteed to be fresh for $L$, satisfying the usual side condition for context extension rules.
+This procedure is often referred to as \emph{mobility of binders}: object level binders are represented using $\lambda$Prolog quantification, which in turn is mapped to $\nabla$-quantification in $\mathcal{G}$ and eventually opened with nominal constants $n_i$.
+\begin{fact}
+  \label{fac:ab-cut-inst}
+  The embedding $\aj{L}{J}$ satisfies cut and a nominal instantiation principle:
+  \begin{align*}
+    &\aj{L}{I} \implies \aj{L,I}{J} \implies \aj{L}{J} \tag{cut} \\
+    &\mAll{s \of \mathsf{typeof}\, n_i} \aj{L\subst{n_i}}{J\subst{n_i}} \implies \aj{L\subst{s}}{J\subst{s}} \tag{inst}
+  \end{align*}
+  Both are exposed as proof tactics to the user.\hfill\qedsymbol
+\end{fact}
+Note that Fact~\ref{fac:ab-cut-inst} provides substitutivity for the various judgements of our object languages.
+
+At this point it should be straightforward to understand the HOAS representation of our two systems given in Figs.~\ref{fig:sys-f-abella}~and~\ref{fig:sys-l-abella}.
+For F, the judgements $\istyFh{A}$ and $\typingFh{s}{A}$ encode type formation and respectively typing.
+For \SysL, the judgement $\sortLh{s}$ is used to recognise sorts, while $\typingLh{a}{b}$ represents PTS typing.
+
 \newcommand{\ac}[3]{\ensuremath{\mathbb{C}_{#1}^{#2} (#3)}}
 \newcommand{\acFty}[1]{\ac{F}{\ty}{#1}}
 \newcommand{\acFtm}[1]{\ac{F}{\tm}{#1}}
+As soon as we try to prove structural results about these definitions we are faced with a problem.
+Consider the following inversion principle for arrow type formation in F:
+\begin{align*}
+  \aj{L}{\istyFh{A \to B}} \implies \aj{L}{\istyFh{A}} \mAnd \aj{L}{\istyFh{B}}
+\end{align*}
+The premise may hold due to backchaining and $\istyFh{A \to B} \in L$.
+The problem is that $L$ is too general and may contain arbitrary judgements, not even necessarily related to type formation.
+Hence we need to somehow constrain $L$ to only contain judgements of the form $\istyFh{n_i}$, where the $n_i$ are nominals representing variables.
+Similarly we want to constrain typing contexts to only contain judgements of the form $\istyFh{n_i}$ or $\typingFh{n_i}{A}$.
+We specify this notion of well-formed contexts  with auxiliary inductive $\mathcal{G}$-predicates.
+The well-formedness predicate for F typing contexts, written $\acFtm{-}$, is defined as:
 \begin{mathpar}
   \inferrule*{~}{\acFtm{\emptyctx}} \and
-  \inferrule*{\acFtm{L} \\ x \notin L}{\acFtm{L,\istyFh{x}}}\and
-  \inferrule*{\acFtm{L} \\ \{L \vdash \istyFh{A}\} \\ x \notin L,A}{\acFtm{L,\typingFh{x}{A}}}
+  \inferrule*[right=$x \notin L$]{\acFtm{L}}{\acFtm{L,\istyFh{x}}}\and
+  \inferrule*[right={$x \notin L,A$}]{\acFtm{L} \\ \aj{L}{\istyFh{A}}}{\acFtm{L,\typingFh{x}{A}}}
 \end{mathpar}
-In Abella, the freshness assumptions are enforced through nominal quantification:
-\begin{align*}
-  &\mathbf{Define}\ms\ms\mathsf{ctxftm} \OF \mathsf{list}\,o \to \Prop \ms\ms\mathbf{by}\\
-  &\quad\mathsf{ctxftm}\ms\emptyctx\ms;\\
-  &\quad\nabla x. \ms \mathsf{ctxftm}\ms (\istyFh{x} \mathbin{::} L) \eqdef \mathsf{ctxftm}\ms L \ms;\\
-  &\quad\nabla x. \ms \mathsf{ctxftm}\ms (\typingFh{x}{A} \mathbin{::} L) \eqdef \mathsf{ctxftm}\ms L \mAnd \{L \vdash \istyFh{A}\}\ms.
-\end{align*}
-Here $L$ and $A$ are by convention implicitly universally quantified at the outermost level of each rule, that is in particular before the $\nabla x$.
-Hence $x$ is fresh for $L$ and $A$ by the nominal axioms of $\mathcal{G}$.
-The definition for type formation contexts, \acFty{-}, is even simpler.
+The freshness conditions are implemented by locally $\nabla$-quantifying the respective variable.
+Next we have to pair this definition with an inversion principle that reveals the structure and freshness properties of any $J \in L$ with $\acFtm{L}$.
+At this point we are able to add $\acFty{L}$, defined analogously to $\acFtm{L}$, as an extra premise to our inversion principle and then discard the spurious context extraction.
+This relies on the fact that $\nabla x . (A \to B) \neq x$ holds in $\mathcal{G}$.
+A key aspect of formalising our equivalence result in Abella is the correct choice of well-formedness predicates and associated inversion Lemmas.
 
-Each type in $\mathcal{G}$ is inhabited by a countably infinite number of nominal constants, which are syntactically distinct from each other and all other inhabitants of the respective type.
-This allows us to formulate inversion lemmas of the following form:
-\begin{align*}
-  \acFty{L} \implies \{L \vdash \istyFh{A \to B}\} \implies \{L \vdash \istyFh{A}\} \mAnd \{L \vdash \istyFh{B}\}
-\end{align*}
-In particular this rules out the case $\istyFh{A \to B} \in L$ which could very well happen without the additional context predicate.
-A large part of our present proof relies on formulating the right predicates to suitably constrain contexts, together with appropriate inversion lemmas.
-There appears to be some work on automatically generating this infrastructure for basic cases as it is mostly mechanical (CITE LFMTP'14 paper here).
-In the following we will have to go a step further and not only require certain contexts to be well-formed for their respective judgements but also to stand in a certain correspondence to other contexts.
-Formulating the correct context relation predicates constitutes the heart of the Abella proof presented here.
-
-So let us now look at the actual Abella solution to the equivalence challenge.
-We define $\tyr$ and $\tmr$ as follows:\label{rel-rules}
+Let us now consider the actual equivalence proof.
+The relations $\tyr$ and $\tmr$ are defined as:
 \begin{mathpar}
-  \inferrule*[right=r\_arr]{A \tyr a \\ \lpPi {x} B \tyr \lpApp{b}{x}}{A \to B \tyr \Prod a b} \and
-  \inferrule*[right=r\_all]{\lpPi{x y} x \tyr y \lpImp \lpApp{A}{x} \tyr \lpApp{a}{y}}{\All A \tyr \Prod \Prp a}\\
-  \inferrule*[right=r\_app]{s \tmr a \\ t \tmr b}{s\,t \tmr a\,b} \and
-  \inferrule*[right=r\_App]{s \tmr a \\ A \tyr b}{s\,A \tmr a\,b}\\
-  \inferrule*[right=r\_lam]{A \tyr a \\ \lpPi{x y} x \tmr y \lpImp \lpApp{s}{x} \tmr \lpApp{b}{y}}{\Lam A s \tmr \Lam a b} \and
-  \inferrule*[right=r\_Lam]{\lpPi{x y} x \tyr y \lpImp \lpApp{s}{x} \tmr \lpApp{a}{y}}{\TyLam s \tmr \Lam \Prp a}
+  \mprset{andskip=1.5em,sep=1.5em}
+  \inferrule*{A \tyr a \\ \lpPi {x} B \tyr \lpApp{b}{x}}{A \to B \tyr \Prod a b} \and
+  \inferrule*{\lpPi{x y} x \tyr y \lpImp \lpApp{A}{x} \tyr \lpApp{a}{y}}{\All A \tyr \Prod \Prp a} \and
+  \inferrule*{s \tmr a \\ t \tmr b}{s\,t \tmr a\,b} \and
+  \inferrule*{A \tyr a \\ \lpPi{x y} x \tmr y \lpImp \lpApp{s}{x} \tmr \lpApp{b}{y}}{\Lam A s \tmr \Lam a b} \and
+  \inferrule*{\lpPi{x y} x \tyr y \lpImp \lpApp{s}{x} \tmr \lpApp{a}{y}}{\TyLam s \tmr \Lam \Prp a} \and
+  \inferrule*{s \tmr a \\ A \tyr b}{s\,A \tmr a\,b}
 \end{mathpar}
-Note that the techniques used to define these relations are very similar to those used to define the two type systems.
-Also note that in contrast to the definition in Coq, no extra parameters/contexts are required to deal with the variable cases, which are themselves implicitly handled via the backchanining rules of the $\lambda$Prolog embedding.
-The correct notion of well-formed contexts for these relations, $\ac{\tmr}{~}{-}$, simply consists of pairs of nominals that are either related as types or as terms.
-Thus $\ac{\tmr}{~}{L}$ encodes the same information in Abella that was in Coq represented by the two auxiliary variable relations $S$ and $R$.
-We do not explicitly define $\ac{\tyr}{~}{-}$ and instead prove the following strengthening result, which holds since derivations of a type relation cannot depend on assumptions about term variables being related.
+We complement this definition with a well-formedness predicate $\ac{\tmr}{~}{L}$, which ascertains that $L$ only contains judgements of the form $n_i \tyr n_j$ or $n_i \tmr n_j$, together with suitable lookup lemmas.
+For technical reasons we do not define $\ac{\tyr}{~}{-}$ and instead prove a strengthening lemma which holds due to the inferred subordination ordering of the two relations:
 \begin{align*}
-  \ac{\tmr}{~}{L} \implies \{L, x \tmr y \vdash A \tyr a \} \implies \{L \vdash A \tyr a \}
+  \ac{\tmr}{~}{L} \implies \aj{L, x \tmr y}{A \tyr a} \implies \aj{L}{A \tyr a}
 \end{align*}
-At this point it is relatively easy to prove that $\tyr$ and $\tmr$ have disjoint ranges and that each is injective and functional.
-Apart from several inversion lemmas with respect to context extraction, similar to the one outlined above, the key ingredient for each proof is to show that the employed context $\ac{\tmr}{~}{L}$ already satisfies the respective property.
-This in turn is a consequence of the fact that $L$ only contains pairs of related nominals which are, in particular, suitably fresh.
+
+Before we go on, it is interesting to consider the information encapsulated in $\ac{\tmr}{~}{L}$.
+The obvious part is that $L$ contains exactly the same information about corresponding variables that we had to track in Coq with the auxiliary parameters $R$ and $S$.
+In addition, since $L$ only contains pairings of fresh nominals, we immediately obtain that $L$ is functional and injective.
+Lifting these properties to $\tyr$ and then to $\tmr$ are routine inductions.
 
 When it comes to the totality and preservation statements, things become more interesting.
-Let us consider a first attempt of formulating left totality of $\tyr$ and the preservation of type formation from F to \SysL:
-\begin{align*}
-  \{L_{F} \vdash \istyFh{A}\} \implies \mEx{a} \{ L_{\tmr} \vdash A \tyr a \} \mAnd \{L_{\lambda} \vdash \typingLh{a}{\Prp}\}
-\end{align*}
-We will eventually prove the desired result by induction on $\{L_{F} \vdash \istyFh{A}\}$ and it will become quickly apparent that we have to enforce well-formedness of the contexts.
-It is however insufficient to simply assume that each of the three contexts is locally well-formed.
-While this would ensure that the contexts only contain information about variables (that is only contain nominal assumptions) it misses one key insight: the free variables in $L_{F}$ and those in $L_{\lambda}$ should be associated according to $L_{\tmr}$.
-The solution to this is to define a single ternary inductive context predicate that establishes the correspondence.
-The freshness assumptions are implemented again with $\nabla$.
+The remaining four lemma statements are generalised over three different contexts belonging to the three involved judgements.
+Not only do we require these contexts to be well-formed, but we also have to connect them.
+We achieve this with a single ternary well-formedness predicate defined as follows:
 \newcommand{\acR}[3]{\ac{R}{~}{#1 \mid #2 \mid #3}}
 \begin{mathpar}
   \mprset{andskip=2.5em,sep=2em}
   \inferrule*{~}{\acR{\emptyctx}{\emptyctx}{\emptyctx}} \and
   \inferrule*{\acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \\ x, y \notin L_{i}}{\acR{L_{F}, \istyFh{x}}{L_{\tmr}, x \tyr y}{L_{\lambda}, \typingLh{y}{\Prp}}} \and
-  \inferrule*{\acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \\ \{L_{F} \vdash \istyFh{A}\} \\ \{ L_{\tmr} \vdash A \tyr a \} \\ \{L_{\lambda} \vdash \typingLh{a}{\Prp}\} \\ x, y \notin L_{i},A,a}{\acR{L_{F}, \typingFh{x}{A}}{L_{\tmr}, x \tmr y}{L_{\lambda}, \typingLh{y}{a}}}
+  \inferrule*{\acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \\ \aj{L_{F}}{\istyFh{A}} \\ \aj{L_{\tmr}}{A \tyr a} \\ \aj{L_{\lambda}}{\typingLh{a}{\Prp}} \\ x, y \notin L_{i},A,a}{\acR{L_{F}, \typingFh{x}{A}}{L_{\tmr}, x \tmr y}{L_{\lambda}, \typingLh{y}{a}}}
 \end{mathpar}
-It should be clear that $\acR{L_{F}}{L_{\tmr}}{L_{\lambda}}$ entails the local well-formedness of each $L_i$.
-Next we establish inversion lemmas that yield for any $J \in L_i$ both the structure of $J$, including the fact that we deal with a nominal, as well as the corresponding $J'$ and $J''$ in the two other contexts.
-So to obtain our result we prove the following generalisation and use the outlined inversion principle to handle the variable case:
-\begin{align*}
-  \{L_{F} \vdash \istyFh{A}\} \implies \mAll{L_{\tmr}L_{\lambda}} \acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \implies \mEx{a} \{ L_{\tmr} \vdash A \tyr a \} \mAnd \{L_{\lambda} \vdash \typingLh{a}{\Prp}\}
+When a binder is traversed, this ensures that all three contexts are extended with the same freshly chosen variables $x$ and $y$.
+The definition is accompanied by three extraction lemmas, one for each of the three involved contexts, which provide the associated judgements from the two other contexts.
+Recall that in Coq we had four separate invariants for the four preservation and totality lemmas.
+Here, this information is uniformly encoded in $\acR{L_{F}}{L_{\tmr}}{L_{\lambda}}$ and we use it for all four proofs.
+\begin{lemma} The type relation $\tyr$ is total from F to \SysL and preserves type formation.
+  \begin{align*}
+    \aj{L_{F}}{\istyFh{A}} \implies \mAll{L_{\tmr}L_{\lambda}} \acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \implies \mEx{a} \aj{L_{\tmr}}{A \tyr a} \mAnd \aj{L_{\lambda}}{\typingLh{a}{\Prp}}
 \end{align*}
-The result for closed judgements and empty contexts is a trivial corollary:
+\end{lemma}
+\begin{proof}
+  By induction on $\aj{L_{F}}{\istyFh{A}}$.
+\end{proof}
+As a trivial corollary we obtain:
 \begin{align*}
-  \{\istyFh{A}\} \implies \mEx{a} \{ A \tyr a \} \mAnd \{\typingLh{a}{\Prp}\}
+  \aje{\istyFh{A}} \implies \mEx{a} \aje{A \tyr a} \mAnd \aje{\typingLh{a}{\Prp}}
 \end{align*}
-The $a$ is unique due to functionality of $\tyr$.
 
-The other three equivalences can be obtained with the same ternary predicate.
-The usual pattern of first proving results about type-formation and then using them to establish the corresponding results for typing reappears.
-It is also again the case that propagation (for both F and \SysL) plays a major role, as well as the degeneracy of the sort $\Typ$.
-For the HOAS syntaxes and type systems, however, these properties are relatively easy to obtain.
+The proofs of the remaining three preservation results are surprisingly analogue, so we won't go into further detail.
+It is worth pointing out that we again require the degeneracy of the PTS sort $\Typ$, as well as propagation for both F and \SysL in various places.
+The HOAS setup allows us to obtain these easily.
 
 \section{Beluga}
 \label{sec:beluga}
