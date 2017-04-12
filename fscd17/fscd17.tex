@@ -30,7 +30,13 @@
 
 \renewcommand{\TirNameStyle}[1]{\small \textsf{#1}}
 \renewcommand{\RightTirNameStyle}[1]{\small \textsf{#1}}
-
+% \renewcommand{\MathparLineskip}{\bigskip\bigskip}
+%             \MathparLineskip
+\makeatletter
+\def \mpr@rulelineskip {\lineskiplimit=0.3em\lineskip=0.2em plus 0.1em}
+\def \mpr@lesslineskip {\lineskiplimit=0.6em\lineskip=0.5em plus 0.2em}
+\def \mpr@lineskip  {\lineskiplimit=1.2em\lineskip=1.2em plus 0.2em}
+\makeatother
 
 \newcommand{\fromF}[1]{\lfloor #1 \rfloor}
 \newcommand{\toF}[1]{\lceil #1 \rceil}
@@ -852,7 +858,7 @@ While other systems of the $\lambda$-cube, like CC, also appear interesting, we 
 %% Bibliography
 %%
 
- \bibliography{ref,bp-extract}
+ \bibliography{ref,bp-extract-clean}
 
 \end{document}
 
