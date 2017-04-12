@@ -30,16 +30,16 @@
 
 \renewcommand{\TirNameStyle}[1]{\small \textsf{#1}}
 \renewcommand{\RightTirNameStyle}[1]{\small \textsf{#1}}
-% \renewcommand{\MathparLineskip}{\bigskip\bigskip}
-%             \MathparLineskip
-\makeatletter
-\def \mpr@rulelineskip {\lineskiplimit=0.3em\lineskip=0.2em plus 0.1em}
-\def \mpr@lesslineskip {\lineskiplimit=0.6em\lineskip=0.5em plus 0.2em}
-\def \mpr@lineskip  {\lineskiplimit=1.2em\lineskip=1.2em plus 0.2em}
-\makeatother
 
-\newcommand{\fromF}[1]{\lfloor #1 \rfloor}
-\newcommand{\toF}[1]{\lceil #1 \rceil}
+% JK: not sure what the purpose of this is, as it doesn't appear to affect the document length
+% by a single line ....
+% there are the \mprset commands in each mathpar environment that allow to tune the various spaces.
+%\makeatletter
+%\def \mpr@rulelineskip {\lineskiplimit=0.3em\lineskip=0.2em plus 0.1em}
+%\def \mpr@lesslineskip {\lineskiplimit=0.6em\lineskip=0.5em plus 0.2em}
+%\def \mpr@lineskip  {\lineskiplimit=1.2em\lineskip=1.2em plus 0.2em}
+%\makeatother
+
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
@@ -577,7 +577,7 @@ For $\tyr^R$, in particular we require $\beta$-substitutivity:
 The proof of this fact is a lengthy but straightforward construction that first generalises the two concrete $\beta$-substitutions to arbitrary parallel substitutions $\sigma$ and $\tau$.
 The result is still not provable directly, as closure of $\tyr^R$ under weakening is needed.
 This in turn is generalised to a statement for arbitrary renamings $\xi$ and $\zeta$ in place of $\sigma$ and $\tau$.
-In essence we again follow the CML proof pattern described in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
+In essence we establish a context morphism lemma for $\tyr^R$, following the proof pattern described in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
 
 We can finally tackle the technically most intricate part of the proof.
 The invariant for preservation of typing from F to \SysL is
