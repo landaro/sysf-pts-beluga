@@ -191,6 +191,7 @@
 \begin{document}
 
 \maketitle
+\raggedbottom
 
 \begin{abstract}
   We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~F and its single-sorted pure type system (PTS) variant \SysL.
@@ -226,8 +227,9 @@
       \inferrule*{\typingF{\cc{\Delta}{\Gamma}}{s}{\nAll X B} \\ \istyF{\Delta}{A}}{\typingF{\cc{\Delta}{\Gamma}}{s\, A}{B\subst{A/X}}} \and
       \inferrule*[right=$X \notin \Delta$]{\typingF{\cc{\Delta, X}{\Gamma}}{s}{A}}{\typingF{\cc{\Delta}{\Gamma}}{\nTyLam X s}{\nAll X A}}
     \end{mathpar}
+    \vspace{-2.5em}
   \end{center}
-  \caption{Stratified System~F: types, terms, contexts, type formation and typing.}
+  \caption{Stratified System~F: types, terms, contexts, type formation and typing.\vspace{-1em}}
   \label{fig:sys-f}
 \end{figure}
 
@@ -245,8 +247,9 @@
       \inferrule*{\typingL{\Psi}{a}{\Prod{x \of c} d} \\ \typingL{\Psi}{b}{c}}{\typingL{\Psi}{a\, b}{d\subst{b/x}}} \and
       \inferrule*[right=$x \notin \dom{\Psi}$]{\typingL{\Psi}{a}{s} \\ \typingL{\Psi, x \of a}{b}{c} \\ \typingL{\Psi, x \of a}{c}{\Prp}}{\typingL{\Psi}{\Lam{x \of a} b}{\Prod{x \of a} c}}
     \end{mathpar}
+    \vspace{-2.5em}
   \end{center}
-  \caption{PTS: terms, contexts, and the uniform type system \SysL; $s$ ranges over the sorts $\Prp$ and $\Typ$.}
+  \caption{PTS: terms, contexts, and the uniform type system \SysL; $s$ ranges over the sorts $\Prp$ and $\Typ$.\vspace{-1em}}
   \label{fig:sys-l}
 \end{figure}
 
@@ -285,8 +288,9 @@ We can further establish the correspondence directly, which completely bypasses 
       \inferrule*[right={$x,y \notin \Theta,\Sigma$}]{\Theta \vdash A \tyr a \\ \cc{\Theta}{\Sigma, (x,y)} \vdash s \tmr b}{\cc{\Theta}{\Sigma} \vdash \Lam{x \of A} s \tmr \Lam{y \of a} b} \and
       \inferrule*[right={$X,y \notin \Theta,\Sigma$}]{\cc{\Theta, (X,y)}{\Sigma} \vdash s \tmr a}{\cc{\Theta}{\Sigma} \vdash \nTyLam{X} s \tmr \Lam{y \of \Prp} a}
     \end{mathpar}
+    \vspace{-2.5em}
   \end{center}
-  \caption{Inductive characterisation of $\tyr$ and $\tmr$; $\Theta$ and $\Sigma$ track related type and terms variables.}
+  \caption{Inductive characterisation of $\tyr$ and $\tmr$; $\Theta$ and $\Sigma$ track related type and terms variables.\vspace{-1em}}
   \label{fig:rel}
 \end{figure}
 
@@ -385,8 +389,9 @@ For the remainder of the paper, we focus on how F, \SysL and the two relations $
       \inferrule*{\typingF{\cc{N}{\Gamma,A}}{s}{B} \\ \istyF{N}{A}}{\typingF{\cc{N}{\Gamma}}{\Lam A s}{A \to B}} \and
       \inferrule*{\typingF{\cc{N}{\Gamma}}{s}{A \to B} \\ \typingF{\cc{N}{\Gamma}}{t}{A}}{\typingF{\cc{N}{\Gamma}}{s\,t}{B}}
     \end{mathpar}
+    \vspace{-2.5em}
   \end{center}
-  \caption{System~F -- de Bruijn encoding in Coq; term variable contexts $\Gamma$ are lists of types.}
+  \caption{System~F -- de Bruijn encoding in Coq; term variable contexts $\Gamma$ are lists of types.\vspace{-1em}}
   \label{fig:sys-f-coq}
 \end{figure}
 
@@ -406,8 +411,9 @@ For the remainder of the paper, we focus on how F, \SysL and the two relations $
       \inferrule*{\typingL{\Psi}{a}{\Prod c d} \\ \typingL{\Psi}{b}{c}}{\typingL{\Psi}{a\, b}{d\subst{b\scons\id}}} \and
       \inferrule*{\typingL{\Psi}{a}{s} \\\\ \typingL{\Psi, a}{b}{c} \\ \typingL{\Psi, a}{c}{\Prp}}{\typingL{\Psi}{\Lam a b}{\Prod a c}}
     \end{mathpar}
+    \vspace{-2.5em}
   \end{center}
-  \caption{\SysL{} -- de Bruijn encoding in Coq; dependent contexts $\Psi$ are lists of terms.}
+  \caption{\SysL{} -- de Bruijn encoding in Coq; dependent contexts $\Psi$ are lists of terms.\vspace{-1em}}
   \label{fig:sys-l-coq}
 \end{figure}
 
@@ -435,6 +441,8 @@ The given inductive characterisation elegantly handles this complication.
 
 Now that we have a good understanding of how our systems operate concretely, let us consider how we relate them.
 Similar to the way typing contexts are explicitly represented as lists of terms or types, we are going to track explicitly which variables are related in our definition of our relations $\tyr^R$ and $\tmr^R_S$, where the relational parameters $R$ and $S$ correspond to the contexts $\Theta$ and $\Sigma$ from Fig.~\ref{fig:rel}:
+
+\vspace{-.5em}
 {\small
 \begin{mathpar}
   \mprset{andskip=1.5em,sep=1.5em}
@@ -447,7 +455,8 @@ Similar to the way typing contexts are explicitly represented as lists of terms 
   \inferrule*{A\,\tyr^R\,a \\ s\,\tmr^{\Rshift{R}}_{\Rext{S}}\,b}{\Lam A s\,\tmr^R_S\,\Lam a b} \and
   \inferrule*{s\,\tmr^{\Rext{R}}_{\Rshift{S}}\,a}{\TyLam s\,\tmr^R_S\,\Lam \Prp a}
 \end{mathpar}
-}
+}\vspace{-1em}
+
 It should be clear that $R$ and $S$ track pairs of indices of type, and respectively, term variables.
 We technically represent them as lists of type $\mathsf{list}\,(\mathsf{var} \times \mathsf{var})$ and use $x\,R\,y$ to denote that the pair $(x,y)$ is in $R$.
 The interesting part of this definition is how these auxiliary parameters have to be modified when binders are traversed, which we denoted above by $\Rshift{R}$ and $\Rext{R}$.
@@ -631,6 +640,13 @@ Here we use:
 \section{Abella}
 \label{sec:abella}
 
+\newcommand{\aje}[1]{\ensuremath{\{#1\}}}
+\newcommand{\aj}[2]{\ensuremath{\{#1 \vdash #2\}}}
+\newcommand{\ac}[3]{\ensuremath{\mathbb{C}_{#1}^{#2} (#3)}}
+\newcommand{\acFty}[1]{\ac{F}{\ty}{#1}}
+\newcommand{\acFtm}[1]{\ac{F}{\tm}{#1}}
+\newcommand{\acR}[3]{\ac{R}{~}{#1 \mid #2 \mid #3}}
+
 \begin{figure}
   \begin{center}
     \small
@@ -643,8 +659,9 @@ Here we use:
       \inferrule*{\lpPi x \istyFh{x} \lpImp \typingFh{\lpApp{s}{x}}{\lpApp{A}{x}}}{\typingFh{\TyLam{s}}{\All{A}}} \and
       \inferrule*{\istyFh{A} \\ \lpPi x \typingFh{x}{A} \lpImp \typingFh{\lpApp{s}{x}}{B}}{\typingFh{\Lam A s}{A \to B}}
     \end{mathpar}
+    \vspace{-2.5em}
   \end{center}
-  \caption{HOAS specification of F in Abella.}
+  \caption{HOAS specification of F in Abella.\vspace{-1em}}
   \label{fig:sys-f-abella}
 \end{figure}
 
@@ -660,12 +677,13 @@ Here we use:
       \inferrule*{\typingLh{a}{s} \\ \sortLh{s} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\Prp}}{\typingLh{\Prod{a}{b}}{\Prp}} \and
       \inferrule*{\typingLh{a}{s} \\ \sortLh{s} \\  \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{c}{x}}{\Prp} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\lpApp{c}{x}}}{\typingLh{\Lam{a}{b}}{\Prod{a}{c}}}
     \end{mathpar}
+    \vspace{-2.5em}
   \end{center}
-  \caption{HOAS specification of \SysL in Abella.}
+  \caption{HOAS specification of \SysL in Abella.\vspace{-1em}}
   \label{fig:sys-l-abella}
 \end{figure}
 
-Abella supports the use of higher-order abstract syntax (HOAS).
+Abella supports the use of higher-order abstract syntax (HOAS)~\cite{DBLP:conf/pldi/PfenningE88}.
 The main idea is to delegate variable binding at the object level to binding at the meta level.
 Take for example the term constructor $\mathsf{lam} \OF (\mathsf{tm} \to \mathsf{tm}) \to \mathsf{tm}$ that yields an abstraction of the untyped $\lambda$-calculus.
 The $s$ in $\mathsf{lam}\,s \OF \mathsf{tm}$ is a function of the meta level.
@@ -681,8 +699,6 @@ We then reason about these encoding at the \emph{meta level}, using the logic $\
 The axioms of $\mathcal{G}$ ensure that a $\nabla$-quantified identifier is fresh for everything bound above it.
 We are going to use these freshness guarantees to faithfully represent object level variables.
 
-\newcommand{\aje}[1]{\ensuremath{\{#1\}}}
-\newcommand{\aj}[2]{\ensuremath{\{#1 \vdash #2\}}}
 The two levels are connected with a special inductive predicate that embeds the derivation of a $\lambda$Prolog judgement $J$ from hypothese $L = I_0,\ldots,I_n$ into $\mathcal{G}$, written $\aj{L}{J}$, or simply $\aje{J}$ in the absence of assumptions.
 Note that $\lambda$Prolog supports hypothetical ($J_1 \lpImp J_2$) and locally quantified ($\lpPi{x} J\subst{x}$) premises, which the embedding treats as follows:
 \begin{align*}
@@ -705,9 +721,6 @@ At this point it should be straightforward to understand the HOAS representation
 For F, the judgements $\istyFh{A}$ and $\typingFh{s}{A}$ encode type formation and respectively typing.
 For \SysL, the judgement $\sortLh{s}$ is used to recognise sorts, while $\typingLh{a}{b}$ represents PTS typing.
 
-\newcommand{\ac}[3]{\ensuremath{\mathbb{C}_{#1}^{#2} (#3)}}
-\newcommand{\acFty}[1]{\ac{F}{\ty}{#1}}
-\newcommand{\acFtm}[1]{\ac{F}{\tm}{#1}}
 As soon as we try to prove structural results about these definitions we are faced with a problem.
 Consider the following inversion principle for arrow type formation in F:
 \begin{align*}
@@ -719,13 +732,16 @@ Hence we need to somehow constrain $L$ to only contain judgements of the form $\
 Similarly we want to constrain typing contexts to only contain judgements of the form $\istyFh{n_i}$ or $\typingFh{n_i}{A}$.
 We specify this notion of well-formed contexts  with auxiliary inductive $\mathcal{G}$-predicates.
 The well-formedness predicate for F typing contexts, written $\acFtm{-}$, is defined as:
+
+\vspace{-.5em}
 {\small
 \begin{mathpar}
   \inferrule*{~}{\acFtm{\emptyctx}} \and
   \inferrule*[right=$x \notin L$]{\acFtm{L}}{\acFtm{L,\istyFh{x}}}\and
   \inferrule*[right={$x \notin L,A$}]{\acFtm{L} \\ \aj{L}{\istyFh{A}}}{\acFtm{L,\typingFh{x}{A}}}
 \end{mathpar}
-}
+}\vspace{-1em}
+
 The freshness conditions are implemented by locally $\nabla$-quantifying the respective variable.
 Next we have to pair this definition with an inversion principle that reveals the structure and freshness properties of any $J \in L$ with $\acFtm{L}$.
 At this point we are able to add $\acFty{L}$, defined analogously to $\acFtm{L}$, as an extra premise to our inversion principle and then discard the spurious context extraction.
@@ -734,6 +750,8 @@ A key aspect of formalising our equivalence result in Abella is the correct choi
 
 Let us now consider the actual equivalence proof.
 The relations $\tyr$ and $\tmr$ are defined as:
+
+\vspace{-.5em}
 {\small
 \begin{mathpar}
   \mprset{andskip=1.5em,sep=1.5em}
@@ -744,7 +762,8 @@ The relations $\tyr$ and $\tmr$ are defined as:
   \inferrule*{\lpPi{x y} x \tyr y \lpImp \lpApp{s}{x} \tmr \lpApp{a}{y}}{\TyLam s \tmr \Lam \Prp a} \and
   \inferrule*{s \tmr a \\ A \tyr b}{s\,A \tmr a\,b}
 \end{mathpar}
-}
+}\vspace{-1em}
+
 We complement this definition with a well-formedness predicate $\ac{\tmr}{~}{L}$, which ascertains that $L$ only contains judgements of the form $n_i \tyr n_j$ or $n_i \tmr n_j$, together with suitable lookup lemmas.
 For technical reasons we do not define $\ac{\tyr}{~}{-}$ and instead prove a strengthening lemma which holds due to the inferred subordination ordering of the two relations:
 \begin{align*}
@@ -760,7 +779,8 @@ When it comes to the totality and preservation statements, things become more in
 The remaining four lemma statements are generalised over three different contexts belonging to the three involved judgements.
 Not only do we require these contexts to be well-formed, but we also have to connect them.
 We achieve this with a single ternary well-formedness predicate defined as follows:
-\newcommand{\acR}[3]{\ac{R}{~}{#1 \mid #2 \mid #3}}
+
+\vspace{-.5em}
 {\small
 \begin{mathpar}
   \mprset{andskip=.8em,sep=1em}
@@ -768,7 +788,8 @@ We achieve this with a single ternary well-formedness predicate defined as follo
   \inferrule*{\acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \\ x, y \notin L_{i}}{\acR{L_{F}, \istyFh{x}}{L_{\tmr}, x \tyr y}{L_{\lambda}, \typingLh{y}{\Prp}}} \and
   \inferrule*{\acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \\ x, y \notin L_{i},A,a \\\\ \aj{L_{F}}{\istyFh{A}} \\ \aj{L_{\tmr}}{A \tyr a} \\ \aj{L_{\lambda}}{\typingLh{a}{\Prp}}}{\acR{L_{F}, \typingFh{x}{A}}{L_{\tmr}, x \tmr y}{L_{\lambda}, \typingLh{y}{a}}}
 \end{mathpar}
-}
+}\vspace{-1em}
+
 When a binder is traversed, this ensures that all three contexts are extended with the same freshly chosen variables $x$ and $y$.
 The definition is accompanied by three extraction lemmas, one for each of the three involved contexts, which provide the associated judgements from the two other contexts.
 Recall that in Coq we had four separate invariants for the four preservation and totality lemmas.
@@ -781,10 +802,7 @@ Here, this information is uniformly encoded in $\acR{L_{F}}{L_{\tmr}}{L_{\lambda
 \begin{proof}
   By induction on $\aj{L_{F}}{\istyFh{A}}$.
 \end{proof}
-As a trivial corollary we obtain:
-\begin{align*}
-  \aje{\istyFh{A}} \implies \mEx{a} \aje{A \tyr a} \mAnd \aje{\typingLh{a}{\Prp}}
-\end{align*}
+As a trivial corollary we obtain: $\aje{\istyFh{A}} \implies \mEx{a} \aje{A \tyr a} \mAnd \aje{\typingLh{a}{\Prp}}$.
 
 The proofs of the remaining three preservation results are surprisingly analogue, so we won't go into further detail.
 It is worth pointing out that we again require the degeneracy of the PTS sort $\Typ$, as well as propagation for both F and \SysL in various places.
@@ -822,7 +840,7 @@ We would like to continue this line of work into three largely orthogonal direct
 First, we would like to widen the scope of the benchmark itself and include a correspondence result for the computational behaviour of the two systems.
 Equi-reducebility is at least as interesting a problem as equi-typability, and likely to pose its own set of challenges.
 One of these is the fact that, prior to typing, \SysL has a lot more $\beta$-redices than its stratified counterpart, hence some form of typing information will have to tracked along with the relational assumptions.
-This will lead new forms of contexts that are likely comparable in complexity to those discussed here.
+This will lead to new forms of contexts that are likely comparable in complexity to those discussed here.
 
 Second, we would like to test further frameworks against our benchmark.
 One candidate is the locally nameless approach~\cite{DBLP:conf/popl/AydemirCPPW08}.
@@ -833,13 +851,12 @@ At present however, it is neither equipped with Abella's $\nabla$ nor Beluga's c
 It would also be interesting to see how a system like Twelf~\cite{DBLP:conf/cade/PfenningS99} would handle the rich context structures.
 
 Finally, we consider scaling the challenge both down to the simply typed $\lambda$-calculus, as well as up to F$_\omega$, to obtain a better understanding of where exactly certain complications originate from.
-While other systems of the $\lambda$-cube, like CC, also appear interesting, we are not aware of suitably stratified variants to consider for a correspondence proof.
 
 %%
 %% Bibliography
 %%
 
-\bibliography{ref-short,bp-short}
+\bibliography{ref-short,bp-extract}
 
 \end{document}
 

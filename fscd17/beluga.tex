@@ -18,7 +18,7 @@
 The programming and proof environment Beluga~\cite{Pientka:FLOPS10,Pientka:CADE15} is another system that supports HOAS.
 Object languages are encoded in the logical framework LF~\cite{Harper93jacm}, while proofs about these are expressed as total programs in contextual modal type theory, Beluga's reasoning logic.
 The programs analyse LF derivation trees using pattern matching and higher-order unification.
-In Beluga it is necessary to give the programs, or proof terms, explicitly, which are then proof checked as part of the type checker at compile time.
+In Beluga it is necessary to give the programs, or proof terms, explicitly, which are then proof checked as part of type checking.
 This stands in contrast to Coq and Abella, both of which are interactive systems with a tactic language for proof term construction.
 
 The biggest difference, however, lies with Beluga's treatment of object level variables.
@@ -54,7 +54,7 @@ The requisite schema is:
 \end{align*}
 
 Note how it separates PTS variables into type and term variables via the associated typing information, which already imposes the necessary semantic contextual information.
-The prove of propagation is straightforward.\footnote{Surprisingly this is the only language local property required for the Beluga proof.}
+The proof of propagation is straightforward.\footnote{Surprisingly this is the only language local property required for the Beluga proof.}
 We implement a total recursive function of the following type:
 \begin{align*}
   \mAll{\Gamma \of S_{\lambda W}} \bc{\Gamma}{\typingLh{a}{b}} \implies \bc{\Gamma}{\mathsf{type\_correct}\,b}
@@ -71,7 +71,7 @@ The first and third are trivial as they unify $b$ with $\Prp$ which can be typed
 For the remaining case we know that $b$ can be typed with the sort $\Prp$,  contextual information that was packaged together with the matched judgement.
 Note that throughout the construction we exploit that Beluga natively supports substitution into parametric sub-derivations.
 
-At this point we are able to construct our third equivalence proof.
+We now start with our third equivalence proof.
 The definitions of $\tyr$ and $\tmr$ exactly coincide with Abella.
 We are going to primarily concern ourselves with the schemas, which best illustrate Beluga's tracking of contextual information.
 
@@ -127,15 +127,11 @@ The required context schemas are quite involved:
   The construction of $p^{\leftarrow}_{\tmr}$, needs \SysL propagation.
 \end{proof}
 
-The most interesting part of the Beluga development appears to be the particularly rich structure and interdependencies of the various schemas.
-We would like to point out in particular, that while the schemas $S_{\tyr}$ and $S_{\tmr}$ could likely be inferred automatically by inspecting the involved type families, this does not appear to work for those schemas with auxiliary well-typedness assumptions (subscript $W$).
-This contradicts the common believe that schema inference should in principle always be possible.
-
 \begin{wrapfigure}{r}{0.25\textwidth}
   \centering
   \begin{tikzpicture}
-    \node (a1) at (0,4) [rectangle,draw] {$S_{\tyr}$};
-    \node (a2) at (1.5,3) [rectangle,draw] {$S_{\tmr}$};
+    \node (a1) at (0,3.5) [rectangle,draw] {$S_{\tyr}$};
+    \node (a2) at (1.5,2.5) [rectangle,draw] {$S_{\tmr}$};
     \node (a3) at (0,2) [rectangle,draw,dashed] {$S_{\tyr W}^{\rightarrow}$};
     \node (a4) at (0,1) [rectangle,draw,dashed] {$S_{\tyr W}^{\leftarrow}$};
     \node (a5) at (1.5,0) [rectangle,draw,dashed] {$S_{\tmr W}$};
@@ -145,9 +141,14 @@ This contradicts the common believe that schema inference should in principle al
     \draw (a3) -- (a4);
     \draw (a4) -- (a5);
   \end{tikzpicture}
+  \vspace{-0.5em}
   \caption{Hierarchy of Context Schemas}
   \label{fig:ctxschema}
 \end{wrapfigure}
+
+The most interesting part of the Beluga development appears to be the particularly rich structure and interdependencies of the various schemas.
+We would like to point out in particular, that while the schemas $S_{\tyr}$ and $S_{\tmr}$ could likely be inferred automatically by inspecting the involved type families, this does not appear to work for those schemas with auxiliary well-typedness assumptions (subscript $W$).
+This contradicts the common believe that schema inference should in principle always be possible.
 
 The schemas can be further arranged in a hierarchy (Fig.~\ref{fig:ctxschema}).
 A context satisfying $S_{\tyr}$ can always be weakened to one sitting lower in the hierarchy.
