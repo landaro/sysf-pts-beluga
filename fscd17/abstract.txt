@@ -8,4 +8,4 @@ In Abella, we use higher-order abstract syntax (HOAS) and nominal constants of t
 In Beluga, we also use HOAS but within contextual modal type theory.
 Our contribution is twofold.
 First, we present and compare a collection of machine-checked solutions to a non-trivial theoretical result.
-Second, we propose our proof as a benchmark, complementing the POPLmark challenge by testing how well a given proof assistant or framework handles complex contextual information involving multiple type systems.
+Second, we propose our proof as a benchmark, complementing the POPLmark and ORBI challenges by testing how well a given proof assistant or framework handles complex contextual information involving multiple type systems.
