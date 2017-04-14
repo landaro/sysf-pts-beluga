@@ -9,6 +9,7 @@
 \usepackage{tikz}
 \usepackage{wrapfig}
 \usepackage{float}
+\usepackage{empheq}
 
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -29,7 +30,6 @@
 \newcommand{\LONGSHORT}[2]{\LONGVERSION{#1}\SHORTVERSION{#2}}
 
 \renewcommand{\TirNameStyle}[1]{\small \textsf{#1}}
-\renewcommand{\RightTirNameStyle}[1]{\small \textsf{#1}}
 
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -85,7 +85,7 @@
 \newcommand{\Nat}{\mathbb{N}}
 
 % Meta-level Symbols and Operators
-\newcommand{\dom}[1]{\ensuremath{\textrm{dom($#1$)}}}
+\newcommand{\dom}[1]{\ensuremath{\textrm{dom$\,#1$}}}
 \newcommand{\OF}{\mrel{:}}
 \newcommand{\mOr}{\mrel{\vee}}
 \newcommand{\mAnd}{\mrel{\wedge}}
@@ -107,6 +107,8 @@
 \newcommand{\TyCtxF}{\ensuremath{\mathsf{C_{F}^{ty}}}}
 \newcommand{\TmCtxF}{\ensuremath{\mathsf{C_{F}^{tm}}}}
 \newcommand{\CtxL}{\ensuremath{\mathsf{C_{\lambda}}}}
+\newcommand{\TyCtxR}{\ensuremath{\mathsf{C_{R}^{ty}}}}
+\newcommand{\TmCtxR}{\ensuremath{\mathsf{C_{R}^{tm}}}}
 
 
 % Generic type-system judgement predicates
@@ -135,7 +137,7 @@
 \newcommand{\tfP}{\tsAnnot{\mathsf{P}}{\ty}}  % for type formation judgement
 \newcommand{\istyFh}[1]{\ensuremath{#1\ms\mathsf{ty}}}
 \newcommand{\typingFh}[2]{\ensuremath{#1 \mathbin{:_{F}} #2}}
-\newcommand{\sortLh}[1]{\ensuremath{\mathcal{S}\ms#1}}
+\newcommand{\sortLh}[1]{\ensuremath{\mathcal{U}\ms#1}}
 \newcommand{\typingLh}[2]{\ensuremath{#1 \mathbin{:_{\lambda}} #2}}
 
 
@@ -191,7 +193,7 @@
 \begin{document}
 
 \maketitle
-\raggedbottom
+%\raggedbottom
 
 \begin{abstract}
   We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~F and its single-sorted pure type system (PTS) variant \SysL.
@@ -204,7 +206,7 @@
   In Beluga, we also use HOAS but within contextual modal type theory.
   Our contribution is twofold.
   First, we present and compare a collection of machine-checked solutions to a non-trivial theoretical result.
-  Second, we propose our proof as a benchmark, complementing the POPLmark challenge by testing how well a given proof assistant or framework handles complex contextual information involving multiple type systems.
+  Second, we propose our proof as a benchmark, complementing the POPLmark and ORBI challenges by testing how well a given proof assistant or framework handles complex contextual information involving multiple type systems.
 \end{abstract}
 
 \section{Introduction}
@@ -214,8 +216,8 @@
   \begin{center}
     \small
     \begin{align*}
-      &\TyF & A, B &\bnfdef X \mid A \to B \mid \nAll X A & \quad\qquad&\TmF & s, t &\bnfdef x \mid s\,t \mid \Lam {x \of A} s \mid s\,A \mid \nTyLam X s\\
-      &\TyCtxF & \Delta &\bnfdef \emptyset \mid \Delta, X & \quad\qquad&\TmCtxF & \Gamma &\bnfdef \emptyctx \mid \Gamma, x \of A
+      \Aboxed{\TyF} & A, B &\bnfdef X \mid A \to B \mid \nAll X A & \quad\qquad\Aboxed{\TmF} & s, t &\bnfdef x \mid s\,t \mid \Lam {x \of A} s \mid s\,A \mid \nTyLam X s\\
+      \Aboxed{\TyCtxF} & \Delta &\bnfdef \emptyset \mid \Delta, X & \quad\qquad\Aboxed{\TmCtxF} & \Gamma &\bnfdef \emptyctx \mid \Gamma, x \of A
     \end{align*}
     \begin{mathpar}
       \inferrule*{X \in \Delta}{\istyF{\Delta}{X}} \and
@@ -237,19 +239,19 @@
   \begin{center}
     \small
     \begin{align*}
-      &\TmL & a, b, c, d &\bnfdef \Prp \mid \Typ \mid x \mid a\,b \mid \Lam{x \of a} b \mid \Prod{x \of a} b & \qquad\qquad&\CtxL & \Psi &\bnfdef \emptyctx \mid \Psi, x \of a
+      \Aboxed{\TmL} & a, b, c, d &\bnfdef \Prp \mid \Typ \mid x \mid a\,b \mid \Lam{x \of a} b \mid \Prod{x \of a} b & \qquad\qquad\Aboxed{\CtxL} & \Psi &\bnfdef \emptyctx \mid \Psi, x \of a
     \end{align*}
     \begin{mathpar}
       \mprset{sep=1.5em}
       \inferrule*{~}{\typingL{\Psi}{\Prp}{\Typ}} \and
-      \inferrule*{x \of a \in \Psi \\ \typingL{\Psi}{a}{s}}{\typingL{\Psi}{x}{a}} \and
-      \inferrule*[right=$x \notin \dom{\Psi}$]{\typingL{\Psi}{a}{s} \\ \typingL{\Psi,x \of a}{b}{\Prp}}{\typingL{\Psi}{\Prod{x \of a} b}{\Prp}} \\
+      \inferrule*{x \of a \in \Psi \\ \typingL{\Psi}{a}{u}}{\typingL{\Psi}{x}{a}} \and
+      \inferrule*[right=$x \notin \dom{\Psi}$]{\typingL{\Psi}{a}{u} \\ \typingL{\Psi,x \of a}{b}{\Prp}}{\typingL{\Psi}{\Prod{x \of a} b}{\Prp}} \\
       \inferrule*{\typingL{\Psi}{a}{\Prod{x \of c} d} \\ \typingL{\Psi}{b}{c}}{\typingL{\Psi}{a\, b}{d\subst{b/x}}} \and
-      \inferrule*[right=$x \notin \dom{\Psi}$]{\typingL{\Psi}{a}{s} \\ \typingL{\Psi, x \of a}{b}{c} \\ \typingL{\Psi, x \of a}{c}{\Prp}}{\typingL{\Psi}{\Lam{x \of a} b}{\Prod{x \of a} c}}
+      \inferrule*[right=$x \notin \dom{\Psi}$]{\typingL{\Psi}{a}{u} \\ \typingL{\Psi, x \of a}{b}{c} \\ \typingL{\Psi, x \of a}{c}{\Prp}}{\typingL{\Psi}{\Lam{x \of a} b}{\Prod{x \of a} c}}
     \end{mathpar}
     \vspace{-2.5em}
   \end{center}
-  \caption{PTS: terms, contexts, and the uniform type system \SysL; $s$ ranges over the sorts $\Prp$ and $\Typ$.\vspace{-1em}}
+  \caption{PTS: terms, contexts, and the type system \SysL; $u$ ranges over the universes $\Prp$ and $\Typ$.\vspace{-1em}}
   \label{fig:sys-l}
 \end{figure}
 
@@ -258,7 +260,9 @@ The assumed notion of equivalence is primarily a reduction of the typability pro
 While the existence of a suitable correspondence between the systems may appear likely or obvious, it turns out that actually proving it formally is surprisingly intricate.
 As long as the systems in question use the same expression syntax, the proofs are usually tedious but straightforward.
 If, on the other hand, not only the type systems, but also the syntactic languages differ, then establishing the correct correspondence becomes much more involved.
-The goal of this paper is to showcase various formalisation techniques to deal with intricacies that arise in such an equivalence proof.
+The goal of this paper is to showcase various formalisation techniques to deal with the intricacies that arise in such an equivalence proof.
+
+%\enlargethispage{\baselineskip}
 
 System~F in its original form is due to Girard~\cite{Girard1972, Girard1989}, who introduced it in the context of proof theory.
 It was also independently discovered by Reynolds~\cite{DBLP:conf/programm/Reynolds74} as the polymorphic $\lambda$-calculus.
@@ -276,7 +280,7 @@ We can further establish the correspondence directly, which completely bypasses 
   \begin{center}
     \small
     \begin{align*}
-      \Theta &\bnfdef \emptyctx \mid \Theta, (X,y) & \Sigma &\bnfdef \emptyctx \mid \Sigma, (x,y)
+      \Aboxed{\TyCtxR} & \Theta &\bnfdef \emptyctx \mid \Theta, (X,y) & \qquad\qquad\Aboxed{\TmCtxR} &\Sigma &\bnfdef \emptyctx \mid \Sigma, (x,y)\hspace{6em}
     \end{align*}
     \begin{mathpar}
       \inferrule*{(X,y) \in \Theta}{\Theta \vdash X \tyr y} \and
@@ -300,19 +304,19 @@ Despite these simplifications we still have to face the metaphorical elephant in
 More precisely, we have to represent and handle contexts that track various kinds of information, like the set of defined variables, their associated types, their correspondence to other variables, and so on.
 To make the situation fully explicit: our contexts are dependent sequences of dependent records.
 
-In the following we present three formalisations\footnote{The accompanying developments can be found at \url{https://www.ps.uni-saarland.de/extras/fscd17/}}.
+In the following we present three formalisations.
 They all follow the same basic proof structure, outlined in Sect.~\ref{sec:equi}, but they each deal with the complexities of contextual information and variable binding in different ways.
-In Sects.~\ref{sec:coq},~\ref{sec:abella}~and~\ref{sec:beluga} we discuss in detail how this is managed in Coq, Abella\cite{AbellaTutorial} and respectively Beluga\cite{Pientka:CADE15}.
+In Sects.~\ref{sec:coq},~\ref{sec:abella}~and~\ref{sec:beluga} we discuss in detail how this is managed in Coq~\cite{CoqWebsite}, Abella~\cite{AbellaTutorial} and respectively Beluga~\cite{Pientka:CADE15}.
 The Coq proof employs pure de Bruijn syntax and parallel substitutions.
 Meanwhile, both Abella and Beluga allow us to work with higher-order abstract syntax (HOAS), albeit in two rather different background logics.
 
-With respect to the actual equivalence proof, all three formalisations are comparable in length, weighing in at around 450 to 550 LOC.
-This, however, hides the amount of language-local meta-theory, which differs significantly between the three.
-Starting with a mere 50 additional lines for Beluga up to several hundred for Coq, even excluding the infrastructure of the Autosubst library, with Abella faring somewhat better than Coq.
+While the comparison of proofs from different systems in terms of code lines is only marginally meaningful, we were surprised to find that all three developments each take approximately 500 loc, with Beluga slightly on the shorter side and Coq somewhat on the longer.
+This, however, only covers establishing the correspondence itself.
+The systems require vastly different amounts of code to establish the separate meta theories for the two discussed type systems, due to different levels of background support.
 
-Contributions of the paper:
+\noindent{\bf Contributions of the paper:}
 \begin{enumerate}
-\item We present and compare three different machine checked formalisations of the technically intricate reduction of typability from System~F to the PTS \SysL and vice versa.
+\item We present and compare three different machine checked formalisations of the technically intricate reduction of typability from System~F to the PTS \SysL and vice versa.\footnote{The accompanying developments can be found at \url{https://www.ps.uni-saarland.de/extras/fscd17/}}
 \item We propose that our equivalence proof serves as a benchmark for reasoning about and relating multiple type systems and languages involving variable binding.
   The key aspect of this benchmark is the representation and manipulation of contexts that track multiple kinds of information and exhibit complex dependency structures.
   As such it can be seen as a complement to the benchmarks proposed in~\cite{Felty:ITP10,Felty:orbi-survey} and the POPLmark challenge~\cite{poplmark}.
@@ -324,23 +328,26 @@ Contributions of the paper:
 The core challenge of the proof is the fact that F clearly distinguishes types and terms with separate syntactic sorts, $\TyF$ and $\TmF$ respectively, while \SysL merges these into a single syntactic sort $\TmL$.
 The distinction still exists in \SysL but it is semantically imposed through the type system, rather than at the level of syntax.
 Further consequences are the existence of two variable scopes in F, with separate abstraction and application mechanisms, while the same concepts are uniformly represented in \SysL for a single variable scope.
-This extends to the formation of (dependent) function spaces as well.
+This extends to the formation of function spaces as well.
+For an in-depth discussion of the mismatches between the two systems see~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
 In essence the two systems differ in how explicit and readily available certain structural properties are.
+One half of the proof will thus have to reestablish implicit structures, which, as one would expect, is harder than removing it.
+This will lead to a certain asymmetry in proof effort for seemingly symmetrical lemma statements.
 
-As usual, removing structure is easier than recovering it, and this will become apparent in the following, where some of the required lemmas require noticeably more work than their seemingly symmetrical counterparts.
+\enlargethispage{\baselineskip}
 
-The basic idea of the proof is to construct two relations $\tyr$ and $\tmr$ that put the types and respectively the terms of the two languages in correspondence (see Fig.~\ref{fig:rel}).
-To obtain the desired equivalence results, we then have to demonstrate that our relations exhibit the following properties:
+The basic idea of the proof presented here is to construct two relations $\tyr$ and $\tmr$ that put the types and respectively the terms of the two languages in correspondence (see Fig.~\ref{fig:rel}).
+To obtain the desired equivalence results, we have to demonstrate that the relations exhibit the following properties:
 \begin{enumerate}
   \item $\tyr$ is functional and injective.
   \item $\tyr$ is left-total and type-formation preserving on the well-formed types of F.
   \item $\tyr$ is right-total and type-formation preserving on the propositions of \SysL.
+    A proposition of \SysL is any term $a \OF \TmL$ such that $\typingL{}{a}{\Prp}$ holds.
   \item $\tmr$ is functional and injective.
   \item $\tmr$ is left-total and typing preserving on the well-typed terms of F.
   \item $\tmr$ is right-total and typing preserving on the proofs of \SysL.
+    A proof of \SysL is any term~${b \OF \TmL}$ such that $\typingL{}{b}{a}$ holds for $a$ a proposition of \SysL.
 \end{enumerate}
-Note that a proposition of \SysL is any term $a \OF \TmL$ such that $\typingL{}{a}{\Prp}$ holds.
-A proof of \SysL is any term $b \OF \TmL$ such that $\typingL{}{b}{a}$ holds for $a$ a proposition of \SysL.
 We can now formulate, and easily prove, the following equivalences:
 
 \begin{theorem}[Reductions from F to \SysL]
@@ -367,7 +374,7 @@ We can now formulate, and easily prove, the following equivalences:
   Dual to the previous result.
 \end{proof}
 
-For the remainder of the paper, we focus on how F, \SysL and the two relations $\tyr$ and $\tmr$ are represented in three proof assistants, and how the various properties of the relations are obtained.
+For the remainder of the paper, we focus on how F, \SysL and the two relations $\tyr$ and $\tmr$ are represented in our three proof systems, and how the various properties of the relations are obtained.
 
 \section{Coq}
 \label{sec:coq}
@@ -406,10 +413,10 @@ For the remainder of the paper, we focus on how F, \SysL and the two relations $
       \inferrule*{~}{0 \of a\subst{\shift} \inL \Psi,a}\and
       \inferrule*{x \of a \inL \Psi}{(x+1) \of a\subst{\shift} \inL \Psi,b}\and
       \inferrule*{~}{\typingL{\Psi}{\Prp}{\Typ}} \and
-      \inferrule*{x \of a \inL \Psi \\ \typingL{\Psi}{a}{s}}{\typingL{\Psi}{x}{a}} \\
-      \inferrule*{\typingL{\Psi}{a}{s} \\ \typingL{\Psi,a}{b}{\Prp}}{\typingL{\Psi}{\Prod a b}{\Prp}} \and
+      \inferrule*{x \of a \inL \Psi \\ \typingL{\Psi}{a}{u}}{\typingL{\Psi}{x}{a}} \\
+      \inferrule*{\typingL{\Psi}{a}{u} \\ \typingL{\Psi,a}{b}{\Prp}}{\typingL{\Psi}{\Prod a b}{\Prp}} \and
       \inferrule*{\typingL{\Psi}{a}{\Prod c d} \\ \typingL{\Psi}{b}{c}}{\typingL{\Psi}{a\, b}{d\subst{b\scons\id}}} \and
-      \inferrule*{\typingL{\Psi}{a}{s} \\\\ \typingL{\Psi, a}{b}{c} \\ \typingL{\Psi, a}{c}{\Prp}}{\typingL{\Psi}{\Lam a b}{\Prod a c}}
+      \inferrule*{\typingL{\Psi}{a}{u} \\\\ \typingL{\Psi, a}{b}{c} \\ \typingL{\Psi, a}{c}{\Prp}}{\typingL{\Psi}{\Lam a b}{\Prod a c}}
     \end{mathpar}
     \vspace{-2.5em}
   \end{center}
@@ -417,29 +424,33 @@ For the remainder of the paper, we focus on how F, \SysL and the two relations $
   \label{fig:sys-l-coq}
 \end{figure}
 
-For the Coq proof we reuse the pure de Bruijn encoding of the two systems and the corresponding language local meta theory developed in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} with major support from the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15}.
-The de Bruijn language definitions are given in Figs.~\ref{fig:sys-f-coq}~and~\ref{fig:sys-l-coq}.
+\enlargethispage{\baselineskip}
+
+For the Coq proof we reuse the pure de Bruijn encoding of the two systems and the corresponding language local meta theory developed in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}, with major support from the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15}.
+The language definitions are given in Figs.~\ref{fig:sys-f-coq}~and~\ref{fig:sys-l-coq}.
 The main feature of de Bruijn syntax is the absence of variable names.
 Variables are instead represented as numerical indices, where $n$ references the $n$th enclosing binder of the correct scope.
 Dangling references represent free variables that instead reference positions in an enclosing context, indexed from right to left.
-Note that we keep the dot around as a notational device to uniformly indicate the presence of a binding constructor, even if nothing remains to the left of it (e.g.\ $\TyLam s$), as it marks the precise spot where substitutions and indices have to be adjusted.
+Note that we keep the dot around as a notational device to uniformly indicate the presence of a binding constructor, even if nothing remains to the left of it (e.g.\ $\TyLam s$).
+It marks the precise spot where substitutions and indices have to be adjusted.
 The application of a parallel substitution $\sigma$ to a term $s$ is written $s\subst{\sigma}$ where $\sigma$ is a function from $\Nat$ that acts on all free variables of $s$ at once.
 The Autosubst framework provides a normalisation procedure for such terms with applied substitutions.
 The existence of computable normal forms was demonstrated in~\cite{SchaeferEtAl:2009:Completeness}.
+Context morphism lemmas (CML) are a useful proof device to reason about judgements over pure de Bruijn syntax.
 In the following we will only focus on those aspects that have an immediate impact on our present proof.
-For an in-depth discussion of the interaction of pure de Bruijn syntax, parallel substitutions and context morphism lemmas we refer to~\cite{deBruijn1972, SchaeferEtAl:2009:Completeness, DBLP:conf/itp/SchaferTS15, abadi1991, GoguenMcKinna1997, KaiserEtAl:2017:sysf_pts_equiv_coq}.
+For an in-depth discussion of the interaction of pure de Bruijn syntax, parallel substitutions and CMLs we refer to~\cite{deBruijn1972, SchaeferEtAl:2009:Completeness, DBLP:conf/itp/SchaferTS15, abadi1991, GoguenMcKinna1997, KaiserEtAl:2017:sysf_pts_equiv_coq}.
 
 In the definition of F in Fig.~\ref{fig:sys-f-coq}, observe how the type variable context $\Delta$ degenerates to a plain natural number $N$.
 It is taken as an exclusive upper bound to the admissible type variable indices, hence $N = 0$ represents the empty context.
-The term variable context $\Gamma$ is simply a list of types, since free variables are coded as context positions.
-The $\beta$-substitution $B\scons{\id}$ used in the type specialisation rule maps the free index 0 to $B$ and lowers all other indices by 1.
+The term variable context~$\Gamma$ is simply a list of types, since free variables are coded as context positions.
+The \linebreak[0]$\beta$-substitution~$B\scons{\id}$ used in the type specialisation rule maps the free index 0 to $B$ and lowers all other indices by 1.
 
 We further observe that for \SysL, defined in Fig.~\ref{fig:sys-l-coq}, context lookup is characterised inductively: $x \of a \inL \Psi$.
-The need for this arises from the fact that the PTS contexts are dependent and the more general issue that in a de Bruijn setting, terms are not stable under context modifications.
-Hence, upon extraction of $a$ from a context $\Gamma$, all free variables of $a$ have to be adjusted by an amount that depends on the position of $a$ in $\Gamma$.
+The need for this arises from the fact that the PTS contexts are dependent as well as the more general issue that in a de Bruijn setting, terms are not stable under context modifications.
+Hence, upon extraction of a term $a$ from context $\Gamma$, all free variables of $a$ have to be adjusted by an amount that depends on the position of $a$ in $\Gamma$.
 The given inductive characterisation elegantly handles this complication.
 
-Now that we have a good understanding of how our systems operate concretely, let us consider how we relate them.
+Let us now consider the first equivalence proof.
 Similar to the way typing contexts are explicitly represented as lists of terms or types, we are going to track explicitly which variables are related in our definition of our relations $\tyr^R$ and $\tmr^R_S$, where the relational parameters $R$ and $S$ correspond to the contexts $\Theta$ and $\Sigma$ from Fig.~\ref{fig:rel}:
 
 \vspace{-.5em}
@@ -457,17 +468,17 @@ Similar to the way typing contexts are explicitly represented as lists of terms 
 \end{mathpar}
 }\vspace{-1em}
 
-It should be clear that $R$ and $S$ track pairs of indices of type, and respectively, term variables.
+The parameters $R$ and $S$ track pairs of indices of type, and respectively, term variables.
 We technically represent them as lists of type $\mathsf{list}\,(\mathsf{var} \times \mathsf{var})$ and use $x\,R\,y$ to denote that the pair $(x,y)$ is in $R$.
 The interesting part of this definition is how these auxiliary parameters have to be modified when binders are traversed, which we denoted above by $\Rshift{R}$ and $\Rext{R}$.
 In order to precisely define these operations, let us recall the required action on a parallel substitution $\sigma$ that is pushed underneath a binder:
 \begin{align*}
   (\All A)\subst{\sigma} \qquad\longmapsto\qquad \All A\subst{0 \scons \sigma \scomp \shift}
 \end{align*}
-The $\subst{0 \scons \_}$ part ensures that any variable referencing the presently traversed binder is preserved as such.
-Meanwhile the $\subst{\_ \scons \sigma \scomp \shift}$ part ensures that every index $n + 1$ is mapped to $\sigma(n)\subst{\shift}$, where the $\shift$ ensures that no free variable in the range of $\sigma$ are accidentally captured.
+The $\subst{0 \scons \_}$ part ensures that any index referencing the presently traversed binder is preserved as such.
+Meanwhile the $\subst{\_ \scons \sigma \scomp \shift}$ part ensures that every index $n + 1$ is mapped to $\sigma(n)\subst{\shift}$, where the $\shift$ ensures that no free variables in the range of $\sigma$ are accidentally captured by the traversed binder.
 
-For our present proof we are now traversing binders \emph{almost} in lockstep.
+In our correspondence proof we traverse binders \emph{almost} in lockstep.
 For the simple cases where we have a binder on both sides of the relation, and moreover, the bound variables actually correspond according to the information tracked in $R$, we define, analogously to the binder traversal for substitutions:
 \begin{align*}
   \Rext{R} \eqdef (0,0) \mathop{::} \mathsf{bimap}\,(\shift)\,(\shift)\,R
@@ -495,7 +506,7 @@ This one-sided index adjustment is obtained with
 \end{proof}
 
 To obtain the same result for $\tmr^R_S$ we additionally rely on $R$ and $S$ having disjoint ranges, that is, no PTS variable is considered related to both a type and a term variable.
-We denote this by $R \| S$ and observe
+We denote this by $R \| S$.
 \begin{fact}
   \label{fac:rel-disjoint}
   The property $R \| S$ is preserved under extending one relation and shifting the other, that is w.l.o.g.: $R \| S \implies \Rshift{R} \| \Rext{S}$.\hfill\qedsymbol
@@ -522,10 +533,10 @@ We denote this by $R \| S$ and observe
 \end{proof}
 
 Proving the left and right totality and preservation results is slightly more interesting, as we have to generalise to open judgements and non-empty contexts.
-We achieve this with suitable proof invariants that are adapted from the notion of \emph{generalised context morphism} laid out in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
+We achieve this with suitable proof invariants that are adapted from the notion of \emph{generalised context morphisms} laid out in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
 The key difference is that instead of a renaming $\xi$ that maps from one context to another, we here consider a relation on variables that places two contexts in correspondence.
 All invariants are set up such that they vacuously hold when the initial context happens to be empty.
-We start with type formation and the direction from left (F) to right (\SysL):
+We start with type formation and the direction from F to \SysL:
 \begin{align*}
   \tyctxrelFL{N}{R}{\Psi} \eqdef \mAll {x < N} \mEx y x\,R\,y \mAnd y \of \Prp \inL \Psi
 \end{align*}
@@ -538,9 +549,9 @@ We start with type formation and the direction from left (F) to right (\SysL):
 \end{fact}
 \begin{lemma}
   \label{lem:tyr_fl_tot_pres}
-  The type-relation $\tyr^R$ is total from left to right and preserves type formation:
+  The type-relation $\tyr^R$ is left-total and preserves type formation:
   \begin{align*}
-    \istyF{N}{A} \implies \mAll {R\,\Psi} \tyctxrelFL{N}{R}{\Psi} \implies \mEx a A\,\tyr^R\,a \mAnd \typingL{\Psi}{a}{\Prp}
+    \istyF{N}{A} \implies \mAll {R\,\Psi} \tyctxrelFL{N}{R}{\Psi} \implies \mEx a A \tyr^R a \mAnd \typingL{\Psi}{a}{\Prp}
   \end{align*}
 \end{lemma}
 \begin{proof}
@@ -560,49 +571,48 @@ For the inverse direction we establish preservation of type formation and right 
 \end{fact}
 \begin{lemma}
   \label{lem:tyr_lf_tot_pres}
-  The type-relation $\tyr^R$ is total from right to left and preserves type formation:
+  The type-relation $\tyr^R$ is right-total and preserves type formation:
   \begin{align*}
-    \typingL{\Gamma}{a}{\Prp} \implies \mAll {R\,N} \tyctxrelLF{N}{R}{\Gamma} \implies \mEx A A\,\tyr^R\,a \mAnd \istyF{N}{A}
+    \typingL{\Gamma}{a}{\Prp} \implies \mAll {R\,N} \tyctxrelLF{N}{R}{\Gamma} \implies \mEx A A \tyr^R a \mAnd \istyF{N}{A}
   \end{align*}
 \end{lemma}
 \begin{proof}
   Induction on $\typingL{\Gamma}{a}{\Prp}$, using Fact~\ref{fac:inv-tylf-ext}.
-  One complication is the disambiguation of a given PTS-product $\Prod{a} b$, where $a$ is known to live in some sort $s$.
-  Discriminating on $s$ allows us to correctly choose either an arrow type $A \to B$, or a universal quantification $\All B$.
-  Further requirements are the degeneracy of the sort $\Typ$, as well as propagation and substitutivity for $\tyL$.
+  One complication is the disambiguation of a given PTS-product $\Prod{a} b$, where $a$ is known to live in some universe $u$.
+  Discriminating on $u$ allows us to correctly choose either an arrow type $A \to B$, or a universal quantification $\All B$.
+  Further requirements are the degeneracy of the universe $\Typ$ ($\Prp$ is the only inhabitant of $\Typ$), as well as propagation and substitutivity for $\tyL$.
 \end{proof}
 
-When it comes to the preservation and totality results for $\tmr^R_S$, the overhead for explicitly tracking of contextual information becomes most apparent.
-Since some of the typing rules for applications ascribe types that are constructed from a non-trivial substitution operation, we require substitutivity results for the judgements under consideration.
-For $\tyr^R$, in particular we require $\beta$-substitutivity:
+The preservation and totality results for $\tmr^R_S$ make the overhead for explicitly tracking contextual information most apparent.
+Since some of the typing rules for applications ascribe types that are constructed from a non-trivial substitution operation, we require substitutivity results for the judgements under consideration; in particular, $\beta$-substitutivity for $\tyr^R$:
 \begin{fact}
   The type relation $\tyr^R$ is closed under $\beta$-substitutions:
   \begin{align*}
-    B\,\tyr^R\,b \implies A\,\tyr^{\Rext{R}}\,a \implies A\subst{B\scons\id}\,\tyr^R\,a\subst{b\scons\id} \tag*{\qedsymbol}
+    B \tyr^R b \implies A \tyr^{\Rext{R}} a \implies A\subst{B\scons\id} \tyr^R a\subst{b\scons\id} \tag*{\qedsymbol}
   \end{align*}
 \end{fact}
 The proof of this fact is a lengthy but straightforward construction that first generalises the two concrete $\beta$-substitutions to arbitrary parallel substitutions $\sigma$ and $\tau$.
 The result is still not provable directly, as closure of $\tyr^R$ under weakening is needed.
 This in turn is generalised to a statement for arbitrary renamings $\xi$ and $\zeta$ in place of $\sigma$ and $\tau$.
-In essence we establish a context morphism lemma for $\tyr^R$, following the proof pattern described in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}.
+In essence we establish a CML for $\tyr^R$.
 
-We can finally tackle the technically most intricate part of the proof.
+We can now tackle the technically most intricate part of the proof.
 The invariant for preservation of typing from F to \SysL is
 \begin{align*}
-  \tmctxrelFL{\Gamma}{R}{S}{\Psi} \eqdef \mAll {x \of A \in \Gamma} \mEx{y\,a} A\,\tyr^R\,a \mAnd x\,S\,y \mAnd y \of a \inL \Psi
+  \tmctxrelFL{\Gamma}{R}{S}{\Psi} \eqdef \mAll {x A} \Gamma_x = A \implies \mEx{y a} A \tyr^R a \mAnd x\,S\,y \mAnd y \of a \inL \Psi
 \end{align*}
 \begin{fact}
   \label{fac:inv-tmfl-ext}
   The invariant $\tmctxrelFL{\Gamma}{R}{S}{\Psi}$ is preserved under corresponding extensions:
   \begin{align*}
-  &\tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies A\,\tyr^R\,a \implies \tmctxrelFL{\Gamma,A}{\Rshift{R}}{\Rext{S}}{\Psi,a} & &\tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies \tmctxrelFL{\Gamma\subst{\shift}}{\Rext{R}}{\Rshift{S}}{\Psi,\Prp}\tag*{\qedsymbol}
+  &\tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies A \tyr^R a \implies \tmctxrelFL{\Gamma,A}{\Rshift{R}}{\Rext{S}}{\Psi,a} & &\tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies \tmctxrelFL{\Gamma\subst{\shift}}{\Rext{R}}{\Rshift{S}}{\Psi,\Prp}\tag*{\qedsymbol}
   \end{align*}
 \end{fact}
 \begin{lemma}
-  The term relation $\tmr^R_S$ is total from left to right and preserves typing.
+  The term relation $\tmr^R_S$ is left-total and preserves typing.
   \begin{align*}
-    \typingF{\cc{N}{\Gamma}}{s}{A} \implies &\mAll{R\,S\,\Psi} R\ms\ms\mathsf{func} \implies \tyctxrelFL{N}{R}{\Psi} \implies \tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies \\
-                                            &\mEx{a\,b} A\,\tyr^R\,b \mAnd s\,\tmr^R_S\,a \mAnd \typingL{\Psi}{a}{b} \mAnd \typingL{\Psi}{b}{\Prp}
+    \typingF{\cc{N}{\Gamma}}{s}{A} \implies &\mAll{R S \Psi} R\ms\ms\mathsf{func} \implies \tyctxrelFL{N}{R}{\Psi} \implies \tmctxrelFL{\Gamma}{R}{S}{\Psi} \implies \\
+                                            &\mEx{b a} A \tyr^R a \mAnd s \tmr^R_S b \mAnd \typingL{\Psi}{b}{a} \mAnd \typingL{\Psi}{a}{\Prp}
   \end{align*}
 \end{lemma}
 \begin{proof}
@@ -611,10 +621,10 @@ The invariant for preservation of typing from F to \SysL is
   Functionality of $R$ allows us to equate these.
 \end{proof}
 
-The final piece is the preservation of typing from \SysL to F.
+The final part is the preservation of typing from \SysL to F.
 Here we use:
 \begin{align*}
-  \tmctxrelLF{\Gamma}{R}{S}{\Psi} \eqdef \mAll{y\,a} y \of a \inL \Psi \implies \typingL{\Psi}{a}{\Prp} \implies \mEx{x\,A} A\,\tyr^R\,a \mAnd x\,S\,y \mAnd x \of A \in \Gamma
+  \tmctxrelLF{\Gamma}{R}{S}{\Psi} \eqdef \mAll{y a} y \of a \inL \Psi \implies \typingL{\Psi}{a}{\Prp} \implies \mEx{x A} A \tyr^R a \mAnd x\,S\,y \mAnd x \of A \in \Gamma
 \end{align*}
 \begin{fact}
   \label{fac:inv-tmfl-ext}
@@ -624,18 +634,22 @@ Here we use:
   \end{align*}
 \end{fact}
 \begin{lemma}
-  The term relation $\tmr^R_S$ is total from right to left and preserves typing:
+  The term relation $\tmr^R_S$ is right-total and preserves typing:
   \begin{align*}
-    \typingL{\Psi}{b}{\Prp} \implies \typingL{\Psi}{a}{b} \implies &\mAll{R\,S\,N\,\Gamma} R\ms\ms\mathsf{inj} \implies \tyctxrelLF{N}{R}{\Psi} \implies \tmctxrelLF{\Gamma}{R}{S}{\Psi} \implies \\
-                                                                &\mEx{s\,A} A\,\tyr^R\,b \mAnd s\,\tmr^R_S\,a \mAnd \typingF{\cc{N}{\Gamma}}{s}{A} \mAnd \istyF{N}{A}
+    \typingL{\Psi}{a}{\Prp} \implies \typingL{\Psi}{b}{a} \implies &\mAll{R S N \Gamma} R\ms\ms\mathsf{inj} \implies \tyctxrelLF{N}{R}{\Psi} \implies \tmctxrelLF{\Gamma}{R}{S}{\Psi} \implies \\
+                                                                &\mEx{s A} A \tyr^R a \mAnd s \tmr^R_S b \mAnd \typingF{\cc{N}{\Gamma}}{s}{A} \mAnd \istyF{N}{A}
   \end{align*}
 \end{lemma}
 \begin{proof}
-  By induction on $\typingL{\Psi}{a}{b}$.
+  By induction on $\typingL{\Psi}{b}{a}$.
   The cases are mostly analogue to the previous result.
   Injectivity of $R$ is required for the variable case.
-  Note that we need to discriminate on the sorts of product domains again (cf.\ Lemma~\ref{lem:tyr_lf_tot_pres}), here to disambiguate the unified abstractions and applications correctly.
+  Note that we need to discriminate on the universes of product domains again (cf.\ Lemma~\ref{lem:tyr_lf_tot_pres}), here to disambiguate the unified abstractions and applications correctly.
 \end{proof}
+
+At this point we make an interesting observation.
+The above proof demonstrates that the CML proof pattern not only generalises to a multi system setting~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} but also to relations in place of functional correspondences.
+This is what allowed us to quickly generate all the contextual invariants need for the various results.
 
 \section{Abella}
 \label{sec:abella}
@@ -674,8 +688,8 @@ Here we use:
       \inferrule*{~}{\sortLh{\Prp}} \and
       \inferrule*{~}{\typingLh{\Prp}{\Typ}} \and
       \inferrule*{\typingLh{a}{\Prod{c}{d}} \\ \typingLh{b}{c}}{\typingLh{a\,b}{\lpApp{d}{b}}} \and
-      \inferrule*{\typingLh{a}{s} \\ \sortLh{s} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\Prp}}{\typingLh{\Prod{a}{b}}{\Prp}} \and
-      \inferrule*{\typingLh{a}{s} \\ \sortLh{s} \\  \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{c}{x}}{\Prp} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\lpApp{c}{x}}}{\typingLh{\Lam{a}{b}}{\Prod{a}{c}}}
+      \inferrule*{\typingLh{a}{u} \\ \sortLh{u} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\Prp}}{\typingLh{\Prod{a}{b}}{\Prp}} \and
+      \inferrule*{\typingLh{a}{u} \\ \sortLh{u} \\  \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{c}{x}}{\Prp} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\lpApp{c}{x}}}{\typingLh{\Lam{a}{b}}{\Prod{a}{c}}}
     \end{mathpar}
     \vspace{-2.5em}
   \end{center}
@@ -683,10 +697,12 @@ Here we use:
   \label{fig:sys-l-abella}
 \end{figure}
 
+\enlargethispage{\baselineskip}
+
 Abella supports the use of higher-order abstract syntax (HOAS)~\cite{DBLP:conf/pldi/PfenningE88}.
 The main idea is to delegate variable binding at the object level to binding at the meta level.
 Take for example the term constructor $\mathsf{lam} \OF (\mathsf{tm} \to \mathsf{tm}) \to \mathsf{tm}$ that yields an abstraction of the untyped $\lambda$-calculus.
-The $s$ in $\mathsf{lam}\,s \OF \mathsf{tm}$ is a function of the meta level.
+The $s$ in $\mathsf{lam}\,s$ is a function of the meta level.
 Substitution at the object level is implemented as application at the meta level, which we denote by $\lpApp{s}{t}$ to distinguish it from the various object level applications.
 
 Note that HOAS is not inductive, due to the negative occurrences of expression types.
@@ -699,13 +715,14 @@ We then reason about these encoding at the \emph{meta level}, using the logic $\
 The axioms of $\mathcal{G}$ ensure that a $\nabla$-quantified identifier is fresh for everything bound above it.
 We are going to use these freshness guarantees to faithfully represent object level variables.
 
-The two levels are connected with a special inductive predicate that embeds the derivation of a $\lambda$Prolog judgement $J$ from hypothese $L = I_0,\ldots,I_n$ into $\mathcal{G}$, written $\aj{L}{J}$, or simply $\aje{J}$ in the absence of assumptions.
+The two levels are connected with a special inductive predicate that embeds the derivation of a $\lambda$Prolog judgement $J$ from hypotheses $L = I_0,\ldots,I_n$ into $\mathcal{G}$, written $\aj{L}{J}$, or simply $\aje{J}$ in the absence of assumptions.
 Note that $\lambda$Prolog supports hypothetical ($J_1 \lpImp J_2$) and locally quantified ($\lpPi{x} J\subst{x}$) premises, which the embedding treats as follows:
 \begin{align*}
   \aj{L}{J_1 \lpImp J_2} &\quad\leadsto\quad \aj{L, J_1}{J_2} & \aj{L}{\lpPi{x} J\subst{x}}&\quad\leadsto\quad \nabla x. \aj{L}{J\subst{x}}
 \end{align*}
-For the quantification case, observe that the context $L$ is usually quantified at the outermost level, hence $x$ is guaranteed to be fresh for $L$, satisfying the usual side condition for context extension rules.
-This procedure is often referred to as \emph{mobility of binders}: object level binders are represented using $\lambda$Prolog quantification, which in turn is mapped to $\nabla$-quantification in $\mathcal{G}$ and eventually opened with nominal constants $n_i$.
+
+For the quantification case, observe that the context $L$ is usually bound at the outermost level, hence $x$ is guaranteed to be fresh for $L$, satisfying the usual side condition for context extension rules.
+This process is often referred to as \emph{mobility of binders}: object level binders are represented using $\lambda$Prolog quantification, which in turn is mapped to $\nabla$-quantification in~$\mathcal{G}$ and eventually opened with nominal constants $n_i$.
 \begin{fact}
   \label{fac:ab-cut-inst}
   The embedding $\aj{L}{J}$ satisfies cut and a nominal instantiation principle:
@@ -716,19 +733,21 @@ This procedure is often referred to as \emph{mobility of binders}: object level 
   Both are exposed as proof tactics to the user.\hfill\qedsymbol
 \end{fact}
 Note that Fact~\ref{fac:ab-cut-inst} provides substitutivity for the various judgements of our object languages.
+It is also worth noting that only the judgements, but not the specification level types like~$\TmL$ and $\TyF$, are embedded, so we cannot induct directly on our syntax definitions.
 
 At this point it should be straightforward to understand the HOAS representation of our two systems given in Figs.~\ref{fig:sys-f-abella}~and~\ref{fig:sys-l-abella}.
 For F, the judgements $\istyFh{A}$ and $\typingFh{s}{A}$ encode type formation and respectively typing.
-For \SysL, the judgement $\sortLh{s}$ is used to recognise sorts, while $\typingLh{a}{b}$ represents PTS typing.
+For \SysL, the judgement $\sortLh{u}$ is used to recognise universes, while $\typingLh{a}{b}$ represents PTS typing.
 
 As soon as we try to prove structural results about these definitions we are faced with a problem.
 Consider the following inversion principle for arrow type formation in F:
 \begin{align*}
   \aj{L}{\istyFh{A \to B}} \implies \aj{L}{\istyFh{A}} \mAnd \aj{L}{\istyFh{B}}
 \end{align*}
+
 The premise may hold due to backchaining and $\istyFh{A \to B} \in L$.
 The problem is that $L$ is too general and may contain arbitrary judgements, not even necessarily related to type formation.
-Hence we need to somehow constrain $L$ to only contain judgements of the form $\istyFh{n_i}$, where the $n_i$ are nominals representing variables.
+Hence we need to somehow constrain $L$ to only contain judgements of the form~$\istyFh{n_i}$, where the $n_i$ are nominals representing variables.
 Similarly we want to constrain typing contexts to only contain judgements of the form $\istyFh{n_i}$ or $\typingFh{n_i}{A}$.
 We specify this notion of well-formed contexts  with auxiliary inductive $\mathcal{G}$-predicates.
 The well-formedness predicate for F typing contexts, written $\acFtm{-}$, is defined as:
@@ -748,7 +767,7 @@ At this point we are able to add $\acFty{L}$, defined analogously to $\acFtm{L}$
 This relies on the fact that $\nabla x . (A \to B) \neq x$ holds in $\mathcal{G}$.
 A key aspect of formalising our equivalence result in Abella is the correct choice of well-formedness predicates and associated inversion Lemmas.
 
-Let us now consider the actual equivalence proof.
+Let us now consider the second equivalence proof.
 The relations $\tyr$ and $\tmr$ are defined as:
 
 \vspace{-.5em}
@@ -778,7 +797,7 @@ Lifting these properties to $\tyr$ and then to $\tmr$ are routine inductions.
 When it comes to the totality and preservation statements, things become more interesting.
 The remaining four lemma statements are generalised over three different contexts belonging to the three involved judgements.
 Not only do we require these contexts to be well-formed, but we also have to connect them.
-We achieve this with a single ternary well-formedness predicate defined as follows:
+We achieve this with a single ternary well-formedness predicate, $\acR{-}{-}{-}$, defined as follows:
 
 \vspace{-.5em}
 {\small
@@ -793,7 +812,7 @@ We achieve this with a single ternary well-formedness predicate defined as follo
 When a binder is traversed, this ensures that all three contexts are extended with the same freshly chosen variables $x$ and $y$.
 The definition is accompanied by three extraction lemmas, one for each of the three involved contexts, which provide the associated judgements from the two other contexts.
 Recall that in Coq we had four separate invariants for the four preservation and totality lemmas.
-Here, this information is uniformly encoded in $\acR{L_{F}}{L_{\tmr}}{L_{\lambda}}$ and we use it for all four proofs.
+Here, this information is uniformly encoded in~$\acR{L_{F}}{L_{\tmr}}{L_{\lambda}}$ and we use it for all four proofs.
 \begin{lemma} The type relation $\tyr$ is total from F to \SysL and preserves type formation.
   \begin{align*}
     \aj{L_{F}}{\istyFh{A}} \implies \mAll{L_{\tmr}L_{\lambda}} \acR{L_{F}}{L_{\tmr}}{L_{\lambda}} \implies \mEx{a} \aj{L_{\tmr}}{A \tyr a} \mAnd \aj{L_{\lambda}}{\typingLh{a}{\Prp}}
@@ -804,8 +823,8 @@ Here, this information is uniformly encoded in $\acR{L_{F}}{L_{\tmr}}{L_{\lambda
 \end{proof}
 As a trivial corollary we obtain: $\aje{\istyFh{A}} \implies \mEx{a} \aje{A \tyr a} \mAnd \aje{\typingLh{a}{\Prp}}$.
 
-The proofs of the remaining three preservation results are surprisingly analogue, so we won't go into further detail.
-It is worth pointing out that we again require the degeneracy of the PTS sort $\Typ$, as well as propagation for both F and \SysL in various places.
+The proofs of the remaining three preservation results are surprisingly analogue, so we will not go into further detail.
+It is worth pointing out, though, that we again require the degeneracy of the PTS universe $\Typ$, as well as propagation for both F and \SysL in various places.
 The HOAS setup allows us to obtain these easily.
 
 \section{Beluga}
@@ -815,7 +834,7 @@ The HOAS setup allows us to obtain these easily.
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have considered a technically interesting proof and demonstrated how various formalisation techniques deal with the arising complexities.
+We have considered a technically interesting proof and demonstrated how various formalisation techniques deal with the arising intricacies.
 The development of three different formalisations allowed us to gain deep insights into the inherent complexities of the proof.
 In particular we were able to separate these from technical artefacts due to the chosen formalisation technique.
 Two examples of inherent complications are the not quite perfectly aligned binding structures and the missing typing information required to disambiguate the uniform PTS applications.
@@ -830,7 +849,7 @@ Among the two, Abella's tactic language certainly gives it a head start.
 We observe that our proof contains a number of challenges that, taken as a whole, constitute a nice benchmark for systems designed to reason about type systems.
 It tests in particular, how well multiple type systems with binding constructs can be brought into correspondence.
 We hence propose it as a complement to the POPLmark challenge~\cite{poplmark} on the one hand, which solely tests how well a system can reason about a single type system, and the ORBI benchmarks~\cite{Felty:ITP10,Felty:orbi-survey} which cover small-scale contextual reasoning.
-It is our believe that such a benchmark could be very useful to those who seek to develop or improve systems for reasoning about type systems and similar syntactic systems with variable binding and complex contextual information.
+It is our believe that such a benchmark could be very useful to those who seek to develop or improve frameworks for reasoning about type systems and similar syntactic systems with variable binding and complex contextual information.
 
 \subsection{Future Work}
 \label{sec:future-work}
@@ -839,14 +858,14 @@ We would like to continue this line of work into three largely orthogonal direct
 
 First, we would like to widen the scope of the benchmark itself and include a correspondence result for the computational behaviour of the two systems.
 Equi-reducebility is at least as interesting a problem as equi-typability, and likely to pose its own set of challenges.
-One of these is the fact that, prior to typing, \SysL has a lot more $\beta$-redices than its stratified counterpart, hence some form of typing information will have to tracked along with the relational assumptions.
+One of these is the fact that, prior to typing, \SysL has a lot more $\beta$-redices than its stratified counterpart, hence some form of typing information will have to be tracked along with the relational assumptions.
 This will lead to new forms of contexts that are likely comparable in complexity to those discussed here.
 
 Second, we would like to test further frameworks against our benchmark.
 One candidate is the locally nameless approach~\cite{DBLP:conf/popl/AydemirCPPW08}.
 It provides an abstraction layer that sits somewhere between pure de Bruijn and HOAS.
 Our benchmark could test how stable this layer really is.
-Another is the HYBRID framework~\cite{Capretta2007, Capretta2009, DBLP:journals/jar/FeltyM12} that aims to bring HOAS to Coq.
+Another is the HYBRID framework~\cite{DBLP:journals/jar/FeltyM12} that aims to bring HOAS to Coq.
 At present however, it is neither equipped with Abella's $\nabla$ nor Beluga's contextual types, so it remains to be seen if it can handle our challenge.
 It would also be interesting to see how a system like Twelf~\cite{DBLP:conf/cade/PfenningS99} would handle the rich context structures.
 
@@ -856,7 +875,8 @@ Finally, we consider scaling the challenge both down to the simply typed $\lambd
 %% Bibliography
 %%
 
-\bibliography{ref-short,bp-extract}
+% \bibliography{ref-short,bp-extract}
+\bibliography{ref-short}
 
 \end{document}
 

@@ -1,25 +1,15 @@
-\newcommand{\tax}{\textsf{t\_ax}}
-\newcommand{\tpi}{\textsf{t\_pi}~}
-\newcommand{\tlam}{\textsf{t\_lam}~}
-\newcommand{\tapp}{\textsf{t\_app}~}
-\newcommand{\ptc}{\textsf{p\_tc}}
-
-\newcommand{\rall}{\textsf{r\_all}}
-\newcommand{\rarr}{\textsf{r\_arr}}
-\newcommand{\rapp}{\textsf{r\_app}}
-\newcommand{\rtapp}{\textsf{r\_App}}
-\newcommand{\rlam}{\textsf{r\_lam}}
-\newcommand{\rtlam}{\textsf{r\_Lam}}
-
 \newcommand{\D}{\mathcal{D}}
-
 \newcommand{\bc}[2]{\ensuremath{[\,#1\,\vdash #2\,]}}
+\newcommand{\sof}{\ensuremath{\!:\ms}}
+\newcommand{\ssep}{\ensuremath{,\ms}}
 
 The programming and proof environment Beluga~\cite{Pientka:FLOPS10,Pientka:CADE15} is another system that supports HOAS.
 Object languages are encoded in the logical framework LF~\cite{Harper93jacm}, while proofs about these are expressed as total programs in contextual modal type theory, Beluga's reasoning logic.
 The programs analyse LF derivation trees using pattern matching and higher-order unification.
-In Beluga it is necessary to give the programs, or proof terms, explicitly, which are then proof checked as part of type checking.
+In Beluga, it is necessary to give programs (i.e.\ proof terms) explicitly, which are proof checked as part of type checking.
 This stands in contrast to Coq and Abella, both of which are interactive systems with a tactic language for proof term construction.
+
+\enlargethispage{\baselineskip}
 
 The biggest difference, however, lies with Beluga's treatment of object level variables.
 In particular, at the outermost level, there is no such thing as a free object variable.
@@ -28,7 +18,8 @@ In Beluga we instead deal with \emph{contextual objects}, written $\bc{\Gamma}{K
 
 As an example, consider the function type $X \to X$ where $X$ is a free type variable.
 This function type is ill-formed under the empty type variable context $\Delta = \emptyset$.
-In Coq and Abella we can express this type, as $0_\ty \to 0_\ty$ and respectively $n_0 \to n_0$, and then prove that assuming well-formedness entails absurdity, $\istyF{0}{0_\ty \to 0_\ty} \implies \bot$ and $\aj{\emptyctx}{\istyFh{n_0 \to n_0}} \implies \bot$.
+In Coq and Abella we can express this type, as $0_\ty \to 0_\ty$ and respectively $n_0 \to n_0$.
+We can then show that assuming well-formedness under the empty context entails absurdity, $\istyF{0}{0_\ty \to 0_\ty} \implies \bot$ and $\aj{\emptyctx}{\istyFh{n_0 \to n_0}} \implies \bot$.
 Meanwhile in Beluga, we observe that the contextual object $\bc{\emptyctx}{x \to x}$ is not even syntactically well-formed, since $x \notin \emptyctx$.
 An immediate consequence of this is that the type formation judgement for F, which ensures that the context is covering all free type variables, becomes redundant.
 Hence Beluga's definition of F is obtained from Fig.~\ref{fig:sys-f-abella} by removing all references to type formation.
@@ -42,33 +33,31 @@ The desired contextual structure then had to be imposed with auxiliary predicate
 
 Beluga contexts, on the other hand, are sequence of not necessarily homogeneous declarations.
 Each declaration can depend on prior declarations and encapsulate multiple pieces of related information using a dependent record.
-Contexts are first class citizens and \emph{context schema} ascription, $\Gamma \OF S$, is used to ensure that $\Gamma$ satisfies certain structural constraints.
+Contexts are first class citizens and \emph{context schema} ascription, $\Gamma \OF S$, is used to ensure that a given $\Gamma$ satisfies certain structural constraints.
 
 Schemas are Beluga's main device to enforce invariants on contextual information.
 We use propagation for \SysL as an example.
 The requisite schema is:
-\newcommand{\sof}{\ensuremath{\!:\ms}}
-\newcommand{\ssep}{\ensuremath{,\ms}}
 \begin{align*}
   S_{\lambda W} \eqdef [x\sof\TmL \ssep \typingLh{x}{\Prp}] + [x\sof\TmL \ssep \typingLh{x}{a} \ssep \typingLh{a}{\Prp}]
 \end{align*}
 
 Note how it separates PTS variables into type and term variables via the associated typing information, which already imposes the necessary semantic contextual information.
-The proof of propagation is straightforward.\footnote{Surprisingly this is the only language local property required for the Beluga proof.}
-We implement a total recursive function of the following type:
+The proof of propagation is straightforward.
+We implement a total recursive function $k$ satisfying:
 \begin{align*}
-  \mAll{\Gamma \of S_{\lambda W}} \bc{\Gamma}{\typingLh{a}{b}} \implies \bc{\Gamma}{\mathsf{type\_correct}\,b}
+  k \OF \mAll{\Gamma \of S_{\lambda W}} \bc{\Gamma}{\typingLh{a}{b}} \implies \bc{\Gamma}{\mathsf{type\_correct}\,b}
 \end{align*}
 
-The contextual predicate $\bc{\Gamma}{\mathsf{type\_correct}\,b}$ encodes that $b$ is either $\Typ$ or it can be typed with some sort $s$.
+The contextual predicate $\bc{\Gamma}{\mathsf{type\_correct}\,b}$ encodes that $b$ is either $\Typ$ or it can be typed with some universe $u$.
 We pattern match $\D \OF \bc{\Gamma}{\typingLh{a}{b}}$ and obtain seven cases.
 The first four are structural, recursively descending into sub-derivations.
 The only part that is non-obvious is the traversal of binders, where various pieces of information are added to the context.
-These have to be packaged into declaration blocks in order to satisfy $S_{\lambda W}$.
+These have to be packaged into declaration blocks in order to satisfy $S_{\lambda W}$ for the recursive call.
 More interesting though are the three base cases.
 When we compare the matched type against $S_{\lambda W}$, we observe three ways in which $\D$ could have been obtained from the context.
-The first and third are trivial as they unify $b$ with $\Prp$ which can be typed with the sort $\Typ$.
-For the remaining case we know that $b$ can be typed with the sort $\Prp$,  contextual information that was packaged together with the matched judgement.
+The first and third are trivial as they unify $b$ with $\Prp$ which can be typed with the universe $\Typ$.
+For the remaining case we know that $b$ can be typed with the universe~$\Prp$, contextual information that was packaged together with the matched judgement.
 Note that throughout the construction we exploit that Beluga natively supports substitution into parametric sub-derivations.
 
 We now start with our third equivalence proof.
@@ -81,7 +70,8 @@ Since equality is not native in Beluga we have to define equality predicates for
   S_{\tyr} &\eqdef [x\sof\TyF \ssep y\sof\TmL \ssep x \tyr y] + [y\sof\TmL]\\
   S_{\tmr} &\eqdef [x\sof\TyF \ssep y\sof\TmL \ssep x \tyr y] + [x\sof\TmF \ssep y\sof\TmL \ssep x \tmr y]
 \end{align*}
-Due to the subordination ordering~\cite{Virga99phd} of $\tyr$ and $\tmr$, Beluga is capable of automatically strengthening from $S_{\tmr}$ to $S_{\tyr}$, and weaken vice versa.
+
+Due to the subordination ordering of $\tyr$ and $\tmr$, Beluga is capable of automatically strengthening from $S_{\tmr}$ to $S_{\tyr}$, and weaken vice versa (see also~\cite{Virga99phd}).
 \begin{lemma}
   There exist total recursive functions $f_{\ty}, f_{\tm}, i_{\ty}$ and $i_{\tm}$, satisfying
   \begin{align*}
@@ -102,7 +92,7 @@ Due to the subordination ordering~\cite{Virga99phd} of $\tyr$ and $\tmr$, Beluga
 For the remaining four totality and preservation proofs we have to deal with two complications.
 First, we have to remove assumptions and conclusions referring to F type formation.
 Second, we have to define predicates that capture the existential nature of the four conclusions, including relevant typing information, with custom predicates.
-For example we have
+We have, for example,
 \begin{align*}
   \mathsf{exists\_rel\_proof}\,s\,A \iff \mEx{ba} s \tmr b \mAnd A \tyr a \mAnd \typingLh{b}{a} \mAnd \typingLh{a}{\Prp}
 \end{align*}
@@ -125,6 +115,7 @@ The required context schemas are quite involved:
   The first is by induction on $A \of \bc{\Gamma}{\TyF}$ (recall that this was not possible in Abella), the others are by induction on the first premise.
   The proofs are quite technical but mostly straightforward.
   The construction of $p^{\leftarrow}_{\tmr}$, needs \SysL propagation.
+  Interestingly, neither propagation in F nor the degeneracy of $\Typ$ are needed, as unification automatically handles the respective occurrences.
 \end{proof}
 
 \begin{wrapfigure}{r}{0.25\textwidth}
@@ -152,7 +143,7 @@ This contradicts the common believe that schema inference should in principle al
 
 The schemas can be further arranged in a hierarchy (Fig.~\ref{fig:ctxschema}).
 A context satisfying $S_{\tyr}$ can always be weakened to one sitting lower in the hierarchy.
-The hierarchy also induces a strengthening relationship, going upwards, as long as subordination of prediactes/judgements under said contexts is respected.
+The hierarchy also induces a strengthening relationship, going upwards, as long as the subordination order judgements under said contexts is respected.
 
 %%% Local Variables:
 %%% mode: latex
