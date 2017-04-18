@@ -22,8 +22,8 @@ In Coq and Abella we can express this type, as $0_\ty \to 0_\ty$ and respectivel
 We can then show that assuming well-formedness under the empty context entails absurdity, $\istyF{0}{0_\ty \to 0_\ty} \implies \bot$ and $\aj{\emptyctx}{\istyFh{n_0 \to n_0}} \implies \bot$.
 Meanwhile in Beluga, we observe that the contextual object $\bc{\emptyctx}{x \to x}$ is not even syntactically well-formed, since $x \notin \emptyctx$.
 An immediate consequence of this is that the type formation judgement for F, which ensures that the context is covering all free type variables, becomes redundant.
-Hence Beluga's definition of F is obtained from Fig.~\ref{fig:sys-f-abella} by removing all references to type formation.
-The definition of \SysL is identical to the one for Abella (Fig.\ref{fig:sys-l-abella}).
+Hence Beluga's definition of F is obtained from Figure~\ref{fig:sys-f-abella} by removing all references to type formation.
+The definition of \SysL is identical to the one for Abella (Figure\ref{fig:sys-l-abella}).
 
 Recall that context management was completely manual in Coq.
 Each judgement required well-chosen generalisations and custom invariants to accurately track contextual information.
@@ -31,9 +31,9 @@ In Abella the situation was noticeably better, as contexts at the object level w
 At the reasoning level they did, however, surface as explicit, unstructured sequences of judgements.
 The desired contextual structure then had to be imposed with auxiliary predicates, together with copious amounts of inversion lemmas.
 
-Beluga contexts, on the other hand, are sequence of not necessarily homogeneous declarations.
+Beluga contexts, on the other hand, are sequences of not necessarily homogeneous declarations.
 Each declaration can depend on prior declarations and encapsulate multiple pieces of related information using a dependent record.
-Contexts are first class citizens and \emph{context schema} ascription, $\Gamma \OF S$, is used to ensure that a given $\Gamma$ satisfies certain structural constraints.
+Contexts are first class citizens and \emph{context schema} ascription, $\Gamma \OF S$, is used to ensure that a given context $\Gamma$ satisfies certain structural constraints.
 
 Schemas are Beluga's main device to enforce invariants on contextual information.
 We use propagation for \SysL as an example.
@@ -60,7 +60,7 @@ The first and third are trivial as they unify $b$ with $\Prp$ which can be typed
 For the remaining case we know that $b$ can be typed with the universe~$\Prp$, contextual information that was packaged together with the matched judgement.
 Note that throughout the construction we exploit that Beluga natively supports substitution into parametric sub-derivations.
 
-We now start with our third equivalence proof.
+{\bf The third equivalence proof.}
 The definitions of $\tyr$ and $\tmr$ exactly coincide with Abella.
 We are going to primarily concern ourselves with the schemas, which best illustrate Beluga's tracking of contextual information.
 
@@ -139,11 +139,11 @@ The required context schemas are quite involved:
 
 The most interesting part of the Beluga development appears to be the particularly rich structure and interdependencies of the various schemas.
 We would like to point out in particular, that while the schemas $S_{\tyr}$ and $S_{\tmr}$ could likely be inferred automatically by inspecting the involved type families, this does not appear to work for those schemas with auxiliary well-typedness assumptions (subscript $W$).
-This contradicts the common believe that schema inference should in principle always be possible.
+This contradicts the common belief that schema inference should in principle always be possible.
 
-The schemas can be further arranged in a hierarchy (Fig.~\ref{fig:ctxschema}).
+The schemas can be further arranged in a hierarchy (Figure~\ref{fig:ctxschema}).
 A context satisfying $S_{\tyr}$ can always be weakened to one sitting lower in the hierarchy.
-The hierarchy also induces a strengthening relationship, going upwards, as long as the subordination order judgements under said contexts is respected.
+The hierarchy also induces a strengthening relationship, going upwards, as long as the subordination order of judgements under said contexts is respected.
 
 %%% Local Variables:
 %%% mode: latex
