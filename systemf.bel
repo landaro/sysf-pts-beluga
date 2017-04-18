@@ -1,4 +1,5 @@
-%
+% (c) 2017, Brigitte Pientka & Jonas Kaiser
+
 % System F: Types, Terms, Typing Rules
 
 LF ty_f: type =
@@ -91,17 +92,17 @@ LF eq_tmf: tm_f -> tm_f -> type =
 false : type.
 
 % Arbitrary PTS contexts
-schema pts_ctx = some [a:tm_l] block y:tm_l, v:typing_l y a;
+% schema pts_ctx = some [a:tm_l] block y:tm_l, v:typing_l y a;
 
 % not used ...
-rec prp_prp_contra: (g:pts_ctx)[g |- typing_l prp prp] -> [ |- false] =
-    / total d (prp_prp_contra g d) /
-      fn d => impossible d;
+% rec prp_prp_contra: (g:pts_ctx)[g |- typing_l prp prp] -> [ |- false] =
+%    / total d (prp_prp_contra g d) /
+%      fn d => impossible d;
 
 % not really used, only for degeneracy of typ, which is not required either
-rec typ_type_contra: (g:pts_ctx)[g |- eq_tml A typ] -> [g |- typing_l A B] -> [ |- false] =
-    / total d (typ_type_contra g c d) /
-      fn c => fn d => let [g |- tml_refl] = c in impossible d ;
+% rec typ_type_contra: (g:pts_ctx)[g |- eq_tml A typ] -> [g |- typing_l A B] -> [ |- false] =
+%    / total d (typ_type_contra g c d) /
+%      fn c => fn d => let [g |- tml_refl] = c in impossible d ;
 
 
 % Preliminaries
@@ -129,22 +130,20 @@ rec typing_l_propagation : (g:pts_ctx_wf) [g |- typing_l A B] -> [g |- type_corr
 ;
 
 % NOTE: the following Lemma is irrelevant for the remaining proof, but interesting because of the application case.
-rec typing_l_typ_degenerate : (g:pts_ctx_wf) [g |- typing_l A B] -> [g |- eq_tml B typ] -> [g |- eq_tml A prp] =
-    / total c (typing_l_typ_degenerate g a b c d) /
-      fn c => fn d => case c of
-	[g |- t_ax ] => [g |- tml_refl]
-      | [g |- t_pi Ta U \x.\u.Tb] => impossible d
-      | [g |- t_lam Ta U (\x.\u.Tm ) (\x.\u.Tb)] => impossible d
-      | [g |- t_app Tab Ta] =>
-        let [g |- t_correct_type Hab U] = typing_l_propagation [g |- Tab] in
-        let [g |- t_pi Ha V \x.\u.Hb] = [g |- Hab] in impossible typ_type_contra d [g |- Hb[..,_,Ta]]
-      | {#p:[g |- block y:tm_l, v:typing_l y prp]} [g |- #p.2] => impossible d
-      | {#p:[g |- block y:tm_l, v:typing_l y A[..], ha:typing_l A[..] prp]} [g |- #p.2] =>
-        let [g |- tml_refl] = d in impossible [g |- #p.3]
-      | {#p:[g |- block y:tm_l, v:typing_l y A[..], ha:typing_l A[..] prp]} [g |- #p.3] => impossible d
-;
-
-
+% rec typing_l_typ_degenerate : (g:pts_ctx_wf) [g |- typing_l A B] -> [g |- eq_tml B typ] -> [g |- eq_tml A prp] =
+%    / total c (typing_l_typ_degenerate g a b c d) /
+%      fn c => fn d => case c of
+%	[g |- t_ax ] => [g |- tml_refl]
+%      | [g |- t_pi Ta U \x.\u.Tb] => impossible d
+%      | [g |- t_lam Ta U (\x.\u.Tm ) (\x.\u.Tb)] => impossible d
+%      | [g |- t_app Tab Ta] =>
+%        let [g |- t_correct_type Hab U] = typing_l_propagation [g |- Tab] in
+%        let [g |- t_pi Ha V \x.\u.Hb] = [g |- Hab] in impossible typ_type_contra d [g |- Hb[..,_,Ta]]
+%      | {#p:[g |- block y:tm_l, v:typing_l y prp]} [g |- #p.2] => impossible d
+%      | {#p:[g |- block y:tm_l, v:typing_l y A[..], ha:typing_l A[..] prp]} [g |- #p.2] =>
+%        let [g |- tml_refl] = d in impossible [g |- #p.3]
+%      | {#p:[g |- block y:tm_l, v:typing_l y A[..], ha:typing_l A[..] prp]} [g |- #p.3] => impossible d
+%;
 
 
 % PART 1 -- Relating types of SysF to PTS terms of type prp -- tyrel
@@ -252,8 +251,6 @@ rec tyrel_lf_tot_pres_inv: (g:tyrel_ctx_wf)[g |- exists_rel_type F ] -> [g |- ty
       [g |- H]
 ;
 
-
-
 % PART 2 -- Relating terms of SysF to PTS proof-terms -- tmrel
 
 % context for relating terms
@@ -287,7 +284,7 @@ rec tmrel_func: (g:tmrel_ctx)[g |- tmrel M A] -> [g |- tmrel M B] -> [g |- eq_tm
       | [g |- #p.3] => let [g |- #q.3] = c in [g |- tml_refl]
 ;
 
-% Helper-Lemma: no PTS term is related to both an F-type and an F-term
+% tmrel and tyrel have disjoint ranges
 rec tmrel_tyrel_disjoint: (g:tmrel_ctx)[g |- tmrel A F] -> [g |- tyrel B F] -> [ |- false] =
     / total c (tmrel_tyrel_disjoint g a b f d c) /
       fn d, c => case c of
@@ -382,8 +379,8 @@ e_rel_term: tmrel M N -> typing_f M A -> tyrel A B -> exists_rel_term N B.
 
 % NOTE (JONAS): in Coq and Abella, the body of exists_rel_term would have a
 % fourth conjunct asserting the well-formedness of the SysF-type A. As
-% this appears to be immediate in Beluga (i.e. it is impossible to even
-% write down a non-well-formed type), we only have the typing assertion in F.
+% this is immediate in Beluga (i.e. it is impossible to even write down a
+% non-well-formed type), we only have the typing assertion in F.
 
 % tmrel is right-total on the well-typed PTS proofs and relates to well-typed F-terms
 rec tmrel_lf_tot_pres: (g:tmrel_ctx_wf)[g |- typing_l N B] -> [g |- typing_l B prp] -> [g |- exists_rel_term N B] =
@@ -403,7 +400,6 @@ rec tmrel_lf_tot_pres: (g:tmrel_ctx_wf)[g |- typing_l N B] -> [g |- typing_l B p
            let [g |- Ra] : [g |- tyrel A' A] = [g |- Ra] in
            let [g, x : tm_f, y : tm_l, v : tmrel x y |- Tm'] = [g, x : tm_f, y : tm_l, v : tmrel x y |- Rm[..,x,y,v,Ra[..]] ] in
            let [g, y:tm_l |- Rb']  : [g, y:tm_l |- tyrel B'[..] B] = [g,y:tm_l |- Ra0[..,y,Ra[..]]] in
-         % -bp Not entirely sure why this is necessary and we can't simply use Rb
            [g |- e_rel_term (r_lam Ra (\x.\y.\v.Tm')) (f_lam \x.\u.Tm) (r_arr Ra \x.Rb')]
          | [g |- r_all \x.\y.\r.Rb] =>
            let [g, b:block x:ty_f, y:tm_l, u:tyrel x y, v:typing_l y prp |- e_rel_term Rm[.., b.x, b.y, b.u] Tm[.., b.x] Ra0[.., b.x, b.y, b.u]] =
