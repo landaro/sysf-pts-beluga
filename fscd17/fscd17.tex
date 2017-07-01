@@ -13,22 +13,6 @@
 
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% For having two versions of a paper in one file.
-% Stuff that does not fit into the short version can be encosed in \LONGVERSION{...}
-
-\ifdefined\LONGVERSION
-  \relax
-\else
-% short version:
- \newcommand{\LONGVERSION}[1]{}
- \newcommand{\SHORTVERSION}[1]{#1}
-% % long version:
-% \newcommand{\LONGVERSION}[1]{#1}
-% \newcommand{\SHORTVERSION}[1]{}
-%\newcommand{\SHORTVERSION}[1]{BEGIN~SHORT\ #1 \ END~SHORT}
-\fi
-\newcommand{\LONGSHORT}[2]{\LONGVERSION{#1}\SHORTVERSION{#2}}
-
 \renewcommand{\TirNameStyle}[1]{\small \textsf{#1}}
 
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,7 +22,7 @@
 \bibliographystyle{plainurl}% the recommended bibstyle
 
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Relating System F and $\lambda$2: A Case Study in Coq, Abella and Beluga}
+\title{Relating System F and $\lambda2$: A Case Study in Coq, Abella and Beluga}
 \titlerunning{Relating System F and $\lambda2$}
 
 %% Please provide for each author the \author and \affil macro, even when authors have the same affiliation, i.e. for each author there needs to be the  \author and \affil macros
@@ -60,17 +44,17 @@
 % Author macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\EventEditors{John Q. Open and Joan R. Acces}
-\EventNoEds{2}
+\EventEditors{Dale Miller}
+\EventNoEds{1}
 \EventLongTitle{2nd International Conference on Formal Structures for Computation and Deduction (FSCD 2017)}
 \EventShortTitle{FSCD 2017}
 \EventAcronym{FSCD}
 \EventYear{2017}
 \EventDate{September 3--9, 2017}
-\EventLocation{Oxford, United Kingdom}
+\EventLocation{Oxford, UK}
 \EventLogo{}
-\SeriesVolume{2}
-\ArticleNo{XY}
+\SeriesVolume{84}
+\ArticleNo{21}
 % Editor-only macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -81,7 +65,8 @@
 \newcommand{\mrel}[1]{\mathrel{\ms #1 \ms}}
 
 % Meta-Level Propositions
-\newcommand{\Prop}{\ensuremath{\mathsf{PROP}}}
+\newcommand{\Prop}{\ensuremath{\mathbf{Prop}}}
+\newcommand{\Type}{\ensuremath{\mathbf{Type}}}
 \newcommand{\Nat}{\mathbb{N}}
 
 % Meta-level Symbols and Operators
@@ -96,7 +81,7 @@
 \newcommand{\eqdef}{\mrel{:=}}
 \newcommand{\set}[1]{\ensuremath{\{#1\}}}
 
-\newcommand{\SysL}{$\lambda$2\xspace}
+\newcommand{\SysL}{$\lambda2$\xspace}
 
 
 % Syntactic sorts of the object languages
@@ -178,15 +163,12 @@
 \newcommand{\hscomp}{\mathbin{\hspace{-0.1em}{\hat\circ}\hspace{-0.1em}}}
 \newcommand{\id}{\mathsf{id}}
 \newcommand{\up}{{\Uparrow}}
-%\newcommand{\shift}{\ensuremath{\hspace{0.06em}\textsf{\small +}\!1\hspace{-0.06em}}}
-%\newcommand{\ushift}{\ensuremath{\textsf{\small -}\!1}}
 \newcommand{\shift}{\ensuremath{\hspace{0.1em}\mathsf{+}\hspace{0.08em}\!1}}
 \newcommand{\ushift}{\ensuremath{\hspace{0.1em}\textsf{--}\hspace{0.1em}\!1}}
 
 % Facts without proof
 \theoremstyle{plain}
 \newtheorem{fact}[theorem]{Fact}
-%\AtEndEnvironment{fact}{\null\hfill\qedsymbol}%
 
 %%% Content macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -196,8 +178,8 @@
 %\raggedbottom
 
 \begin{abstract}
-  We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~F and its single-sorted pure type system (PTS) variant \SysL.
-  This is established by reducing the typability problem of F to \SysL and vice versa.
+  We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~F and its single-sorted pure type system (PTS) variant $\lambda2$.
+  This is established by reducing the typability problem of F to $\lambda2$ and vice versa.
   A key challenge is the treatment of variable binding and contextual information.
   The formalisations all share the same high level proof structure using relations to connect the type systems.
   They do, however, differ significantly in their representation and manipulation of variables and contextual information.
@@ -231,7 +213,7 @@
     \end{mathpar}
     \vspace{-2.5em}
   \end{center}
-  \caption{Stratified System~F: types, terms, contexts, type formation and typing.\vspace{-1em}}
+  \caption{Two-sorted System~F: types, terms, contexts, type formation and typing.\vspace{-1em}}
   \label{fig:sys-f}
 \end{figure}
 
@@ -267,14 +249,14 @@ The goal of this paper is to showcase various formalisation techniques to deal w
 System~F in its original form is due to Girard~\cite{Girard1972, Girard1989}, who introduced it in the context of proof theory.
 It was also independently discovered by Reynolds~\cite{DBLP:conf/programm/Reynolds74} as the polymorphic $\lambda$-calculus.
 For the purpose of this paper we consider two presentations that differ sufficiently to demonstrate the various complications.
-The first, called F and shown in Figure~\ref{fig:sys-f}, is the common two-sorted, or stratified, presentation, as for example given by Harper~\cite{Harper2013}.
+The first, called F and shown in Figure~\ref{fig:sys-f}, is the common two-sorted presentation, as for example given by Harper~\cite{Harper2013}.
 The second, given in Figure~\ref{fig:sys-l}, is the pure type system (PTS) \SysL, which appears as a corner in Barendregt's $\lambda$-cube~\cite{DBLP:journals/jfp/Barendregt91}.
 
 In~\cite{Geuvers1993}, Geuvers gives a proof sketch that valid typing judgements can be translated between these two presentations.
 In~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} we then gave the first proof, machine-checked in Coq, of the full reduction result.
 The proof presented here is a lot simpler for a number of reasons.
 We use relations on the two syntactic languages rather than translation functions, so we do not have to concern ourselves with cancellation laws.
-We can further establish the correspondence directly, which completely bypasses the need for an intermediate, stratified type system for the PTS syntax.
+We can further establish the correspondence directly, which completely bypasses the need for an intermediate, F-like type system for the PTS syntax.
 
 \begin{figure}[t]
   \begin{center}
@@ -334,7 +316,7 @@ In essence, the two systems differ in how explicit and readily available certain
 One half of the proof will thus have to reestablish implicit structures, which, as one would expect, is harder than removing it.
 This will lead to a certain asymmetry in proof effort for seemingly symmetrical lemma statements.
 
-\enlargethispage{\baselineskip}
+%\enlargethispage{\baselineskip}
 
 The basic idea of the proof presented here is to construct two relations $\tyr$ and $\tmr$ that put the types and respectively the terms of the two languages in correspondence (see Figure~\ref{fig:rel}).
 To obtain the desired equivalence results, we have to demonstrate that these relations exhibit the following properties:
@@ -424,7 +406,7 @@ For the remainder of the paper, we focus on how F, \SysL and the two relations $
   \label{fig:sys-l-coq}
 \end{figure}
 
-\enlargethispage{\baselineskip}
+%\enlargethispage{\baselineskip}
 
 For the Coq proof we reuse the pure de Bruijn encoding of the two systems and the corresponding meta theories developed in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}, with major support from the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15}.
 The language definitions are given in Figures~\ref{fig:sys-f-coq}~and~\ref{fig:sys-l-coq}.
@@ -698,7 +680,7 @@ This is what allowed us to quickly generate all the contextual invariants needed
   \label{fig:sys-l-abella}
 \end{figure}
 
-\enlargethispage{\baselineskip}
+%\enlargethispage{\baselineskip}
 
 Abella supports the use of higher-order abstract syntax (HOAS)~\cite{DBLP:conf/pldi/PfenningE88}.
 The main idea is to delegate variable binding at the object level to binding at the meta level.
@@ -712,7 +694,7 @@ Both aspects prevent Coq from natively supporting HOAS.
 
 Abella is a system designed around a two-level logic approach.
 The lower \emph{specification level}, essentially verbatim $\lambda$Prolog, is used to encode the object languages and their associated judgements.
-We then reason about these encoding at the \emph{meta level}, using the logic $\mathcal{G}$, which is the intuitionistic predicative fragment of Church's simple type theory, extended with natural induction, (co)inductive predicates and nominal quantification ($\nabla x . \ms s$).
+We then reason about these encodings at the \emph{meta level}, using the logic $\mathcal{G}$, which is the intuitionistic predicative fragment of Church's simple type theory, extended with natural induction, (co)inductive predicates and nominal quantification ($\nabla x . \ms s$).
 The axioms of $\mathcal{G}$ ensure that a $\nabla$-quantified identifier is fresh for everything bound above it.
 We are going to use these freshness guarantees to faithfully represent object level variables.
 
@@ -746,7 +728,7 @@ Consider the following inversion principle for arrow type formation in F:
   \aj{L}{\istyFh{A \to B}} \implies \aj{L}{\istyFh{A}} \mAnd \aj{L}{\istyFh{B}}
 \end{align*}
 
-The premise may hold due to backchaining and $\istyFh{A \to B} \in L$.
+The premise may hold not only due to structural reasons, as claimed by the lemma, but also due to backchaining and $\istyFh{A \to B} \in L$.
 The problem is that $L$ is too general and may contain arbitrary judgements, not even necessarily related to type formation.
 Hence we need to somehow constrain $L$ to only contain judgements of the form~$\istyFh{n_i}$, where the $n_i$ are nominals representing variables.
 Similarly we want to constrain typing contexts to only contain judgements of the form $\istyFh{n_i}$ or $\typingFh{n_i}{A}$.
@@ -830,7 +812,153 @@ The HOAS setup allows us to obtain these easily.
 
 \section{Beluga}
 \label{sec:beluga}
-\input{beluga.tex}
+
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\bc}[2]{\ensuremath{[\,#1\,\vdash #2\,]}}
+\newcommand{\sof}{\ensuremath{\!:\ms}}
+\newcommand{\ssep}{\ensuremath{,\ms}}
+
+The programming and proof environment Beluga~\cite{Pientka:FLOPS10,Pientka:CADE15} is another system that supports HOAS.
+Object languages are encoded in the logical framework LF~\cite{Harper93jacm}, while proofs about these are expressed as total programs in contextual modal type theory, Beluga's reasoning logic.
+The programs analyse LF derivation trees using pattern matching and higher-order unification.
+In Beluga, it is necessary to give programs (i.e.\ proof terms) explicitly, which are proof checked as part of type checking.
+This stands in contrast to Coq and Abella, both of which are interactive systems with a tactic language for proof term construction.
+
+%\enlargethispage{\baselineskip}
+
+The biggest difference, however, lies with Beluga's treatment of object level variables.
+In particular, at the outermost level, there is no such thing as a free object variable.
+This is in stark contrast to Coq's dangling de Bruijn indices and Abella's global nominal constants.
+In Beluga we instead deal with \emph{contextual objects}, written $\bc{\Gamma}{K}$, that is objects $K$ (like types, terms, typing derivations) paired with contexts $\Gamma$ in which they are meaningful~\cite{Nanevski:ICML05,Pientka:POPL08}.
+
+As an example, consider the function type $X \to X$ where $X$ is a free type variable.
+This function type is ill-formed under the empty type variable context $\Delta = \emptyset$.
+In Coq and Abella we can express this type, as $0_\ty \to 0_\ty$ and respectively $n_0 \to n_0$.
+We can then show that assuming well-formedness under the empty context entails absurdity, $\istyF{0}{0_\ty \to 0_\ty} \implies \bot$ and $\aj{\emptyctx}{\istyFh{n_0 \to n_0}} \implies \bot$.
+Meanwhile in Beluga, we observe that the contextual object $\bc{\emptyctx}{x \to x}$ is not even syntactically well-formed, since $x \notin \emptyctx$.
+An immediate consequence of this is that the type formation judgement for F, which ensures that the context is covering all free type variables, becomes redundant.
+Hence Beluga's definition of F is obtained from Figure~\ref{fig:sys-f-abella} by removing all references to type formation.
+The definition of \SysL is identical to the one for Abella (Figure~\ref{fig:sys-l-abella}).
+
+Recall that context management was completely manual in Coq.
+Each judgement required well-chosen generalisations and custom invariants to accurately track contextual information.
+In Abella the situation was noticeably better, as contexts at the object level were kept implicit and handled by the system.
+At the reasoning level they did, however, surface as explicit, unstructured sequences of judgements.
+The desired contextual structure then had to be imposed with auxiliary predicates, together with copious amounts of inversion lemmas.
+
+Beluga contexts, on the other hand, are sequences of not necessarily homogeneous declarations.
+Each declaration can depend on prior declarations and encapsulate multiple pieces of related information using a dependent record.
+Contexts are first class citizens and \emph{context schema} ascription, $\Gamma \OF S$, is used to ensure that a given context $\Gamma$ satisfies certain structural constraints.
+
+Schemas are Beluga's main device to enforce invariants on contextual information.
+We use propagation for \SysL as an example.
+The requisite schema is:
+\begin{align*}
+  S_{\lambda W} \eqdef [x\sof\TmL \ssep \typingLh{x}{\Prp}] + [x\sof\TmL \ssep \typingLh{x}{a} \ssep \typingLh{a}{\Prp}]
+\end{align*}
+
+Note how it separates PTS variables into type and term variables via the associated typing information, which already imposes the necessary semantic contextual information.
+The proof of propagation is straightforward.
+We implement a total recursive function $k$ satisfying:
+\begin{align*}
+  k \OF \mAll{\Gamma \of S_{\lambda W}} \bc{\Gamma}{\typingLh{a}{b}} \implies \bc{\Gamma}{\mathsf{type\_correct}\,b}
+\end{align*}
+
+The contextual predicate $\bc{\Gamma}{\mathsf{type\_correct}\,b}$ encodes that $b$ is either $\Typ$ or it can be typed with some universe $u$.
+We pattern match $\D \OF \bc{\Gamma}{\typingLh{a}{b}}$ and obtain seven cases.
+The first four are structural, recursively descending into sub-derivations.
+The only part that is non-obvious is the traversal of binders, where various pieces of information are added to the context.
+These have to be packaged into declaration blocks in order to satisfy $S_{\lambda W}$ for the recursive call.
+More interesting though are the three base cases.
+When we compare the matched type against $S_{\lambda W}$, we observe three ways in which $\D$ could have been obtained from the context.
+The first and third are trivial as they unify $b$ with $\Prp$ which can be typed with the universe $\Typ$.
+For the remaining case we know that $b$ can be typed with the universe~$\Prp$, contextual information that was packaged together with the matched judgement.
+Note that throughout the construction we exploit that Beluga natively supports substitution into parametric sub-derivations.
+
+{\bf The third equivalence proof.}
+The definitions of $\tyr$ and $\tmr$ exactly coincide with Abella.
+We are going to primarily concern ourselves with the schemas, which best illustrate Beluga's tracking of contextual information.
+
+We begin with the functionality and injectivity properties of $\tyr$ and $\tmr$.
+Since equality is not native in Beluga we have to define equality predicates for each syntactic sort to express our statements. The tightest invariants that hold for the rules defining $\tyr$ and $\tmr$ can be expressed with the following context schemas:
+\begin{align*}
+  S_{\tyr} &\eqdef [x\sof\TyF \ssep y\sof\TmL \ssep x \tyr y] + [y\sof\TmL]\\
+  S_{\tmr} &\eqdef [x\sof\TyF \ssep y\sof\TmL \ssep x \tyr y] + [x\sof\TmF \ssep y\sof\TmL \ssep x \tmr y]
+\end{align*}
+
+Due to the subordination ordering of $\tyr$ and $\tmr$, Beluga is capable of automatically strengthening from $S_{\tmr}$ to $S_{\tyr}$, and weaken vice versa (see also~\cite{Virga99phd}).
+\begin{lemma}
+  There exist total recursive functions $f_{\ty}, f_{\tm}, i_{\ty}$ and $i_{\tm}$, satisfying
+  \begin{align*}
+    f_{\ty} &\OF  \mAll{\Gamma \of S_{\tyr}} \bc{\Gamma}{A \tyr a} \implies \bc{\Gamma}{A \tyr a'} \implies \bc{\Gamma}{a =_{\lambda} a'}\\
+    i_{\ty} &\OF  \mAll{\Gamma \of S_{\tyr}} \bc{\Gamma}{A \tyr a} \implies \bc{\Gamma}{A' \tyr a} \implies \bc{\Gamma}{A =^{\ty}_{\mathsf{F}} A'}\\
+    f_{\tm} &\OF  \mAll{\Gamma \of S_{\tmr}} \bc{\Gamma}{s \tmr a} \implies \bc{\Gamma}{s \tmr a'} \implies \bc{\Gamma}{a =_{\lambda} a'}\\
+    i_{\tm} &\OF  \mAll{\Gamma \of S_{\tmr}} \bc{\Gamma}{s \tmr a} \implies \bc{\Gamma}{s' \tmr a} \implies \bc{\Gamma}{s =^{\tm}_{\mathsf{F}} s'}
+\end{align*}
+\end{lemma}
+\begin{proof}
+  Each by induction on the first premise and pattern matching on the second.
+  In the variable cases we have matched against two context records $r$ and $r'$.
+  Since $x$ and $y$ are local to $r$ and one of them is shared between the two matched records, unification infers $r = r'$, closing the case.
+  Note that $f_{\tm}$ and $i_{\tm}$ contain calls to $f_{\ty}$ and respectively $i_{\ty}$, which relies on context strenghtening.
+  For $i_{\tm}$ we also again require disjointedness of the two relations, which is easily obtainable under contexts satisfying $S_{\tmr}$.
+\end{proof}
+
+For the remaining four totality and preservation proofs we have to deal with two complications.
+First, we have to remove assumptions and conclusions referring to F type formation.
+Second, we have to define predicates that capture the existential nature of the four conclusions, including relevant typing information, with custom predicates.
+We have, for example,
+\begin{align*}
+  \mathsf{exists\_rel\_proof}\,s\,A \iff \mEx{ba} s \tmr b \mAnd A \tyr a \mAnd \typingLh{b}{a} \mAnd \typingLh{a}{\Prp}
+\end{align*}
+The required context schemas are quite involved:
+\begin{align*}
+  S_{\tyr W}^{\rightarrow} \eqdef &[x\sof\TyF \ssep y\sof\TmL \ssep x \tyr y \ssep \typingLh{y}{\Prp}] + [y\sof\TmL \ssep \typingLh{y}{a}]\\
+  S_{\tyr W}^{\leftarrow} \eqdef &[x\sof\TyF \ssep y\sof\TmL \ssep x \tyr y \ssep \typingLh{y}{\Prp}] + [y\sof\TmL \ssep \typingLh{y}{a} \ssep A \tyr a \ssep \typingLh{a}{\Prp}]\\
+  S_{\tmr W} \eqdef &[x\sof\TyF \ssep y\sof\TmL \ssep x \tyr y \ssep \typingLh{y}{\Prp}] + [x\sof\TmF \ssep y\sof\TmL \ssep x \tmr y \ssep \typingFh{x}{A} \ssep \typingLh{y}{a} \ssep A \tyr a]
+\end{align*}
+\begin{lemma}
+  There exist total recursive functions $p^{\rightarrow}_{\tyr},p^{\leftarrow}_{\tyr},p^{\rightarrow}_{\tmr}$ and $p^{\leftarrow}_{\tmr}$, satisfying
+  \begin{align*}
+    p^{\rightarrow}_{\tyr} &\OF  \mAll{\Gamma \of S_{\tyr}^{\rightarrow}} \mAll{A \of \bc{\Gamma}{\TyF}} \bc{\Gamma}{\mathsf{exists\_rel\_prop}\,A}\\
+    p^{\leftarrow}_{\tyr} &\OF \mAll{\Gamma \of S_{\tyr}^{\leftarrow}} \bc{\Gamma}{\typingLh{a}{\Prp}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_type}\,a}\\
+    p^{\rightarrow}_{\tmr} &\OF \mAll{\Gamma \of S_{\tmr}} \bc{\Gamma}{\typingFh{s}{A}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_proof}\,s\,A}\\
+    p^{\leftarrow}_{\tmr} &\OF \mAll{\Gamma \of S_{\tmr}} \bc{\Gamma}{\typingLh{b}{a}} \implies \bc{\Gamma}{\typingLh{a}{\Prp}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_term}\,b\,a}
+  \end{align*}
+\end{lemma}
+\begin{proof}
+  The first is by induction on $A \of \bc{\Gamma}{\TyF}$ (recall that this was not possible in Abella), the others are by induction on the first premise.
+  The proofs are quite technical but mostly straightforward.
+  The construction of $p^{\leftarrow}_{\tmr}$, needs \SysL propagation.
+  Interestingly, neither propagation in F nor the degeneracy of $\Typ$ are needed, as unification automatically handles the respective occurrences.
+\end{proof}
+
+\begin{wrapfigure}{r}{0.25\textwidth}
+  \centering
+  \begin{tikzpicture}
+    \node (a1) at (0,3.5) [rectangle,draw] {$S_{\tyr}$};
+    \node (a2) at (1.5,2.5) [rectangle,draw] {$S_{\tmr}$};
+    \node (a3) at (0,2) [rectangle,draw,dashed] {$S_{\tyr W}^{\rightarrow}$};
+    \node (a4) at (0,1) [rectangle,draw,dashed] {$S_{\tyr W}^{\leftarrow}$};
+    \node (a5) at (1.5,0) [rectangle,draw,dashed] {$S_{\tmr W}$};
+    \draw (a1) -- (a2);
+    \draw (a2) -- (a5);
+    \draw (a1) -- (a3);
+    \draw (a3) -- (a4);
+    \draw (a4) -- (a5);
+  \end{tikzpicture}
+  \vspace{-0.5em}
+  \caption{Hierarchy of Context Schemas}
+  \label{fig:ctxschema}
+\end{wrapfigure}
+
+The most interesting part of the Beluga development appears to be the particularly rich structure and interdependencies of the various schemas.
+We would like to point out in particular, that while the schemas $S_{\tyr}$ and $S_{\tmr}$ could likely be inferred automatically by inspecting the involved type families, this does not appear to work for those schemas with auxiliary well-typedness assumptions (subscript $W$).
+This contradicts the common belief that schema inference should in principle always be possible.
+
+The schemas can be further arranged in a hierarchy (Figure~\ref{fig:ctxschema}).
+A context satisfying $S_{\tyr}$ can always be weakened to one sitting lower in the hierarchy.
+The hierarchy also induces a strengthening relationship, going upwards, as long as the subordination order of judgements under said contexts is respected.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -857,7 +985,7 @@ We would like to continue into three largely orthogonal directions.
 
 First, we would like to widen the scope of the benchmark itself and include a correspondence result for the computational behaviour of the two systems.
 Equi-reducebility is at least as interesting a problem as equi-typability, and likely to pose its own set of challenges.
-One of these is the fact that, prior to typing, \SysL has a lot more $\beta$-redices than its stratified counterpart, hence some form of typing information will have to be tracked along with the relational assumptions.
+One of these is the fact that, prior to typing, \SysL has a lot more $\beta$-redices than its two-sorted counterpart, hence some form of typing information will have to be tracked along with the relational assumptions.
 This will lead to new forms of contexts that are likely comparable in complexity to those discussed here.
 
 Second, we would like to test further frameworks against our benchmark.
@@ -870,11 +998,121 @@ It would also be interesting to see how a system like Twelf~\cite{DBLP:conf/cade
 
 Finally, we consider scaling the challenge both down to the simply typed $\lambda$-calculus, as well as up to F$_\omega$, to obtain a better understanding of where exactly certain complications originate from.
 
+\appendix
+
+\section{De~Bruijn Definitions}
+\label{apdx:db}
+
+TODO
+
+\section{HOAS Definitions}
+\label{apdx:hoas}
+
+We give a brief overview of the definitions as they were used in the Abella and Beluga proofs.
+The HOAS specifications are identical for both systems.
+The two-sorted variant is given on the left, the PTS is on the right.
+We also include the types of the judgements.
+
+\newcommand{\ET}{\ensuremath{\_}}
+\begin{align*}
+  \TyF, \TmF &\OF \Type & \TmL &\OF \Type\\
+  \cline{1-4}
+  & & \Prp, \Typ &\OF \TmL \\
+  \ET \to \ET &\OF \TyF \to \TyF \to \TyF & \Prod \ET \ET &\OF \TmL \to (\TmL \to \TmL) \to \TmL\\
+  \All \ET &\OF (\TyF \to \TyF) \to \TyF & &\\
+  \ET\,\ET &\OF \TmF \to \TmF \to \TmF & \ET\,\ET &\OF \TmL \to \TmL \to \TmL\\
+  \ET\,\ET &\OF \TmF \to \TyF \to \TmF & &\\
+  \Lam \ET \ET &\OF \TyF \to (\TmF \to \TmF) \to \TmF & \Lam \ET \ET &\OF \TmL \to (\TmL \to \TmL) \to \TmL\\
+  \TyLam \ET &\OF (\TyF \to \TmF) \to \TmF & &\\
+  \cline{1-4}
+  \istyFh \ET &\OF \TyF \to \Prop & \sortLh \ET &\OF \TmL \to \Prop\\
+  \typingFh \ET \ET &\OF \TmF \to \TyF \to \Prop & \typingLh \ET \ET &\OF \TmL \to \TmL \to \Prop
+\end{align*}
+Note that Abella distinguishes the system sorts $\Prop$ and $\Type$.
+Inductive derivations are only exposed for the former.
+In Beluga on the other hand, both are considered as basic LF types.
+
+The four judgements/predicates are defined inductively, both in Abella and Beluga.
+The two PTS definitions are identical in both frameworks.
+The bold operators $\lpImp$ and $\lpPi \ET \ET$  are used to construct hypothetical and locally quantified premises, respectively.
+Meta level application is denoted by $\lpApp \ET \ET$.
+\begin{mathpar}
+  \mprset{andskip=1.5em,sep=1.5em}
+  \inferrule*{~}{\sortLh{\Typ}} \and
+  \inferrule*{~}{\sortLh{\Prp}} \and
+  \inferrule*{~}{\typingLh{\Prp}{\Typ}} \and
+  \inferrule*{\typingLh{a}{\Prod{c}{d}} \\ \typingLh{b}{c}}{\typingLh{a\,b}{\lpApp{d}{b}}} \and
+  \inferrule*{\typingLh{a}{u} \\ \sortLh{u} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\Prp}}{\typingLh{\Prod{a}{b}}{\Prp}} \and
+  \inferrule*{\typingLh{a}{u} \\ \sortLh{u} \\  \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{c}{x}}{\Prp} \\ \lpPi x \typingLh{x}{a} \lpImp \typingLh{\lpApp{b}{x}}{\lpApp{c}{x}}}{\typingLh{\Lam{a}{b}}{\Prod{a}{c}}}
+\end{mathpar}
+
+With respect to the two-sorted system there is a difference between the Abella and the Beluga definitions, due to the differences in the respective meta theories.
+The Abella version is straightforward:
+\begin{mathpar}
+  \mprset{andskip=2em,sep=2em}
+  \inferrule*{\istyFh{A} \\ \istyFh{B}}{\istyFh{(A \to B)}} \and
+  \inferrule*{\lpPi x \istyFh{x} \lpImp \istyFh{\lpApp{A}{x}}}{\istyFh{(\All{A})}} \and
+  \inferrule*{\typingFh{s}{\All{B}} \\ \istyFh{A}}{\typingFh{s\,A}{\lpApp{B}{A}}} \and
+  \inferrule*{\typingFh{s}{A \to B} \\ \typingFh{t}{A}}{\typingFh{s\,t}{B}}\\
+  \inferrule*{\lpPi x \istyFh{x} \lpImp \typingFh{\lpApp{s}{x}}{\lpApp{A}{x}}}{\typingFh{\TyLam{s}}{\All{A}}} \and
+  \inferrule*{\istyFh{A} \\ \lpPi x \typingFh{x}{A} \lpImp \typingFh{\lpApp{s}{x}}{B}}{\typingFh{\Lam A s}{A \to B}}
+\end{mathpar}
+In Beluga, on the other hand, contexts are first class, and thus well-scopedness of expressions is inherent.
+Thus the type formation judgement of the two-sorted system vanishes completely, leaving the following definition of typing in the two-sorted case:
+\begin{mathpar}
+  \mprset{andskip=1.5em,sep=2em}
+  \inferrule*{\typingFh{s}{\All{B}}}{\typingFh{s\,A}{\lpApp{B}{A}}} \and
+  \inferrule*{\typingFh{s}{A \to B} \\ \typingFh{t}{A}}{\typingFh{s\,t}{B}}\and
+  \inferrule*{\lpPi x \typingFh{\lpApp{s}{x}}{\lpApp{A}{x}}}{\typingFh{\TyLam{s}}{\All{A}}} \and
+  \inferrule*{\lpPi x \typingFh{x}{A} \lpImp \typingFh{\lpApp{s}{x}}{B}}{\typingFh{\Lam A s}{A \to B}}
+\end{mathpar}
+
+The two relations $\tyr$ and $\tmr$ that establish syntactic correspondence between the two variants are identical in Beluga and Abella.
+They are again defined as inductive predicates:
+\begin{align*}
+  \ET \tyr \ET &\OF \TyF \to \TmL \to \Prop & \ET \tmr \ET &\OF \TmF \to \TmL \to \Prop
+\end{align*}
+\begin{mathpar}
+  \mprset{andskip=1.5em,sep=1.5em}
+  \inferrule*{A \tyr a \\ \lpPi {x} B \tyr \lpApp{b}{x}}{A \to B \tyr \Prod a b} \and
+  \inferrule*{\lpPi{x y} x \tyr y \lpImp \lpApp{A}{x} \tyr \lpApp{a}{y}}{\All A \tyr \Prod \Prp a} \and
+  \inferrule*{s \tmr a \\ t \tmr b}{s\,t \tmr a\,b} \and
+  \inferrule*{A \tyr a \\ \lpPi{x y} x \tmr y \lpImp \lpApp{s}{x} \tmr \lpApp{b}{y}}{\Lam A s \tmr \Lam a b} \and
+  \inferrule*{\lpPi{x y} x \tyr y \lpImp \lpApp{s}{x} \tmr \lpApp{a}{y}}{\TyLam s \tmr \Lam \Prp a} \and
+  \inferrule*{s \tmr a \\ A \tyr b}{s\,A \tmr a\,b}
+\end{mathpar}
+
+% LF tyrel: ty_f -> tm_l -> type =
+%    | r_arr: tyrel A C
+%           -> ({x:tm_l}tyrel B (S x))
+%           -> tyrel (arr A B) (pi C S)
+%    | r_all: ({x:ty_f}{y:tm_l}tyrel x y -> tyrel (R x) (S y))
+%           -> tyrel (all R) (pi prp S)
+% ;
+
+% LF tmrel: tm_f -> tm_l -> type =
+%    | r_app: tmrel M L
+%           -> tmrel N P
+%           -> tmrel (app M N) (apply L P)
+
+%    | r_lam: tyrel A B
+%           -> ({x:tm_f}{y:tm_l}tmrel x y -> tmrel (R x) (S y))
+%           -> tmrel (lam A R) (func B S)
+
+%    | r_tapp: tmrel M L
+%           -> tyrel A P
+%           -> tmrel (tapp M A) (apply L P)
+
+%    | r_tlam: ({x:ty_f}{y:tm_l}tyrel x y -> tmrel (R x) (S y))
+%           -> tmrel (tlam R) (func prp S)
+% ;
+
+
+
 %%
 %% Bibliography
 %%
 
-% \bibliography{ref-short,bp-extract}
 \bibliography{ref-short}
 
 \end{document}

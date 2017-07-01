@@ -1,0 +1,22 @@
+First of all we would like to thank our reviewers for the detailed feedback and suggestions.
+
+We are well aware that a lot of details are left implicit due to space considerations, while we tried to preserve the most interesting aspects of each formalisation.
+We will certainly incorporate the smaller remarks, like technical errors/omissions, terminology and a brief middle abstraction level comparison of the presented techniques.
+Addressing the larger requests is somewhat tricky though.
+This includes:
+- the addition of certain syntax definitions and Lemma formulations,
+- giving a more detailed comparison of the previous functional correspondence result and the relational setup in the present paper,
+- reminding the reader of the basic principles of de Bruijn syntax with parallel substitutions,
+In the event that the PC decides to not count references towards the final page limit, we could easily add some of those back in (as they were cut out earlier to meet the page limit), but otherwise we cannot promise much, as the addition of any of these would likely lead to a loss of information elsewhere.
+
+With respect to the choice of provers we would like to point out that we did not so much select the systems Coq, Abella and Beluga, but the techniques of de Bruijn syntax, HOAS with nominals and HOAS in contextual modal type theory.
+This explains why a) the choice of provers is not as strongly motivated and b) the future work section primarily mentions other techniques, like locally nameless syntax or the HYBRID framework, as further targets for the comparison.
+Note that a study of the HYBRID approach could in fact be executed both in Coq and Isabelle, as the requisite library exists for both provers.
+We believe that the choice of representation of object languages, their type systems and contextual structures has a much larger impact on reasoning about them then the actual background prover (though it is admittedly sometimes difficult to separate the two).
+Even more relevant though, once the choice of representation is made, is the use of those techniques that work well for the selected representation, like the context morphism lemmas for de Bruijn syntax, or the correct context inversion principles in the nominal setting.
+Our selection of emphases throughout Sections 3 to 5 was guided by this principle, but we will try to bring this point across clearer.
+
+From our experience, there appears to be no "silver bullet" solution to problems involving binding syntax and contextual information.
+Hence the best we can give to a reader entering the field is an overview of the available techniques, paired with their merits, drawbacks, caveats and associated tricks and techniques.
+While desirable, an exhaustive survey of this nature would certainly exceed the scope of a conference publication.
+Still we hope that our work can be seen as a step in the right direction.
