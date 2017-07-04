@@ -158,12 +158,15 @@
 
 % Substitutions
 \newcommand{\subst}[1]{\hphantom{|}\!\![{#1}]}
-\newcommand{\scons}{\mathbin{\hspace{0.05em}\cdot\hspace{0.05em}}}
-\newcommand{\scomp}{\mathbin{\hspace{-0.1em}{\circ}\hspace{-0.1em}}}
+%\newcommand{\scons}{\mathbin{\hspace{0.05em}\cdot\hspace{0.05em}}}
+\newcommand{\scons}{\mathbin{\cdot}}
+% \newcommand{\scomp}{\mathbin{\hspace{-0.1em}{\circ}\hspace{-0.1em}}}
+\newcommand{\scomp}{\mathbin{\circ}}
 \newcommand{\hscomp}{\mathbin{\hspace{-0.1em}{\hat\circ}\hspace{-0.1em}}}
 \newcommand{\id}{\mathsf{id}}
 \newcommand{\up}{{\Uparrow}}
-\newcommand{\shift}{\ensuremath{\hspace{0.1em}\mathsf{+}\hspace{0.08em}\!1}}
+% \newcommand{\shift}{\ensuremath{\hspace{0.1em}\mathsf{+}\hspace{0.08em}\!1}}
+\newcommand{\shift}{\ensuremath{\uparrow}}
 \newcommand{\ushift}{\ensuremath{\hspace{0.1em}\textsf{--}\hspace{0.1em}\!1}}
 
 % Facts without proof
@@ -221,7 +224,7 @@
   \begin{center}
     \small
     \begin{align*}
-      \Aboxed{\TmL} & a, b, c, d &\bnfdef \Prp \mid \Typ \mid x \mid a\,b \mid \Lam{x \of a} b \mid \Prod{x \of a} b & \qquad\qquad\Aboxed{\CtxL} & \Psi &\bnfdef \emptyctx \mid \Psi, x \of a
+      \Aboxed{\TmL} & a, b, c, d, u &\bnfdef \Prp \mid \Typ \mid x \mid a\,b \mid \Lam{x \of a} b \mid \Prod{x \of a} b & \qquad\qquad\Aboxed{\CtxL} & \Psi &\bnfdef \emptyctx \mid \Psi, x \of a
     \end{align*}
     \begin{mathpar}
       \mprset{sep=1.5em}
@@ -250,13 +253,14 @@ System~F in its original form is due to Girard~\cite{Girard1972, Girard1989}, wh
 It was also independently discovered by Reynolds~\cite{DBLP:conf/programm/Reynolds74} as the polymorphic $\lambda$-calculus.
 For the purpose of this paper we consider two presentations that differ sufficiently to demonstrate the various complications.
 The first, called F and shown in Figure~\ref{fig:sys-f}, is the common two-sorted presentation, as for example given by Harper~\cite{Harper2013}.
-The second, given in Figure~\ref{fig:sys-l}, is the pure type system (PTS) \SysL, which appears as a corner in Barendregt's $\lambda$-cube~\cite{DBLP:journals/jfp/Barendregt91}.
+The second, given in Figure~\ref{fig:sys-l}, is the single-sorted pure type system (PTS) \SysL, which appears as a corner in Barendregt's $\lambda$-cube~\cite{DBLP:journals/jfp/Barendregt91}.
 
 In~\cite{Geuvers1993}, Geuvers gives a proof sketch that valid typing judgements can be translated between these two presentations.
 In~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} we then gave the first proof, machine-checked in Coq, of the full reduction result.
+It relied on syntactic translation functions and the construction of an intermediate, F-like type system for the PTS syntax.
 The proof presented here is a lot simpler for a number of reasons.
-We use relations on the two syntactic languages rather than translation functions, so we do not have to concern ourselves with cancellation laws.
-We can further establish the correspondence directly, which completely bypasses the need for an intermediate, F-like type system for the PTS syntax.
+We use relations on the two syntactic languages rather than translation functions, so we do not have to concern ourselves with cancellation laws to establish the reductions.
+We can further establish the correspondence directly, which completely bypasses the need for the intermediate type system.
 
 \begin{figure}[t]
   \begin{center}
@@ -288,9 +292,19 @@ To make the situation fully explicit: our contexts are dependent sequences of de
 
 In the following we present three formalisations.
 They all follow the same basic proof structure, outlined in Section~\ref{sec:equi}, but they each deal with the complexities of contextual information and variable binding in different ways.
-In Sections.~\ref{sec:coq},~\ref{sec:abella}~and~\ref{sec:beluga} we discuss in detail how this is managed in Coq~\cite{CoqWebsite}, Abella~\cite{AbellaTutorial} and respectively Beluga~\cite{Pientka:CADE15}.
-The Coq proof employs pure de Bruijn syntax and parallel substitutions.
+In Sections~\ref{sec:coq},~\ref{sec:abella}~and~\ref{sec:beluga} we discuss in detail how this is managed, in order of seniority, in Coq~\cite{CoqWebsite}, Abella~\cite{AbellaTutorial} and respectively Beluga~\cite{Pientka:CADE15}.
+
+The Coq proof assistant, oldest among the three, is a general purpose theorem prover based on constructive mathematics with no particular built-in support for meta-theoretical reasoning.
+Since all required structures have to be handled manually, library support is essential.
+In our case we use the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15} that allows us to elegantly work with pure de Bruijn syntax and parallel substitutions.
+
 Meanwhile, both Abella and Beluga allow us to work with higher-order abstract syntax (HOAS), albeit in two rather different background logics.
+Both systems are designed explicitly with meta-theoretical reasoning in mind, with suitable support built into the foundation of each system.
+The core design of Abella is based around proof search and relational specifications.
+It predates the POPLmark challenge~\cite{poplmark}, which shaped the previous decade of formalised meta theory.
+Meanwhile Beluga, youngest among the three, was able to incorporate the insights obtained from POPLmark into its design right from the start.
+This led to the notion of contextual objects and first class syntactic contexts.
+Our three developments demonstrate how the various system designs affect a given formalisation effort.
 
 While the comparison of proofs from different systems in terms of code lines is only marginally meaningful, we were surprised to find that all three developments each take approximately 500 loc, with Beluga slightly on the shorter side and Coq somewhat on the longer.
 This, however, only covers establishing the correspondence itself.
@@ -333,6 +347,7 @@ To obtain the desired equivalence results, we have to demonstrate that these rel
 We can now formulate, and easily prove, the following equivalences:
 
 \begin{theorem}[Reductions from F to \SysL]
+  \label{thm:red1}
   \begin{align*}
     \istyF{}{A} &\iff \mExu{a} {} \vdash A \tyr a \mAnd \typingL{}{a}{\Prp}\\
     \typingF{}{s}{A} &\iff \mExu{b a} {} \vdash s \tmr b \mAnd {} \vdash A \tyr a \mAnd \typingL{}{b}{a} \mAnd \typingL{}{a}{\Prp}
@@ -346,6 +361,7 @@ We can now formulate, and easily prove, the following equivalences:
 \end{proof}
 
 \begin{theorem}[Reductions from \SysL to F]
+  \label{thm:red2}
   \begin{align*}
     \typingL{}{a}{\Prp} &\iff \mExu{A} {} \vdash A \tyr a \mAnd \istyF{}{A}\\
     \typingL{}{b}{a} \mAnd \typingL{}{a}{\Prp} &\iff \mExu{s A} {} \vdash s \tmr b \mAnd {} \vdash A \tyr a \mAnd \typingF{}{s}{A}
@@ -356,7 +372,8 @@ We can now formulate, and easily prove, the following equivalences:
   Dual to the previous result.
 \end{proof}
 
-For the remainder of the paper, we focus on how F, \SysL and the two relations $\tyr$ and $\tmr$ are represented in our three proof systems, and how the various properties of the relations are obtained.
+For the remainder of the paper, we focus on how F, \SysL and the two relations $\tyr$ and $\tmr$ are represented in our three proof systems, and how the six main properties of the relations are obtained.
+Establishing Theorems~\ref{thm:red1}~and~\ref{thm:red2} is in each case routine and hence not presented in detail.
 
 \section{Coq}
 \label{sec:coq}
@@ -421,6 +438,7 @@ The existence of computable normal forms was demonstrated in~\cite{SchaeferEtAl:
 Context morphism lemmas (CML) are a useful proof device to reason about judgements over pure de Bruijn syntax.
 In the following we will only focus on those aspects that have an immediate impact on our present proof.
 For an in-depth discussion of the interaction of pure de Bruijn syntax, parallel substitutions and CMLs we refer to~\cite{deBruijn1972, SchaeferEtAl:2009:Completeness, DBLP:conf/itp/SchaferTS15, abadi1991, GoguenMcKinna1997, KaiserEtAl:2017:sysf_pts_equiv_coq}.
+A brief overview is also given in Appendix~\ref{apdx:db}.
 
 In the definition of F in Figure~\ref{fig:sys-f-coq}, observe how the type variable context $\Delta$ degenerates to a plain natural number $N$.
 It is taken as an exclusive upper bound to the admissible type variable indices, hence $N = 0$ represents the empty context.
@@ -464,7 +482,7 @@ Meanwhile the $\subst{\_ \scons \sigma \scomp \shift}$ part ensures that every i
 In our correspondence proof we traverse binders \emph{almost} in lockstep.
 For the simple cases where we have a binder on both sides of the relation, and moreover, the bound variables actually correspond according to the information tracked in $R$, we define, analogously to the binder traversal for substitutions:
 \begin{align*}
-  \Rext{R} \eqdef (0,0) \mathop{::} \mathsf{bimap}\,(\shift)\,(\shift)\,R
+  \Rext{R} \eqdef (0,0) \mathop{::} \mathsf{bimap}\,\shift\,\,\shift\,R
 \end{align*}
 where $\mathsf{bimap}\,f\,g\,R$ simply applies $f$ to all left projections of $R$ and $g$ to all right projections.
 
@@ -472,7 +490,7 @@ The other possible scenario has a binder on the \SysL side that has no counterpa
 As a consequence of this spurious binding, the \SysL indices in $R$ have to be shifted relative to their F counterparts.
 This one-sided index adjustment is obtained with
 \begin{align*}
-  \Rshift{R} \eqdef \mathsf{bimap}\,\id\,(\shift)\,R
+  \Rshift{R} \eqdef \mathsf{bimap}\,\,\id\,\shift\,R
 \end{align*}
 
 \begin{fact}
@@ -688,15 +706,12 @@ Take for example the term constructor $\mathsf{lam} \OF (\mathsf{tm} \to \mathsf
 The $s$ in $\mathsf{lam}\,s$ is a function of the meta level.
 Substitution at the object level is implemented as application at the meta level, which we denote by $\lpApp{s}{t}$ to distinguish it from the various object level applications.
 
-Note that HOAS is not inductive, due to the negative occurrences of expression types.
-It also relies on intensional function spaces at the meta level in order to structurally analyse functions.
-Both aspects prevent Coq from natively supporting HOAS.
-
-Abella is a system designed around a two-level logic approach.
+Reasoning about HOAS encodings inductively is somewhat complicated, as terms do not remain closed and escape into the host theory.
+To get around this, Abella is designed around the so-called two-level logic approach.
 The lower \emph{specification level}, essentially verbatim $\lambda$Prolog, is used to encode the object languages and their associated judgements.
-We then reason about these encodings at the \emph{meta level}, using the logic $\mathcal{G}$, which is the intuitionistic predicative fragment of Church's simple type theory, extended with natural induction, (co)inductive predicates and nominal quantification ($\nabla x . \ms s$).
+One then reasons about these encodings at the \emph{meta level}, using the logic $\mathcal{G}$, which is the intuitionistic predicative fragment of Church's simple type theory, extended with natural induction, (co)inductive predicates and nominal quantification ($\nabla x . \ms s$).
 The axioms of $\mathcal{G}$ ensure that a $\nabla$-quantified identifier is fresh for everything bound above it.
-We are going to use these freshness guarantees to faithfully represent object level variables.
+The faithful representation of object level variables relies on these freshness guarantees.
 
 The two levels are connected with a special inductive predicate that embeds the derivation of a $\lambda$Prolog judgement $J$ from hypotheses $L = I_0,\ldots,I_n$ into $\mathcal{G}$, written $\aj{L}{J}$, or simply $\aje{J}$ in the absence of assumptions.
 Note that $\lambda$Prolog supports hypothetical ($J_1 \lpImp J_2$) and locally quantified ($\lpPi{x} J\subst{x}$) premises, which the embedding treats as follows:
@@ -718,7 +733,7 @@ This process is often referred to as \emph{mobility of binders}: object level bi
 Note that Fact~\ref{fac:ab-cut-inst} provides substitutivity for the various judgements of our object languages.
 It is also worth noting that only the judgements, but not the specification level types like~$\TmL$ and $\TyF$, are embedded, so we cannot induct directly on our syntax definitions.
 
-At this point it should be straightforward to understand the HOAS representation of our two systems given in Figures~\ref{fig:sys-f-abella}~and~\ref{fig:sys-l-abella}.
+At this point it should be straightforward to understand the HOAS representation of our two systems given in Figures~\ref{fig:sys-f-abella}~and~\ref{fig:sys-l-abella}.\footnote{The HOAS language definitions are as one would expect. See also Appendix~\ref{apdx:hoas} for reference.}
 For F, the judgements $\istyFh{A}$ and $\typingFh{s}{A}$ encode type formation and respectively typing.
 For \SysL, the judgement $\sortLh{u}$ is used to recognise universes, while $\typingLh{a}{b}$ represents PTS typing.
 
@@ -830,6 +845,8 @@ The biggest difference, however, lies with Beluga's treatment of object level va
 In particular, at the outermost level, there is no such thing as a free object variable.
 This is in stark contrast to Coq's dangling de Bruijn indices and Abella's global nominal constants.
 In Beluga we instead deal with \emph{contextual objects}, written $\bc{\Gamma}{K}$, that is objects $K$ (like types, terms, typing derivations) paired with contexts $\Gamma$ in which they are meaningful~\cite{Nanevski:ICML05,Pientka:POPL08}.
+One of the main advantages of contextual objects is, that they remain closed under inductive reasoning.
+Hence they constitute an alternative to Abella's two-level logical embedding.
 
 As an example, consider the function type $X \to X$ where $X$ is a free type variable.
 This function type is ill-formed under the empty type variable context $\Delta = \emptyset$.
@@ -838,7 +855,7 @@ We can then show that assuming well-formedness under the empty context entails a
 Meanwhile in Beluga, we observe that the contextual object $\bc{\emptyctx}{x \to x}$ is not even syntactically well-formed, since $x \notin \emptyctx$.
 An immediate consequence of this is that the type formation judgement for F, which ensures that the context is covering all free type variables, becomes redundant.
 Hence Beluga's definition of F is obtained from Figure~\ref{fig:sys-f-abella} by removing all references to type formation.
-The definition of \SysL is identical to the one for Abella (Figure~\ref{fig:sys-l-abella}).
+The definition of \SysL is identical to the one for Abella (Figure~\ref{fig:sys-l-abella}).\footnote{For a concrete presentation of the resulting definitions, see Appendix~\ref{apdx:hoas}.}
 
 Recall that context management was completely manual in Coq.
 Each judgement required well-chosen generalisations and custom invariants to accurately track contextual information.
@@ -920,10 +937,10 @@ The required context schemas are quite involved:
 \begin{lemma}
   There exist total recursive functions $p^{\rightarrow}_{\tyr},p^{\leftarrow}_{\tyr},p^{\rightarrow}_{\tmr}$ and $p^{\leftarrow}_{\tmr}$, satisfying
   \begin{align*}
-    p^{\rightarrow}_{\tyr} &\OF  \mAll{\Gamma \of S_{\tyr}^{\rightarrow}} \mAll{A \of \bc{\Gamma}{\TyF}} \bc{\Gamma}{\mathsf{exists\_rel\_prop}\,A}\\
-    p^{\leftarrow}_{\tyr} &\OF \mAll{\Gamma \of S_{\tyr}^{\leftarrow}} \bc{\Gamma}{\typingLh{a}{\Prp}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_type}\,a}\\
-    p^{\rightarrow}_{\tmr} &\OF \mAll{\Gamma \of S_{\tmr}} \bc{\Gamma}{\typingFh{s}{A}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_proof}\,s\,A}\\
-    p^{\leftarrow}_{\tmr} &\OF \mAll{\Gamma \of S_{\tmr}} \bc{\Gamma}{\typingLh{b}{a}} \implies \bc{\Gamma}{\typingLh{a}{\Prp}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_term}\,b\,a}
+    p^{\rightarrow}_{\tyr} &\OF  \mAll{\Gamma \of S_{\tyr W}^{\rightarrow}} \mAll{A \of \bc{\Gamma}{\TyF}} \bc{\Gamma}{\mathsf{exists\_rel\_prop}\,A}\\
+    p^{\leftarrow}_{\tyr} &\OF \mAll{\Gamma \of S_{\tyr W}^{\leftarrow}} \bc{\Gamma}{\typingLh{a}{\Prp}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_type}\,a}\\
+    p^{\rightarrow}_{\tmr} &\OF \mAll{\Gamma \of S_{\tmr W}} \bc{\Gamma}{\typingFh{s}{A}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_proof}\,s\,A}\\
+    p^{\leftarrow}_{\tmr} &\OF \mAll{\Gamma \of S_{\tmr W}} \bc{\Gamma}{\typingLh{b}{a}} \implies \bc{\Gamma}{\typingLh{a}{\Prp}} \implies \bc{\Gamma}{\mathsf{exists\_rel\_term}\,b\,a}
   \end{align*}
 \end{lemma}
 \begin{proof}
@@ -960,6 +977,35 @@ The schemas can be further arranged in a hierarchy (Figure~\ref{fig:ctxschema}).
 A context satisfying $S_{\tyr}$ can always be weakened to one sitting lower in the hierarchy.
 The hierarchy also induces a strengthening relationship, going upwards, as long as the subordination order of judgements under said contexts is respected.
 
+\section{A Note on Adequacy}
+\label{sec:adequacy}
+
+Any form of formalised reasoning raises the question of the faithfulness of the formal representation.
+Do the formal definitions correspond to the intuitively understood mathematical objects that we want to reason about?
+For the special case of syntactic systems and their meta theory, this particular property is called \emph{adequacy} and expresses that the on-paper syntax and the formal encoding are in one-to-one correspondence.
+It should be clear that adequacy has to be argued outside the proof system in question, as it relates a formal encoding to an intuitive concept.
+
+We have just covered three formalisations that all encode syntax, so let us consider each of them in the light of adequacy.
+
+In Coq we have a pure de Bruijn setup, a first-order encoding.
+Since all structures are defined and manipulated explicitly, and first-order encodings are generally well understood, there is not much doubt in the faithfulness of the representation.
+In particular, the main feature of our host system that is used heavily is the notion of an inductive type, and it is commonly agreed that the grammar of a language is an inductive structure.
+
+For the higher-order encodings used in Abella and Beluga the situation is quite different, as both are intertwined with their respective host systems.
+The biggest issue here are the object level function spaces which are directly obtained form the host system function spaces.
+The same holds for substitution which is also borrowed from the host environmnet.
+
+For basic HOAS these issues have been extensively discussed since at least the 90s and it is widely assumed that the resulting adequacy proofs are acceptable.
+This pertains to our syntax definitions as well.
+When it comes to the judgements though, it gets slightly more interesting, as both in Abella and Beluga, we use features that go beyond basic HOAS, namely subordination, which allows us to ignore certain cases in the proofs.
+So why do we trust the results here?
+
+Mostly because they do not break under close scrutiny.
+That is, we managed to prove several expected properties for the given definitions.
+More importantly each of the proofs connects two variants of presumably the same intuitive mathematical entity.
+Last, and probably most relevant, is the fact that the same large scale proof design that worked for the de Bruijn encoding could be replayed for both HOAS representations.
+In combination this should suggest adequacy until evidence to the contrary is provided.
+
 \section{Conclusion}
 \label{sec:conclusion}
 
@@ -980,6 +1026,16 @@ It tests in particular, how well multiple type systems with binding constructs c
 We hence propose it as a complement to the POPLmark challenge~\cite{poplmark} on the one hand, which solely tests how well a system can reason about a single type system, and the ORBI benchmarks~\cite{Felty:ITP10,Felty:orbi-survey} which cover small-scale contextual reasoning.
 It is our belief that such a benchmark could be very useful to those who seek to develop or improve frameworks for reasoning about type systems and similar syntactic systems with variable binding and complex contextual information.
 
+We have come to the conclusion that, as so often, there appears to be no ``silver bullet'' solution.
+There exist various approaches and they all have their merits and drawbacks.
+The question is not so much about whether de~Bruijn or HOAS is better, but what techniques pair well with each approach.
+Take for example the parallel substitutions and the notion of context morphism lemmas that elegantly complement de~Bruijn syntax.
+Meanwhile in Abella we had the two-level logic approach and the crucial part was the definition of suitable inversion principles.
+Finally we had Beluga and its first class contexts where the various context schemas played the essential role.
+There are of course other approaches (see below), but a comprehensive survey, while desirable, would certainly exceed the scope of this format.
+We hope that our work constitutes a small step towards such a catalogue of techniques.
+We also suggest to everyone who works with formalisations of binding syntax to seriously consider at least one alternative approach as the process can be quite enlightening.
+
 \noindent{\bf Future Work.}
 We would like to continue into three largely orthogonal directions.
 
@@ -994,6 +1050,7 @@ It provides an abstraction layer that sits somewhere between pure de Bruijn and 
 Our benchmark could test the stability of this layer.
 Another is the HYBRID framework~\cite{DBLP:journals/jar/FeltyM12} that aims to bring HOAS to Coq.
 At present however, it is neither equipped with Abella's $\nabla$ nor Beluga's contextual types, so it remains to be seen if it can handle our challenge.
+Another reason why the HYBRID approach is interesting, if it should turn out to be feasible, is the fact that it also exists as an Isabelle library and hence would allow an extension of the benchmark in that direction.
 It would also be interesting to see how a system like Twelf~\cite{DBLP:conf/cade/PfenningS99} would handle the rich context structures.
 
 Finally, we consider scaling the challenge both down to the simply typed $\lambda$-calculus, as well as up to F$_\omega$, to obtain a better understanding of where exactly certain complications originate from.
@@ -1003,7 +1060,49 @@ Finally, we consider scaling the challenge both down to the simply typed $\lambd
 \section{De~Bruijn Definitions}
 \label{apdx:db}
 
-TODO
+We recap the core concepts of de Bruijn with parallel substitutions.
+The main feature of de Bruijn syntax is the absence of variable names, yielding concrete canonical representations for the on-paper implicitly assumed $\alpha$-equivalence classes of syntactic expressions.
+Instead of using names, variables are represented as numerical indices, where $n$ references the $n$-th enclosing binder of the corresponding scope.
+We illustrate the concepts using the two-sorted variant of System~F that is discussed in the main text:
+\begin{align*}
+  A, B &\bnfdef x_\ty \mid A \to B \mid \All A & s, t &\bnfdef x_\tm \mid s\,t \mid \Lam A s \mid s\,A \mid \TyLam s & &x \OF \Nat
+\end{align*}
+Note that the $A$ in $\Lam A s$ is the type of the bound term variable, not its name.
+Dangling references correspond to free variables.
+They are taken as indices into an ambient context which is normally represented as a list of the information attached to each variable.
+A standard typing context $\Gamma$ is represented as a simple list of types.
+
+To understand the instantiation of terms or types with parallel substitutions, let us first recall a few primitives of the $\sigma$-calculus (see~\cite{abadi1991} for details):
+\begin{align*}
+  (M \scons \sigma)\,0 &\eqdef M & \shift\,x&\eqdef (x + 1)\\
+  (M \scons \sigma)\,(x + 1) &\eqdef \sigma\,x & \id &\eqdef 0 \scons \shift
+\end{align*}
+Parallel substitutions $\sigma \OF \Nat \to \mathcal{T}$, where $\mathcal{T}$ is some syntactic sort, can be seen as streams $M_0, M_1, \ldots $, with $M_i \OF \mathcal{T}$.
+This motivates the notion of the \emph{cons} operation $M \scons \sigma$, which maps the index 0 to $M$, and all other indices $x + 1$ to $\sigma\,x$.
+The \emph{shift} operation simply raises all indices by one, and the identity substitution $\id$ is a derived notion.
+The concrete type of substitutions and a corresponding instance of this framework depends on the syntactic sort for which a notion of substitution is defined.
+
+Let us first consider the types of our example.
+The instantiation of a type $A$ with a parallel substitution $\sigma$, written $A\subst\sigma$, is defined mutually recursive with the forward composition of parallel substitutions.
+\begin{align*}
+  x_\ty\subst\sigma &= \sigma\,x_\ty & (\sigma_1 \scomp \sigma_2)\,x_\ty &= (\sigma_1\,x_\ty)\subst{\sigma_2}\\
+  (A\to B)\subst\sigma &= A\subst\sigma \to B\subst\sigma & &\\
+  (\All A)\subst\sigma &= \All A\subst{\up\sigma} & \text{with } \up\sigma&= 0_\ty \scons \sigma \scomp \shift
+\end{align*}
+For the terms we actually require a vector of two parallel substitutions, $\langle\sigma,\tau\rangle$, since both type and term variables can occur in a given term:
+\begin{align*}
+  x_\tm\subst{\sigma,\tau} &= \tau\,x_\tm & (\sigma' \scomp \langle\sigma,\tau\rangle)\,x_\tm &= (\sigma'\,x_\tm)\subst{\sigma,\tau}\\
+  (s\,t)\subst{\sigma,\tau} &= s\subst{\sigma,\tau}\,t\subst{\sigma,\tau} & &\\
+  (\Lam A s)\subst{\sigma,\tau} &= \Lam {A\subst\sigma} {s\subst{\up^{\tm}\langle\sigma,\tau\rangle}} & \text{with } \up^{\tm}\langle\sigma,\tau\rangle &= \langle\sigma,0_\tm\scons\tau\scomp{\langle\id,\shift\rangle}\rangle\\
+  (s\,A)\subst{\sigma,\tau} &= s\subst{\sigma,\tau}\,A\subst{\sigma} & &\\
+  (\TyLam s)\subst{\sigma,\tau} &= \TyLam {s\subst{\up^{\ty}\langle\sigma,\tau\rangle}} & \text{with } \up^{\ty}\langle\sigma,\tau\rangle&= \langle 0_\ty \scons \sigma \scomp \shift, \tau \scomp \langle\shift,\id\rangle\rangle
+\end{align*}
+
+The key idea in both cases is that parallel substitutions act on all free variables at once, which leads to an elegant equational theory and subsequently to a good foundation for proof automation.
+A nice example is $\beta$-substitutivity, which can concisely be expressed as $(\Lam A s)\,t\leadsto s\subst{\id,t\scons\id}$.
+
+The Autosubst framework is capable of generating all of this automatically from annotated inductive syntax definitions, together with the respective equational theories.
+It further provides a decision tactic that can solve goals involving substitution expressions, based on the results in~\cite{SchaeferEtAl:2009:Completeness}.
 
 \section{HOAS Definitions}
 \label{apdx:hoas}
@@ -1057,8 +1156,9 @@ The Abella version is straightforward:
   \inferrule*{\lpPi x \istyFh{x} \lpImp \typingFh{\lpApp{s}{x}}{\lpApp{A}{x}}}{\typingFh{\TyLam{s}}{\All{A}}} \and
   \inferrule*{\istyFh{A} \\ \lpPi x \typingFh{x}{A} \lpImp \typingFh{\lpApp{s}{x}}{B}}{\typingFh{\Lam A s}{A \to B}}
 \end{mathpar}
+
 In Beluga, on the other hand, contexts are first class, and thus well-scopedness of expressions is inherent.
-Thus the type formation judgement of the two-sorted system vanishes completely, leaving the following definition of typing in the two-sorted case:
+Hence \emph{the type formation judgement of the two-sorted system vanishes} completely, which reduces the definition of the typing judgement to:
 \begin{mathpar}
   \mprset{andskip=1.5em,sep=2em}
   \inferrule*{\typingFh{s}{\All{B}}}{\typingFh{s\,A}{\lpApp{B}{A}}} \and
@@ -1066,48 +1166,6 @@ Thus the type formation judgement of the two-sorted system vanishes completely, 
   \inferrule*{\lpPi x \typingFh{\lpApp{s}{x}}{\lpApp{A}{x}}}{\typingFh{\TyLam{s}}{\All{A}}} \and
   \inferrule*{\lpPi x \typingFh{x}{A} \lpImp \typingFh{\lpApp{s}{x}}{B}}{\typingFh{\Lam A s}{A \to B}}
 \end{mathpar}
-
-The two relations $\tyr$ and $\tmr$ that establish syntactic correspondence between the two variants are identical in Beluga and Abella.
-They are again defined as inductive predicates:
-\begin{align*}
-  \ET \tyr \ET &\OF \TyF \to \TmL \to \Prop & \ET \tmr \ET &\OF \TmF \to \TmL \to \Prop
-\end{align*}
-\begin{mathpar}
-  \mprset{andskip=1.5em,sep=1.5em}
-  \inferrule*{A \tyr a \\ \lpPi {x} B \tyr \lpApp{b}{x}}{A \to B \tyr \Prod a b} \and
-  \inferrule*{\lpPi{x y} x \tyr y \lpImp \lpApp{A}{x} \tyr \lpApp{a}{y}}{\All A \tyr \Prod \Prp a} \and
-  \inferrule*{s \tmr a \\ t \tmr b}{s\,t \tmr a\,b} \and
-  \inferrule*{A \tyr a \\ \lpPi{x y} x \tmr y \lpImp \lpApp{s}{x} \tmr \lpApp{b}{y}}{\Lam A s \tmr \Lam a b} \and
-  \inferrule*{\lpPi{x y} x \tyr y \lpImp \lpApp{s}{x} \tmr \lpApp{a}{y}}{\TyLam s \tmr \Lam \Prp a} \and
-  \inferrule*{s \tmr a \\ A \tyr b}{s\,A \tmr a\,b}
-\end{mathpar}
-
-% LF tyrel: ty_f -> tm_l -> type =
-%    | r_arr: tyrel A C
-%           -> ({x:tm_l}tyrel B (S x))
-%           -> tyrel (arr A B) (pi C S)
-%    | r_all: ({x:ty_f}{y:tm_l}tyrel x y -> tyrel (R x) (S y))
-%           -> tyrel (all R) (pi prp S)
-% ;
-
-% LF tmrel: tm_f -> tm_l -> type =
-%    | r_app: tmrel M L
-%           -> tmrel N P
-%           -> tmrel (app M N) (apply L P)
-
-%    | r_lam: tyrel A B
-%           -> ({x:tm_f}{y:tm_l}tmrel x y -> tmrel (R x) (S y))
-%           -> tmrel (lam A R) (func B S)
-
-%    | r_tapp: tmrel M L
-%           -> tyrel A P
-%           -> tmrel (tapp M A) (apply L P)
-
-%    | r_tlam: ({x:ty_f}{y:tm_l}tyrel x y -> tmrel (R x) (S y))
-%           -> tmrel (tlam R) (func prp S)
-% ;
-
-
 
 %%
 %% Bibliography
