@@ -57,7 +57,6 @@
 \ArticleNo{21}
 % Editor-only macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
 %%% Content macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % uniform meta space
@@ -158,16 +157,18 @@
 
 % Substitutions
 \newcommand{\subst}[1]{\hphantom{|}\!\![{#1}]}
-%\newcommand{\scons}{\mathbin{\hspace{0.05em}\cdot\hspace{0.05em}}}
 \newcommand{\scons}{\mathbin{\cdot}}
-% \newcommand{\scomp}{\mathbin{\hspace{-0.1em}{\circ}\hspace{-0.1em}}}
 \newcommand{\scomp}{\mathbin{\circ}}
 \newcommand{\hscomp}{\mathbin{\hspace{-0.1em}{\hat\circ}\hspace{-0.1em}}}
 \newcommand{\id}{\mathsf{id}}
 \newcommand{\up}{{\Uparrow}}
-% \newcommand{\shift}{\ensuremath{\hspace{0.1em}\mathsf{+}\hspace{0.08em}\!1}}
 \newcommand{\shift}{\ensuremath{\uparrow}}
 \newcommand{\ushift}{\ensuremath{\hspace{0.1em}\textsf{--}\hspace{0.1em}\!1}}
+
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\bc}[2]{\ensuremath{[\,#1\,\vdash #2\,]}}
+\newcommand{\sof}{\ensuremath{\!:}}
+\newcommand{\ssep}{\ensuremath{,\ms}}
 
 % Facts without proof
 \theoremstyle{plain}
@@ -178,7 +179,6 @@
 \begin{document}
 
 \maketitle
-%\raggedbottom
 
 \begin{abstract}
   We give three formalisations of a proof of the equivalence of the usual, two-sorted presentation of System~F and its single-sorted pure type system (PTS) variant $\lambda2$.
@@ -247,8 +247,6 @@ As long as the systems in question use the same expression syntax, the proofs ar
 If, on the other hand, not only the type systems, but also the syntactic languages differ, then establishing the correct correspondence becomes much more involved.
 The goal of this paper is to showcase various formalisation techniques to deal with the intricacies that arise in such an equivalence proof.
 
-%\enlargethispage{\baselineskip}
-
 System~F in its original form is due to Girard~\cite{Girard1972, Girard1989}, who introduced it in the context of proof theory.
 It was also independently discovered by Reynolds~\cite{DBLP:conf/programm/Reynolds74} as the polymorphic $\lambda$-calculus.
 For the purpose of this paper we consider two presentations that differ sufficiently to demonstrate the various complications.
@@ -312,7 +310,7 @@ The systems require vastly different amounts of code to establish the separate m
 
 \noindent{\bf Contributions of the paper:}
 \begin{enumerate}
-\item We present and compare three different machine checked formalisations of the technically intricate reduction of typability from System~F to the PTS \SysL and vice versa\footnote{The accompanying developments can be found at \url{https://www.ps.uni-saarland.de/extras/fscd17/}}.
+\item We present and compare three different machine checked formalisations of the technically intricate reduction of typability from System~F to the PTS \SysL and vice versa.\footnote{The accompanying developments can be found at \url{https://www.ps.uni-saarland.de/extras/fscd17/}}
 \item We propose that our equivalence proof serves as a benchmark for reasoning about and relating multiple type systems and languages involving variable binding.
   The key aspect of this benchmark is the representation and manipulation of contexts that track multiple kinds of information and exhibit complex dependency structures.
   As such it can be seen as a complement to the benchmarks proposed in~\cite{Felty:ITP10,Felty:orbi-survey} and the POPLmark challenge~\cite{poplmark}.
@@ -329,8 +327,6 @@ For an in-depth discussion of the mismatches between the two systems see~\cite{K
 In essence, the two systems differ in how explicit and readily available certain structural properties are.
 One half of the proof will thus have to reestablish implicit structures, which, as one would expect, is harder than removing it.
 This will lead to a certain asymmetry in proof effort for seemingly symmetrical lemma statements.
-
-%\enlargethispage{\baselineskip}
 
 The basic idea of the proof presented here is to construct two relations $\tyr$ and $\tmr$ that put the types and respectively the terms of the two languages in correspondence (see Figure~\ref{fig:rel}).
 To obtain the desired equivalence results, we have to demonstrate that these relations exhibit the following properties:
@@ -422,8 +418,6 @@ Establishing Theorems~\ref{thm:red1}~and~\ref{thm:red2} is in each case routine 
   \caption{\SysL{} -- de Bruijn encoding in Coq; dependent contexts $\Psi$ are lists of terms.\vspace{-1em}}
   \label{fig:sys-l-coq}
 \end{figure}
-
-%\enlargethispage{\baselineskip}
 
 For the Coq proof we reuse the pure de Bruijn encoding of the two systems and the corresponding meta theories developed in~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq}, with major support from the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15}.
 The language definitions are given in Figures~\ref{fig:sys-f-coq}~and~\ref{fig:sys-l-coq}.
@@ -628,7 +622,7 @@ Here we use:
   \tmctxrelLF{\Gamma}{R}{S}{\Psi} \eqdef \mAll{y a} y \of a \inL \Psi \implies \typingL{\Psi}{a}{\Prp} \implies \mEx{x A} A \tyr^R a \mAnd x\,S\,y \mAnd x \of A \in \Gamma
 \end{align*}
 \begin{fact}
-  \label{fac:inv-tmfl-ext}
+  \label{fac:inv-tmlf-ext}
   The invariant $\tmctxrelLF{\Gamma}{R}{S}{\Psi}$ is preserved under corresponding extensions:
   \begin{align*}
     &\tmctxrelLF{\Gamma}{R}{S}{\Psi} \implies A\,\tyr^R\,a \implies \tmctxrelLF{\Gamma,A}{\Rshift{R}}{\Rext{S}}{\Psi,a} & &\tmctxrelLF{\Gamma}{R}{S}{\Psi} \implies \tmctxrelLF{\Gamma\subst{\shift}}{\Rext{R}}{\Rshift{S}}{\Psi,\Prp}\tag*{\qedsymbol}
@@ -698,8 +692,6 @@ This is what allowed us to quickly generate all the contextual invariants needed
   \label{fig:sys-l-abella}
 \end{figure}
 
-%\enlargethispage{\baselineskip}
-
 Abella supports the use of higher-order abstract syntax (HOAS)~\cite{DBLP:conf/pldi/PfenningE88}.
 The main idea is to delegate variable binding at the object level to binding at the meta level.
 Take for example the term constructor $\mathsf{lam} \OF (\mathsf{tm} \to \mathsf{tm}) \to \mathsf{tm}$ that yields an abstraction of the untyped $\lambda$-calculus.
@@ -733,7 +725,7 @@ This process is often referred to as \emph{mobility of binders}: object level bi
 Note that Fact~\ref{fac:ab-cut-inst} provides substitutivity for the various judgements of our object languages.
 It is also worth noting that only the judgements, but not the specification level types like~$\TmL$ and $\TyF$, are embedded, so we cannot induct directly on our syntax definitions.
 
-At this point it should be straightforward to understand the HOAS representation of our two systems given in Figures~\ref{fig:sys-f-abella}~and~\ref{fig:sys-l-abella}\footnote{The HOAS language definitions are standard. See also Appendix~\ref{apdx:hoas} for reference.}.
+At this point it should be straightforward to understand the HOAS representation of our two systems given in Figures~\ref{fig:sys-f-abella}~and~\ref{fig:sys-l-abella}.\footnote{The HOAS language definitions are standard. See also Appendix~\ref{apdx:hoas} for reference.}
 For F, the judgements $\istyFh{A}$ and $\typingFh{s}{A}$ encode type formation and respectively typing.
 For \SysL, the judgement $\sortLh{u}$ is used to recognise universes, while $\typingLh{a}{b}$ represents PTS typing.
 
@@ -828,18 +820,11 @@ The HOAS setup allows us to obtain these easily.
 \section{Beluga}
 \label{sec:beluga}
 
-\newcommand{\D}{\mathcal{D}}
-\newcommand{\bc}[2]{\ensuremath{[\,#1\,\vdash #2\,]}}
-\newcommand{\sof}{\ensuremath{\!:\ms}}
-\newcommand{\ssep}{\ensuremath{,\ms}}
-
 The programming and proof environment Beluga~\cite{Pientka:FLOPS10,Pientka:CADE15} is another system that supports HOAS.
 Object languages are encoded in the logical framework LF~\cite{Harper93jacm}, while proofs about these are expressed as total programs in contextual modal type theory, Beluga's reasoning logic.
 The programs analyse LF derivation trees using pattern matching and higher-order unification.
 In Beluga, it is necessary to give programs (i.e.\ proof terms) explicitly, which are proof checked as part of type checking.
 This stands in contrast to Coq and Abella, both of which are interactive systems with a tactic language for proof term construction.
-
-%\enlargethispage{\baselineskip}
 
 The biggest difference, however, lies with Beluga's treatment of object level variables.
 In particular, at the outermost level, there is no such thing as a free object variable.
@@ -855,7 +840,7 @@ We can then show that assuming well-formedness under the empty context entails a
 Meanwhile in Beluga, we observe that the contextual object $\bc{\emptyctx}{x \to x}$ is not even syntactically well-formed, since $x \notin \emptyctx$.
 An immediate consequence of this is that the type formation judgement for F, which ensures that the context is covering all free type variables, becomes redundant.
 Hence Beluga's definition of F is obtained from Figure~\ref{fig:sys-f-abella} by removing all references to type formation.
-The definition of \SysL is identical to the one for Abella (Figure~\ref{fig:sys-l-abella})\footnote{For a concrete presentation of the resulting definitions, see Appendix~\ref{apdx:hoas}.}.
+The definition of \SysL is identical to the one for Abella (Figure~\ref{fig:sys-l-abella}).\footnote{For a concrete presentation of the resulting definitions, see Appendix~\ref{apdx:hoas}.}
 
 Recall that context management was completely manual in Coq.
 Each judgement required well-chosen generalisations and custom invariants to accurately track contextual information.
