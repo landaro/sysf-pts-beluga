@@ -257,7 +257,7 @@ The second, given in Figure~\ref{fig:sys-l}, is the single-sorted pure type syst
 
 In~\cite{Geuvers1993}, Geuvers gives a proof sketch that valid typing judgements can be translated between these two presentations.
 In~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} we then gave the first proof, machine-checked in Coq, of the full reduction result.
-It relied on syntactic translation functions and the construction of an intermediate, F-like type system for the PTS syntax.
+It relies on syntactic translation functions and the construction of an intermediate, F-like type system for the PTS syntax.
 The proof presented here is a lot simpler for a number of reasons.
 We use relations on the two syntactic languages rather than translation functions, so we do not have to concern ourselves with cancellation laws to establish the reductions.
 We can further establish the correspondence directly, which completely bypasses the need for the intermediate type system.
@@ -270,7 +270,7 @@ We can further establish the correspondence directly, which completely bypasses 
     \end{align*}
     \begin{mathpar}
       \inferrule*{(X,y) \in \Theta}{\Theta \vdash X \tyr y} \and
-      \inferrule*[right=$x \notin \Theta$]{\Theta \vdash A \tyr a \\ \Theta \vdash B \tyr b}{\Theta \vdash A \to B \tyr \Prod{y \of a} b} \and
+      \inferrule*[right=$y \notin \Theta$]{\Theta \vdash A \tyr a \\ \Theta \vdash B \tyr b}{\Theta \vdash A \to B \tyr \Prod{y \of a} b} \and
       \inferrule*[right={$X,y \notin \Theta$}]{\Theta, (X,y) \vdash A \tyr a}{\Theta \vdash \nAll{X} A \tyr \Prod{y \of \Prp} a}\\
       \inferrule*{(x,y) \in \Sigma}{\cc{\Theta}{\Sigma} \vdash x \tmr y} \and
       \inferrule*{\cc{\Theta}{\Sigma} \vdash s \tmr a \\ \cc{\Theta}{\Sigma} \vdash t \tmr b}{\cc{\Theta}{\Sigma} \vdash s\,t \tmr a\,b} \and
@@ -294,14 +294,14 @@ In the following we present three formalisations.
 They all follow the same basic proof structure, outlined in Section~\ref{sec:equi}, but they each deal with the complexities of contextual information and variable binding in different ways.
 In Sections~\ref{sec:coq},~\ref{sec:abella}~and~\ref{sec:beluga} we discuss in detail how this is managed, in order of seniority, in Coq~\cite{CoqWebsite}, Abella~\cite{AbellaTutorial} and respectively Beluga~\cite{Pientka:CADE15}.
 
-The Coq proof assistant, oldest among the three, is a general purpose theorem prover based on constructive mathematics with no particular built-in support for meta-theoretical reasoning.
+The Coq proof assistant, oldest among the three, is a general purpose theorem prover based on constructive type theory with no particular built-in support for meta-theoretical reasoning.
 Since all required structures have to be handled manually, library support is essential.
 In our case we use the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15} that allows us to elegantly work with pure de Bruijn syntax and parallel substitutions.
 
-Meanwhile, both Abella and Beluga allow us to work with higher-order abstract syntax (HOAS), albeit in two rather different background logics.
+Meanwhile, both Abella and Beluga allow us to work with higher-order abstract syntax (HOAS)~\cite{DBLP:conf/pldi/PfenningE88}, albeit in two rather different background logics.
 Both systems are designed explicitly with meta-theoretical reasoning in mind, with suitable support built into the foundation of each system.
 The core design of Abella is based around proof search and relational specifications.
-It predates the POPLmark challenge~\cite{poplmark}, which shaped the previous decade of formalised meta theory.
+It predates the POPLmark challenge~\cite{poplmark}, which shaped the following decade of formalised meta theory.
 Meanwhile Beluga, youngest among the three, was able to incorporate the insights obtained from POPLmark into its design right from the start.
 This led to the notion of contextual objects and first class syntactic contexts.
 Our three developments demonstrate how the various system designs affect a given formalisation effort.
@@ -312,7 +312,7 @@ The systems require vastly different amounts of code to establish the separate m
 
 \noindent{\bf Contributions of the paper:}
 \begin{enumerate}
-\item We present and compare three different machine checked formalisations of the technically intricate reduction of typability from System~F to the PTS \SysL and vice versa.\footnote{The accompanying developments can be found at \url{https://www.ps.uni-saarland.de/extras/fscd17/}}
+\item We present and compare three different machine checked formalisations of the technically intricate reduction of typability from System~F to the PTS \SysL and vice versa\footnote{The accompanying developments can be found at \url{https://www.ps.uni-saarland.de/extras/fscd17/}}.
 \item We propose that our equivalence proof serves as a benchmark for reasoning about and relating multiple type systems and languages involving variable binding.
   The key aspect of this benchmark is the representation and manipulation of contexts that track multiple kinds of information and exhibit complex dependency structures.
   As such it can be seen as a complement to the benchmarks proposed in~\cite{Felty:ITP10,Felty:orbi-survey} and the POPLmark challenge~\cite{poplmark}.
@@ -429,7 +429,7 @@ For the Coq proof we reuse the pure de Bruijn encoding of the two systems and th
 The language definitions are given in Figures~\ref{fig:sys-f-coq}~and~\ref{fig:sys-l-coq}.
 The main feature of de Bruijn syntax is the absence of variable names.
 Variables are instead represented as numerical indices, where $n$ references the $n$th enclosing binder of the correct scope.
-Dangling references represent free variables that instead reference positions in an enclosing context, indexed from right to left.
+Dangling indices represent free variables that instead reference positions in an enclosing context, indexed from right to left.
 Note that we preserve the dot as a notational device to uniformly indicate the presence of a binding constructor, even if nothing remains to the left of it (e.g.\ $\TyLam s$).
 It marks the precise spot where substitutions and indices have to be adjusted.
 The application of a parallel substitution $\sigma$ to a term $s$ is written $s\subst{\sigma}$ where $\sigma$ is a function from $\Nat$ that acts on all free variables of $s$ at once.
@@ -443,7 +443,7 @@ A brief overview is also given in Appendix~\ref{apdx:db}.
 In the definition of F in Figure~\ref{fig:sys-f-coq}, observe how the type variable context $\Delta$ degenerates to a plain natural number $N$.
 It is taken as an exclusive upper bound to the admissible type variable indices, hence $N = 0$ represents the empty context.
 The term variable context~$\Gamma$ is simply a list of types, since free variables are coded as context positions.
-The \linebreak[0]$\beta$-substitution~$B\scons{\id}$ used in the type specialisation rule maps the free index 0 to $B$ and lowers all other indices by 1.
+The $\beta$-substitution~$B\scons{\id}$ used in the type specialisation rule maps the free index 0 to $B$ and lowers all other indices by 1.
 
 We further observe that for \SysL, defined in Figure~\ref{fig:sys-l-coq}, context lookup is characterised inductively: $x \of a \inL \Psi$.
 The need for this arises from the fact that the PTS contexts are dependent as well as the more general issue that in a de Bruijn setting, terms are not stable under context modifications.
@@ -477,7 +477,7 @@ In order to precisely define these operations, let us recall the required action
   (\All A)\subst{\sigma} \qquad\longmapsto\qquad \All A\subst{0 \scons \sigma \scomp \shift}
 \end{align*}
 The $\subst{0 \scons \_}$ part ensures that any index referencing the presently traversed binder is preserved as such.
-Meanwhile the $\subst{\_ \scons \sigma \scomp \shift}$ part ensures that every index $n + 1$ is mapped to $\sigma(n)\subst{\shift}$, where the $\shift$ ensures that no free variables in the range of $\sigma$ are accidentally captured by the traversed binder.
+Meanwhile the $\subst{\_ \scons \sigma \scomp \shift}$ part ensures that every index $n + 1$ is mapped to $\sigma(n)\subst{\shift}$, where the shift $\shift$ ensures that no free variables in the range of $\sigma$ are accidentally captured by the traversed binder.
 
 In our correspondence proof we traverse binders \emph{almost} in lockstep.
 For the simple cases where we have a binder on both sides of the relation, and moreover, the bound variables actually correspond according to the information tracked in $R$, we define, analogously to the binder traversal for substitutions:
@@ -648,7 +648,7 @@ Here we use:
   Note that we need to discriminate on the universes of product domains again (cf.\ Lemma~\ref{lem:tyr_lf_tot_pres}), here to disambiguate the unified abstractions and applications correctly.
 \end{proof}
 
-At this point we make an interesting observation.
+At this point we can make an interesting observation.
 The above proof demonstrates that the CML proof pattern not only generalises to a multi system setting~\cite{KaiserEtAl:2017:sysf_pts_equiv_coq} but also to relations in place of functional correspondences.
 This is what allowed us to quickly generate all the contextual invariants needed for the various results.
 
@@ -711,7 +711,7 @@ To get around this, Abella is designed around the so-called two-level logic appr
 The lower \emph{specification level}, essentially verbatim $\lambda$Prolog, is used to encode the object languages and their associated judgements.
 One then reasons about these encodings at the \emph{meta level}, using the logic $\mathcal{G}$, which is the intuitionistic predicative fragment of Church's simple type theory, extended with natural induction, (co)inductive predicates and nominal quantification ($\nabla x . \ms s$).
 The axioms of $\mathcal{G}$ ensure that a $\nabla$-quantified identifier is fresh for everything bound above it.
-The faithful representation of object level variables relies on these freshness guarantees.
+The faithful representation of object level variables relies on this freshness guarantee.
 
 The two levels are connected with a special inductive predicate that embeds the derivation of a $\lambda$Prolog judgement $J$ from hypotheses $L = I_0,\ldots,I_n$ into $\mathcal{G}$, written $\aj{L}{J}$, or simply $\aje{J}$ in the absence of assumptions.
 Note that $\lambda$Prolog supports hypothetical ($J_1 \lpImp J_2$) and locally quantified ($\lpPi{x} J\subst{x}$) premises, which the embedding treats as follows:
@@ -733,7 +733,7 @@ This process is often referred to as \emph{mobility of binders}: object level bi
 Note that Fact~\ref{fac:ab-cut-inst} provides substitutivity for the various judgements of our object languages.
 It is also worth noting that only the judgements, but not the specification level types like~$\TmL$ and $\TyF$, are embedded, so we cannot induct directly on our syntax definitions.
 
-At this point it should be straightforward to understand the HOAS representation of our two systems given in Figures~\ref{fig:sys-f-abella}~and~\ref{fig:sys-l-abella}.\footnote{The HOAS language definitions are as one would expect. See also Appendix~\ref{apdx:hoas} for reference.}
+At this point it should be straightforward to understand the HOAS representation of our two systems given in Figures~\ref{fig:sys-f-abella}~and~\ref{fig:sys-l-abella}\footnote{The HOAS language definitions are standard. See also Appendix~\ref{apdx:hoas} for reference.}.
 For F, the judgements $\istyFh{A}$ and $\typingFh{s}{A}$ encode type formation and respectively typing.
 For \SysL, the judgement $\sortLh{u}$ is used to recognise universes, while $\typingLh{a}{b}$ represents PTS typing.
 
@@ -745,7 +745,7 @@ Consider the following inversion principle for arrow type formation in F:
 
 The premise may hold not only due to structural reasons, as claimed by the lemma, but also due to backchaining and $\istyFh{A \to B} \in L$.
 The problem is that $L$ is too general and may contain arbitrary judgements, not even necessarily related to type formation.
-Hence we need to somehow constrain $L$ to only contain judgements of the form~$\istyFh{n_i}$, where the $n_i$ are nominals representing variables.
+Hence we need to somehow constrain $L$ to only contain judgements of the form~$\istyFh{n_i}$, where the~$n_i$ are nominals representing variables.
 Similarly we want to constrain typing contexts to only contain judgements of the form $\istyFh{n_i}$ or $\typingFh{n_i}{A}$.
 We specify this notion of well-formed contexts  with auxiliary inductive $\mathcal{G}$-predicates.
 The well-formedness predicate for F typing contexts, written $\acFtm{-}$, is defined as:
@@ -845,7 +845,7 @@ The biggest difference, however, lies with Beluga's treatment of object level va
 In particular, at the outermost level, there is no such thing as a free object variable.
 This is in stark contrast to Coq's dangling de Bruijn indices and Abella's global nominal constants.
 In Beluga we instead deal with \emph{contextual objects}, written $\bc{\Gamma}{K}$, that is objects $K$ (like types, terms, typing derivations) paired with contexts $\Gamma$ in which they are meaningful~\cite{Nanevski:ICML05,Pientka:POPL08}.
-One of the main advantages of contextual objects is, that they remain closed under inductive reasoning.
+One of the main advantages of contextual objects is that they remain closed under inductive reasoning.
 Hence they constitute an alternative to Abella's two-level logical embedding.
 
 As an example, consider the function type $X \to X$ where $X$ is a free type variable.
@@ -855,7 +855,7 @@ We can then show that assuming well-formedness under the empty context entails a
 Meanwhile in Beluga, we observe that the contextual object $\bc{\emptyctx}{x \to x}$ is not even syntactically well-formed, since $x \notin \emptyctx$.
 An immediate consequence of this is that the type formation judgement for F, which ensures that the context is covering all free type variables, becomes redundant.
 Hence Beluga's definition of F is obtained from Figure~\ref{fig:sys-f-abella} by removing all references to type formation.
-The definition of \SysL is identical to the one for Abella (Figure~\ref{fig:sys-l-abella}).\footnote{For a concrete presentation of the resulting definitions, see Appendix~\ref{apdx:hoas}.}
+The definition of \SysL is identical to the one for Abella (Figure~\ref{fig:sys-l-abella})\footnote{For a concrete presentation of the resulting definitions, see Appendix~\ref{apdx:hoas}.}.
 
 Recall that context management was completely manual in Coq.
 Each judgement required well-chosen generalisations and custom invariants to accurately track contextual information.
@@ -977,34 +977,27 @@ The schemas can be further arranged in a hierarchy (Figure~\ref{fig:ctxschema}).
 A context satisfying $S_{\tyr}$ can always be weakened to one sitting lower in the hierarchy.
 The hierarchy also induces a strengthening relationship, going upwards, as long as the subordination order of judgements under said contexts is respected.
 
-\section{A Note on Adequacy}
+\section{Adequacy}
 \label{sec:adequacy}
 
-Any form of formalised reasoning raises the question of the faithfulness of the formal representation.
-Do the formal definitions correspond to the intuitively understood mathematical objects that we want to reason about?
-For the special case of syntactic systems and their meta theory, this particular property is called \emph{adequacy} and expresses that the on-paper syntax and the formal encoding are in one-to-one correspondence.
-It should be clear that adequacy has to be argued outside the proof system in question, as it relates a formal encoding to an intuitive concept.
+To put any trust in the formalisations we have just discussed, we have to briefly consider the issue of \emph{adequacy}.
+That is, we have to argue why our formal definitions correspond to our intuitive understanding of the mathematical objects at hand.
 
-We have just covered three formalisations that all encode syntax, so let us consider each of them in the light of adequacy.
+For the de~Bruijn setup in Coq, the question does not really arise, as it is a well understood first-order encoding.
+The representation of the syntax is comparable to any other inductive datatype, like say natural numbers or lists.
+It is our understanding that a de Bruijn encoding is the canonical implementation of the \emph{Barendregt convention}.
+The fact that all three proof assistants used here are internally implemented using de Bruijn supports this belief.
 
-In Coq we have a pure de Bruijn setup, a first-order encoding.
-Since all structures are defined and manipulated explicitly, and first-order encodings are generally well understood, there is not much doubt in the faithfulness of the representation.
-In particular, the main feature of our host system that is used heavily is the notion of an inductive type, and it is commonly agreed that the grammar of a language is an inductive structure.
+The situation is quite different for our HOAS encodings, as they borrow their function spaces and substitution mechanisms directly from their host environment.
+When HOAS was first introduced it was not at all clear that this would yield sensible syntactic structures.
+Thus since at least the 1990s a lot of techniques were developed to argue that such definitions are faithful.
+We rely on these to trust our language definitions.
 
-For the higher-order encodings used in Abella and Beluga the situation is quite different, as both are intertwined with their respective host systems.
-The biggest issue here are the object level function spaces which are directly obtained form the host system function spaces.
-The same holds for substitution which is also borrowed from the host environmnet.
-
-For basic HOAS these issues have been extensively discussed since at least the 90s and it is widely assumed that the resulting adequacy proofs are acceptable.
-This pertains to our syntax definitions as well.
-When it comes to the judgements though, it gets slightly more interesting, as both in Abella and Beluga, we use features that go beyond basic HOAS, namely subordination, which allows us to ignore certain cases in the proofs.
-So why do we trust the results here?
-
-Mostly because they do not break under close scrutiny.
-That is, we managed to prove several expected properties for the given definitions.
-More importantly each of the proofs connects two variants of presumably the same intuitive mathematical entity.
-Last, and probably most relevant, is the fact that the same large scale proof design that worked for the de Bruijn encoding could be replayed for both HOAS representations.
-In combination this should suggest adequacy until evidence to the contrary is provided.
+When it comes to the HOAS type systems and proofs about them, the situation becomes less clear, as both Abella and Beluga go beyond basic $\lambda$-tree syntax and exploit subordination to justify the inductiveness of certain proofs.
+Here we can argue adequacy based on two facts.
+First, we have proven that in each case two variants of intuitively the same mathematical system do in fact behave the same and the encodings also admit all the expected properties.
+Second, we were able to replay the same overall proof structure that worked for the de~Bruijn approach on the HOAS encodings.
+Taken together, this stability within and across proof systems allows us to assume the adequacy of representations until evidence to the contrary is provided.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -1014,7 +1007,7 @@ The development of three different formalisations allowed us to gain deep insigh
 In particular we were able to separate these from technical artefacts due to the chosen formalisation technique.
 Two examples of inherent complications are the not quite perfectly aligned binding structures and the missing typing information required to disambiguate the uniform PTS applications.
 
-Our set of developments demonstrates, that the various formalisation techniques can be arranged in a hierarchy of abstraction layers.
+Our set of developments demonstrates that the various formalisation techniques can be arranged in a hierarchy of abstraction layers.
 At the lowest level we have pure de Bruijn with a lot of representation freedom, which, however, has to be manged manually.
 Higher up in the hierarchy sit the HOAS techniques, which hide a lot of the technicalities and provide a more meaningful abstraction.
 In comparison with Abella, Beluga appears to deliver the theoretically nicer interface, with the added features of contextual reasoning and the ability to perform inductions directly over the HOAS syntax.
@@ -1023,18 +1016,15 @@ Among the two, Abella's tactic language certainly gives it a head start.
 
 We observe that our proof contains a number of challenges that, taken as a whole, constitute a nice benchmark for systems designed to reason about type systems.
 It tests in particular, how well multiple type systems with binding constructs can be brought into correspondence.
-We hence propose it as a complement to the POPLmark challenge~\cite{poplmark} on the one hand, which solely tests how well a system can reason about a single type system, and the ORBI benchmarks~\cite{Felty:ITP10,Felty:orbi-survey} which cover small-scale contextual reasoning.
+We hence propose it as a complement to the POPLmark challenge~\cite{poplmark} on the one hand, which solely tests how well a framework can reason about a single type system, and the ORBI benchmarks~\cite{Felty:ITP10,Felty:orbi-survey} which cover small-scale contextual reasoning.
 It is our belief that such a benchmark could be very useful to those who seek to develop or improve frameworks for reasoning about type systems and similar syntactic systems with variable binding and complex contextual information.
 
-We have come to the conclusion that, as so often, there appears to be no ``silver bullet'' solution.
+We have come to the conclusion that there appears to be no ``silver bullet'' solution.
 There exist various approaches and they all have their merits and drawbacks.
 The question is not so much about whether de~Bruijn or HOAS is better, but what techniques pair well with each approach.
-Take for example the parallel substitutions and the notion of context morphism lemmas that elegantly complement de~Bruijn syntax.
-Meanwhile in Abella we had the two-level logic approach and the crucial part was the definition of suitable inversion principles.
-Finally we had Beluga and its first class contexts where the various context schemas played the essential role.
-There are of course other approaches (see below), but a comprehensive survey, while desirable, would certainly exceed the scope of this format.
-We hope that our work constitutes a small step towards such a catalogue of techniques.
-We also suggest to everyone who works with formalisations of binding syntax to seriously consider at least one alternative approach as the process can be quite enlightening.
+We have highlighted some of these here but there are of course further approaches (see below).
+A comprehensive survey, while desirable, would certainly exceed the scope of this format, but we hope that our work constitutes a small step towards such a catalogue of techniques.
+To conclude, we found that reworking the same proof in multiple frameworks was quite enlightening.
 
 \noindent{\bf Future Work.}
 We would like to continue into three largely orthogonal directions.
@@ -1050,8 +1040,8 @@ It provides an abstraction layer that sits somewhere between pure de Bruijn and 
 Our benchmark could test the stability of this layer.
 Another is the HYBRID framework~\cite{DBLP:journals/jar/FeltyM12} that aims to bring HOAS to Coq.
 At present however, it is neither equipped with Abella's $\nabla$ nor Beluga's contextual types, so it remains to be seen if it can handle our challenge.
-Another reason why the HYBRID approach is interesting, if it should turn out to be feasible, is the fact that it also exists as an Isabelle library and hence would allow an extension of the benchmark in that direction.
-It would also be interesting to see how a system like Twelf~\cite{DBLP:conf/cade/PfenningS99} would handle the rich context structures.
+Note that the HYBRID library exists in Isabelle as well.
+The rich context structures could also pose an interesting challenge for systems like Twelf~\cite{DBLP:conf/cade/PfenningS99}.
 
 Finally, we consider scaling the challenge both down to the simply typed $\lambda$-calculus, as well as up to F$_\omega$, to obtain a better understanding of where exactly certain complications originate from.
 
@@ -1060,26 +1050,26 @@ Finally, we consider scaling the challenge both down to the simply typed $\lambd
 \section{De~Bruijn Definitions}
 \label{apdx:db}
 
-We recap the core concepts of de Bruijn with parallel substitutions.
+We summarise the core concepts of de Bruijn with parallel substitutions.
 The main feature of de Bruijn syntax is the absence of variable names, yielding concrete canonical representations for the on-paper implicitly assumed $\alpha$-equivalence classes of syntactic expressions.
-Instead of using names, variables are represented as numerical indices, where $n$ references the $n$-th enclosing binder of the corresponding scope.
+Instead of using names, variables are represented as numerical indices, where $n$ references the $n$-th enclosing binder of the corresponding scope, counting from $0$.
 We illustrate the concepts using the two-sorted variant of System~F that is discussed in the main text:
 \begin{align*}
   A, B &\bnfdef x_\ty \mid A \to B \mid \All A & s, t &\bnfdef x_\tm \mid s\,t \mid \Lam A s \mid s\,A \mid \TyLam s & &x \OF \Nat
 \end{align*}
 Note that the $A$ in $\Lam A s$ is the type of the bound term variable, not its name.
-Dangling references correspond to free variables.
+Dangling indices correspond to free variables.
 They are taken as indices into an ambient context which is normally represented as a list of the information attached to each variable.
 A standard typing context $\Gamma$ is represented as a simple list of types.
 
 To understand the instantiation of terms or types with parallel substitutions, let us first recall a few primitives of the $\sigma$-calculus (see~\cite{abadi1991} for details):
 \begin{align*}
   (M \scons \sigma)\,0 &\eqdef M & \shift\,x&\eqdef (x + 1)\\
-  (M \scons \sigma)\,(x + 1) &\eqdef \sigma\,x & \id &\eqdef 0 \scons \shift
+  (M \scons \sigma)\,(x + 1) &\eqdef \sigma\,x & \id &\eqdef 0\,\scons \shift
 \end{align*}
 Parallel substitutions $\sigma \OF \Nat \to \mathcal{T}$, where $\mathcal{T}$ is some syntactic sort, can be seen as streams $M_0, M_1, \ldots $, with $M_i \OF \mathcal{T}$.
 This motivates the notion of the \emph{cons} operation $M \scons \sigma$, which maps the index 0 to $M$, and all other indices $x + 1$ to $\sigma\,x$.
-The \emph{shift} operation simply raises all indices by one, and the identity substitution $\id$ is a derived notion.
+The \emph{shift} operation $\shift$ simply raises all indices by one, and the identity substitution $\id$ is a derived notion.
 The concrete type of substitutions and a corresponding instance of this framework depends on the syntactic sort for which a notion of substitution is defined.
 
 Let us first consider the types of our example.
@@ -1087,7 +1077,7 @@ The instantiation of a type $A$ with a parallel substitution $\sigma$, written $
 \begin{align*}
   x_\ty\subst\sigma &= \sigma\,x_\ty & (\sigma_1 \scomp \sigma_2)\,x_\ty &= (\sigma_1\,x_\ty)\subst{\sigma_2}\\
   (A\to B)\subst\sigma &= A\subst\sigma \to B\subst\sigma & &\\
-  (\All A)\subst\sigma &= \All A\subst{\up\sigma} & \text{with } \up\sigma&= 0_\ty \scons \sigma \scomp \shift
+  (\All A)\subst\sigma &= \All A\subst{\up\sigma} & \text{with } \up\sigma&= 0_\ty \scons \sigma\,\scomp \shift
 \end{align*}
 For the terms we actually require a vector of two parallel substitutions, $\langle\sigma,\tau\rangle$, since both type and term variables can occur in a given term:
 \begin{align*}
@@ -1095,11 +1085,11 @@ For the terms we actually require a vector of two parallel substitutions, $\lang
   (s\,t)\subst{\sigma,\tau} &= s\subst{\sigma,\tau}\,t\subst{\sigma,\tau} & &\\
   (\Lam A s)\subst{\sigma,\tau} &= \Lam {A\subst\sigma} {s\subst{\up^{\tm}\langle\sigma,\tau\rangle}} & \text{with } \up^{\tm}\langle\sigma,\tau\rangle &= \langle\sigma,0_\tm\scons\tau\scomp{\langle\id,\shift\rangle}\rangle\\
   (s\,A)\subst{\sigma,\tau} &= s\subst{\sigma,\tau}\,A\subst{\sigma} & &\\
-  (\TyLam s)\subst{\sigma,\tau} &= \TyLam {s\subst{\up^{\ty}\langle\sigma,\tau\rangle}} & \text{with } \up^{\ty}\langle\sigma,\tau\rangle&= \langle 0_\ty \scons \sigma \scomp \shift, \tau \scomp \langle\shift,\id\rangle\rangle
+  (\TyLam s)\subst{\sigma,\tau} &= \TyLam {s\subst{\up^{\ty}\langle\sigma,\tau\rangle}} & \text{with } \up^{\ty}\langle\sigma,\tau\rangle&= \langle 0_\ty \scons \sigma\, \scomp \shift, \tau \scomp \langle\shift,\id\rangle\rangle
 \end{align*}
 
 The key idea in both cases is that parallel substitutions act on all free variables at once, which leads to an elegant equational theory and subsequently to a good foundation for proof automation.
-A nice example is $\beta$-substitutivity, which can concisely be expressed as $(\Lam A s)\,t\leadsto s\subst{\id,t\scons\id}$.
+A nice example is $\beta$-reduction, which can concisely be expressed as $(\Lam A s)\,t\leadsto s\subst{\id,t\scons\id}$.
 
 The Autosubst framework is capable of generating all of this automatically from annotated inductive syntax definitions, together with the respective equational theories.
 It further provides a decision tactic that can solve goals involving substitution expressions, based on the results in~\cite{SchaeferEtAl:2009:Completeness}.
