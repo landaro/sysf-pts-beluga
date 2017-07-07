@@ -296,12 +296,12 @@ The Coq proof assistant, oldest among the three, is a general purpose theorem pr
 Since all required structures have to be handled manually, library support is essential.
 In our case we use the Autosubst framework~\cite{DBLP:conf/itp/SchaferTS15} that allows us to elegantly work with pure de Bruijn syntax and parallel substitutions.
 
-Meanwhile, both Abella and Beluga allow us to work with higher-order abstract syntax (HOAS)~\cite{DBLP:conf/pldi/PfenningE88}, albeit in two rather different background logics.
+In contrast, both Abella and Beluga allow us to work with higher-order abstract syntax (HOAS)~\cite{DBLP:conf/pldi/PfenningE88}, albeit in two rather different background logics.
 Both systems are designed explicitly with meta-theoretical reasoning in mind, with suitable support built into the foundation of each system.
 The core design of Abella is based around proof search and relational specifications.
 It predates the POPLmark challenge~\cite{poplmark}, which shaped the following decade of formalised meta theory.
-Meanwhile Beluga, youngest among the three, was able to incorporate the insights obtained from POPLmark into its design right from the start.
-This led to the notion of contextual objects and first class syntactic contexts.
+Meanwhile Beluga, youngest among the three, revisited and and extended the Twelf logical framework~\cite{DBLP:conf/cade/PfenningS99} to directly support first-class syntactic contexts and substitutions in its type-theoretic foundation.
+This lead to the notion of contextual objects.
 Our three developments demonstrate how the various system designs affect a given formalisation effort.
 
 While the comparison of proofs from different systems in terms of code lines is only marginally meaningful, we were surprised to find that all three developments each take approximately 500 loc, with Beluga slightly on the shorter side and Coq somewhat on the longer.
@@ -334,11 +334,11 @@ To obtain the desired equivalence results, we have to demonstrate that these rel
   \item $\tyr$ is functional and injective.
   \item $\tyr$ is left-total and type-formation preserving on the well-formed types of F.
   \item $\tyr$ is right-total and type-formation preserving on the propositions of \SysL.
-    A proposition of \SysL is any term $a \OF \TmL$ such that $\typingL{}{a}{\Prp}$ holds.
+    A proposition of \SysL is any term $a$ such that $\typingL{}{a}{\Prp}$ holds.
   \item $\tmr$ is functional and injective.
   \item $\tmr$ is left-total and typing preserving on the well-typed terms of F.
   \item $\tmr$ is right-total and typing preserving on the proofs of \SysL.
-    A proof of \SysL is any term~${b \OF \TmL}$ such that $\typingL{}{b}{a}$ holds for $a$ a proposition of \SysL.
+    A proof of \SysL is any term~$b$ such that $\typingL{}{b}{a}$ holds for $a$ a proposition of \SysL.
 \end{enumerate}
 We can now formulate, and easily prove, the following equivalences:
 
@@ -437,7 +437,7 @@ A brief overview is also given in Appendix~\ref{apdx:db}.
 In the definition of F in Figure~\ref{fig:sys-f-coq}, observe how the type variable context $\Delta$ degenerates to a plain natural number $N$.
 It is taken as an exclusive upper bound to the admissible type variable indices, hence $N = 0$ represents the empty context.
 The term variable context~$\Gamma$ is simply a list of types, since free variables are coded as context positions.
-The $\beta$-substitution~$B\scons{\id}$ used in the type specialisation rule maps the free index 0 to $B$ and lowers all other indices by 1.
+The \linebreak[2] substitution~$B\scons{\id}$ used in the type specialisation rule maps the free index 0 to $B$ and lowers all other indices by 1.
 
 We further observe that for \SysL, defined in Figure~\ref{fig:sys-l-coq}, context lookup is characterised inductively: $x \of a \inL \Psi$.
 The need for this arises from the fact that the PTS contexts are dependent as well as the more general issue that in a de Bruijn setting, terms are not stable under context modifications.
@@ -701,7 +701,7 @@ Substitution at the object level is implemented as application at the meta level
 Reasoning about HOAS encodings inductively is somewhat complicated, as terms do not remain closed and escape into the host theory.
 To get around this, Abella is designed around the so-called two-level logic approach.
 The lower \emph{specification level}, essentially verbatim $\lambda$Prolog, is used to encode the object languages and their associated judgements.
-One then reasons about these encodings at the \emph{meta level}, using the logic $\mathcal{G}$, which is the intuitionistic predicative fragment of Church's simple type theory, extended with natural induction, (co)inductive predicates and nominal quantification ($\nabla x . \ms s$).
+One then reasons about these encodings at the \emph{meta level}, using the logic $\mathcal{G}$, which is the intuitionistic predicative fragment of Church's simple type theory, extended with natural induction, (co)inductive predicates and nominal quantification ($\nabla x . \ms s$)~\cite{Gacek:LICS08,Gacek:JAR12}.
 The axioms of $\mathcal{G}$ ensure that a $\nabla$-quantified identifier is fresh for everything bound above it.
 The faithful representation of object level variables relies on this freshness guarantee.
 
