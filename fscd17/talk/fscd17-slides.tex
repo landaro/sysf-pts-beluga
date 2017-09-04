@@ -244,19 +244,22 @@
 
 \begin{frame}
   \frametitle{Related Work}
-  \pause
   \begin{itemize}
-  \item The reduction result is partially discussed in \mycite{Geuvers '93}.
+  \item<2-> The reduction result is partially discussed in \mycite{Geuvers '93}.
     \begin{itemize}
     \item Primarily argues the forward preservation of typing.
     \item The syntactic correspondence is left implicit.
-    \end{itemize}\pause
-  \item Coq formalisation of the full reduction in \mycite{K/Tebbi/Smolka '17}.
+    \end{itemize}
+  \item<3-> Coq formalisation of the full reduction in \mycite{K/Tebbi/Smolka '17}.
     \begin{itemize}
     \item Pairs of translation functions establish the syntactic correspondence.
     \item Requires involved cancellation laws.
     \item Proofs based on an extension of context morphism lemmas \mycite{Goguen/McKinna '97, Adams '06}.
     \end{itemize}
+  \item<4-> Goal of this work:
+    \begin{center}
+      Correspondence Proof as \hl{benchmark}\\ for reasoning about\\ \hl{syntax} and \hl{contextual information}.
+    \end{center}
   \end{itemize}
 \end{frame}
 
@@ -654,10 +657,10 @@
     \begin{align*}
       S_{\lambda W} \eqdef [x \of \TmL, \typingl{x}{\prpl}] \mathrel{+} [x \of \TmL, \typingl{x}{a}, \typingl{a}{\prpl}]
     \end{align*}
-  \item<8-> Example (Propagation for $\SysL$) -- implement recursive function $k$, s.t.:
-    \begin{align*}
-      k \mOf \mForall {\Gamma \of S_{\lambda W}} [\Gamma \vdash \typingl{a}{b}] \mImpl [\Gamma \vdash b = \typl \vee \exists u. \typingl{b}{u}]
-    \end{align*}
+  % \item<8-> Example (Propagation for $\SysL$) -- implement recursive function $k$, s.t.:
+  %   \begin{align*}
+  %     k \mOf \mForall {\Gamma \of S_{\lambda W}} [\Gamma \vdash \typingl{a}{b}] \mImpl [\Gamma \vdash b = \typl \vee \exists u. \typingl{b}{u}]
+  %   \end{align*}
   \end{itemize}
 \end{frame}
 
@@ -786,42 +789,42 @@
 
 \section*{Backup}
 
-\begin{frame}[noframenumbering]
-  \frametitle{Relating the Types, $\tyrel{A}{a}$}
-  \begin{mathpar}
-    \inferrule*{(X,y) \in \Theta}{\Theta \vdash \tyrel{X}{y}} \\
-    \inferrule*[right=$y \notin \Theta$]{\Theta \vdash \tyrel{A}{a} \\ \Theta \vdash \tyrel{B}{b}}{\Theta \vdash \tyrel{\impf{A}{B}}{\prodl{y \of a}{b}}} \\
-    \inferrule*[right={$X,y \notin \Theta$}]{\Theta, (X,y) \vdash \tyrel{A}{a}}{\Theta \vdash \tyrel{\nallf{X}{A}}{\prodl{y \of \prpl}{a}}}
-  \end{mathpar}
-\end{frame}
+% \begin{frame}[noframenumbering]
+%   \frametitle{Relating the Types, $\tyrel{A}{a}$}
+%   \begin{mathpar}
+%     \inferrule*{(X,y) \in \Theta}{\Theta \vdash \tyrel{X}{y}} \\
+%     \inferrule*[right=$y \notin \Theta$]{\Theta \vdash \tyrel{A}{a} \\ \Theta \vdash \tyrel{B}{b}}{\Theta \vdash \tyrel{\impf{A}{B}}{\prodl{y \of a}{b}}} \\
+%     \inferrule*[right={$X,y \notin \Theta$}]{\Theta, (X,y) \vdash \tyrel{A}{a}}{\Theta \vdash \tyrel{\nallf{X}{A}}{\prodl{y \of \prpl}{a}}}
+%   \end{mathpar}
+% \end{frame}
 
-\begin{frame}[noframenumbering]
-  \frametitle{Relating the Terms, $\tmrel{s}{b}$}
-  \begin{mathpar}
-    \inferrule*{(x,y) \in \Sigma}{\Theta;\Sigma \vdash \tmrel{x}{y}} \\
-    \inferrule*{\Theta;\Sigma \vdash \tmrel{s}{a} \\ \Theta;\Sigma \vdash \tmrel{t}{b}}{\Theta;\Sigma \vdash \tmrel{\appf{s}{t}}{\appl{a}{b}}} \and
-    \inferrule*{\Theta;\Sigma \vdash \tmrel{s}{a} \\ \Theta \vdash \tyrel{A}{b}}{\Theta;\Sigma \vdash \tmrel{\tyappf{s}{A}}{\appl{a}{b}}} \\
-    \inferrule*[right={$x,y \notin \Theta,\Sigma$}]{\Theta \vdash \tyrel{A}{a} \\ \Theta;\Sigma, (x,y) \vdash \tmrel{s}{b}}{\Theta;\Sigma \vdash \tmrel{\lamf{x \of A}{s}}{\laml{y \of a}{b}}} \\
-    \inferrule*[right={$X,y \notin \Theta,\Sigma$}]{\Theta, (X,y);\Sigma \vdash \tmrel{s}{a}}{\Theta;\Sigma \vdash \tmrel{\ntylamf{X}{s}}{\laml{y \of \prpl}}{a}}
-  \end{mathpar}
-\end{frame}
+% \begin{frame}[noframenumbering]
+%   \frametitle{Relating the Terms, $\tmrel{s}{b}$}
+%   \begin{mathpar}
+%     \inferrule*{(x,y) \in \Sigma}{\Theta;\Sigma \vdash \tmrel{x}{y}} \\
+%     \inferrule*{\Theta;\Sigma \vdash \tmrel{s}{a} \\ \Theta;\Sigma \vdash \tmrel{t}{b}}{\Theta;\Sigma \vdash \tmrel{\appf{s}{t}}{\appl{a}{b}}} \and
+%     \inferrule*{\Theta;\Sigma \vdash \tmrel{s}{a} \\ \Theta \vdash \tyrel{A}{b}}{\Theta;\Sigma \vdash \tmrel{\tyappf{s}{A}}{\appl{a}{b}}} \\
+%     \inferrule*[right={$x,y \notin \Theta,\Sigma$}]{\Theta \vdash \tyrel{A}{a} \\ \Theta;\Sigma, (x,y) \vdash \tmrel{s}{b}}{\Theta;\Sigma \vdash \tmrel{\lamf{x \of A}{s}}{\laml{y \of a}{b}}} \\
+%     \inferrule*[right={$X,y \notin \Theta,\Sigma$}]{\Theta, (X,y);\Sigma \vdash \tmrel{s}{a}}{\Theta;\Sigma \vdash \tmrel{\ntylamf{X}{s}}{\laml{y \of \prpl}}{a}}
+%   \end{mathpar}
+% \end{frame}
 
-\begin{frame}[noframenumbering]
-  \frametitle{Abella -- Logical Predicates $\sim$ and $\approx$}
-  \begin{align*}
-    \tyrel{\_}{\_} &\mOf \TyF \to \TmL \to \lpProp & \tmrel{\_}{\_} &\mOf \TmF \to \TmL \to \lpProp
-  \end{align*}\pause
-  \begin{mathpar}
-    \inferrule*{\tyrel{A}{a} \\ \lpPi {x} \tyrel{B}{\lpApp{b}{x}}}{\tyrel{\impf{A}{B}}{\prodl{a}{b}}} \and
-    \inferrule*{\lpPi {x\,y} \tyrel{x}{y} \lpImp \tyrel{\lpApp{A}{x}}{\lpApp{a}{y}}}{\tyrel{\allf{A}}{\prodl{\prpl}{a}}}
-  \end{mathpar}\pause
-  \begin{mathpar}
-    \inferrule*{\tmrel{s}{a} \\ \tmrel{t}{b}}{\tmrel{\appf{s}{t}}{\appl{a}{b}}}\and
-    \inferrule*{\tyrel{A}{a} \\ \lpPi {x\,y} \tmrel{x}{y} \lpImp \tmrel{\lpApp{s}{x}}{\lpApp{b}{y}}}{\tmrel{\lamf{A}{s}}{\laml{a}{b}}} \\
-    \inferrule*{\tmrel{s}{a} \\ \tyrel{B}{b}}{\tmrel{\tyappf{s}{B}}{\appl{a}{b}}}\and
-    \inferrule*{\lpPi {x\,y} \tyrel{x}{y} \lpImp \tmrel{\lpApp{s}{x}}{\lpApp{b}{y}}}{\tmrel{\tylamf{s}}{\laml{\prpl}{b}}}
-  \end{mathpar}
-\end{frame}
+% \begin{frame}[noframenumbering]
+%   \frametitle{Abella -- Logical Predicates $\sim$ and $\approx$}
+%   \begin{align*}
+%     \tyrel{\_}{\_} &\mOf \TyF \to \TmL \to \lpProp & \tmrel{\_}{\_} &\mOf \TmF \to \TmL \to \lpProp
+%   \end{align*}\pause
+%   \begin{mathpar}
+%     \inferrule*{\tyrel{A}{a} \\ \lpPi {x} \tyrel{B}{\lpApp{b}{x}}}{\tyrel{\impf{A}{B}}{\prodl{a}{b}}} \and
+%     \inferrule*{\lpPi {x\,y} \tyrel{x}{y} \lpImp \tyrel{\lpApp{A}{x}}{\lpApp{a}{y}}}{\tyrel{\allf{A}}{\prodl{\prpl}{a}}}
+%   \end{mathpar}\pause
+%   \begin{mathpar}
+%     \inferrule*{\tmrel{s}{a} \\ \tmrel{t}{b}}{\tmrel{\appf{s}{t}}{\appl{a}{b}}}\and
+%     \inferrule*{\tyrel{A}{a} \\ \lpPi {x\,y} \tmrel{x}{y} \lpImp \tmrel{\lpApp{s}{x}}{\lpApp{b}{y}}}{\tmrel{\lamf{A}{s}}{\laml{a}{b}}} \\
+%     \inferrule*{\tmrel{s}{a} \\ \tyrel{B}{b}}{\tmrel{\tyappf{s}{B}}{\appl{a}{b}}}\and
+%     \inferrule*{\lpPi {x\,y} \tyrel{x}{y} \lpImp \tmrel{\lpApp{s}{x}}{\lpApp{b}{y}}}{\tmrel{\tylamf{s}}{\laml{\prpl}{b}}}
+%   \end{mathpar}
+% \end{frame}
 
 \end{document}
 
